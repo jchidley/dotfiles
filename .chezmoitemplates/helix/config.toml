@@ -5,6 +5,9 @@ line-number = "relative"
 true-color = true
 rulers = [80]
 bufferline = "multiple"
+{{ if eq .chezmoi.os "windows" }}
+shell = ["pwsh.exe","-NoLogo","-NoProfile","-NoProfileLoadTime","-Command","$PSStyle.OutputRendering='PlainText';"]
+{{ end }}
 
 [editor.cursor-shape]
 insert = "bar"
