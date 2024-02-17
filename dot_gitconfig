@@ -2,8 +2,6 @@
 	name = Jack Chidley
 	email = 7399749+jchidley@users.noreply.github.com
 [core]
-	editor = nvim
-[difftool]
-	tool = n
-[difftool "n"]
-	cmd = nvim -d $LOCAL $REMOTE
+	editor = hx
+[safe]
+	directory = C:/Users/jackc/.local/share/chezmoi
