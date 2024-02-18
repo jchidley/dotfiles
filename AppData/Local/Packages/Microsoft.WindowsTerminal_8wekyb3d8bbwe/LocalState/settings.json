@@ -40,7 +40,15 @@
     ],
     "profiles": 
     {
-        "defaults": {},
+        "defaults":
+        {
+            "colorScheme": "Gruvbox Dark (Hard)",
+            "font": 
+            {
+                "face": "SauceCodePro Nerd Font",
+                "size": 11.0
+            }
+        },
         "list": 
         [
             {
@@ -51,10 +59,6 @@
             },
             {
                 "commandline": "%SystemRoot%\\System32\\cmd.exe",
-                "font": 
-                {
-                    "face": "SauceCodePro Nerd Font"
-                },
                 "guid": "{0caa0dad-35be-5f56-a8ff-afceeeaa6101}",
                 "hidden": false,
                 "name": "Command Prompt"
@@ -66,10 +70,6 @@
                 "source": "Windows.Terminal.Azure"
             },
             {
-                "font": 
-                {
-                    "face": "SauceCodePro Nerd Font"
-                },
                 "guid": "{574e775e-4f2a-5b96-ac1e-a2962a402336}",
                 "hidden": false,
                 "name": "PowerShell",
@@ -92,35 +92,41 @@
                 "hidden": false,
                 "name": "Developer PowerShell for VS 2022",
                 "source": "Windows.Terminal.VisualStudio"
+            },
+            {
+                "guid": "{e4a12686-4614-5d98-83af-53a2c66f729c}",
+                "hidden": false,
+                "name": "Julia",
+                "source": "JuliaComputingInc.Julia_b0ra4bp6jsp6c"
             }
         ]
     },
     "schemes": 
     [
-            {
-              "name": "Gruvbox Dark (Hard)",
-              "cursorColor": "#fbf1c7",
-              "selectionBackground": "#7c6f64",
-              "background": "#1d2021",
-              "foreground": "#fbf1c7",
-              "black": "#282828",
-              "red": "#cc241d",
-              "green": "#98971a",
-              "yellow": "#d79921",
-              "blue": "#458588",
-              "purple": "#b16286",
-              "cyan": "#689d6a",
-              "white": "#a89984",
-              "brightBlack": "#928374",
-              "brightRed": "#fb4934",
-              "brightGreen": "#b8bb26",
-              "brightYellow": "#fabd2f",
-              "brightBlue": "#83a598",
-              "brightPurple": "#d3869b",
-              "brightCyan": "#8ec07c",
-              "brightWhite": "#ebdbb2"
-            },
-            {
+        {
+            "background": "#1d2021",
+            "black": "#1d2021",
+            "blue": "#458588",
+            "brightBlack": "#928374",
+            "brightBlue": "#83a598",
+            "brightCyan": "#8ec07c",
+            "brightGreen": "#b8bb26",
+            "brightPurple": "#d3869b",
+            "brightRed": "#fb4934",
+            "brightWhite": "#ebdbb2",
+            "brightYellow": "#fabd2f",
+            "cursorColor": "#fbf1c7",
+            "cyan": "#689d6a",
+            "foreground": "#fbf1c7",
+            "green": "#98971a",
+            "name": "Gruvbox Dark (Hard)",
+            "purple": "#b16286",
+            "red": "#cc241d",
+            "selectionBackground": "#7c6f64",
+            "white": "#a89984",
+            "yellow": "#d79921"
+        },
+        {
             "background": "#0C0C0C",
             "black": "#0C0C0C",
             "blue": "#0037DA",
@@ -328,5 +334,6 @@
             "yellow": "#808000"
         }
     ],
+    "startOnUserLogin": true,
     "themes": []
 }
