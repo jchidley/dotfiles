@@ -1,1 +1,3 @@
-ssh-add $env:USERPROFILE/.ssh/id_ed25519
+if (Test-Path $env:USERPROFILE/.ssh/id_ed25519) {
+		ssh-add $env:USERPROFILE/.ssh/id_ed25519
+}
