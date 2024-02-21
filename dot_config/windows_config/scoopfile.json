@@ -1,0 +1,52 @@
+{
+    "apps": [
+        {
+            "Updated": "2024-02-12T15:48:10.7378599+00:00",
+            "Version": "23.01",
+            "Source": "main",
+            "Info": "",
+            "Name": "7zip"
+        },
+        {
+            "Updated": "2024-02-12T15:48:28.5596757+00:00",
+            "Version": "2.43.0",
+            "Source": "main",
+            "Info": "",
+            "Name": "git"
+        },
+        {
+            "Updated": "2024-02-12T15:50:33.4040085+00:00",
+            "Version": "3.1.1",
+            "Source": "nerd-fonts",
+            "Info": "",
+            "Name": "SourceCodePro-NF"
+        },
+        {
+            "Updated": "2024-02-12T15:47:07.321323+00:00",
+            "Version": "0.2020.01.26",
+            "Source": "main",
+            "Info": "",
+            "Name": "sudo"
+        }
+    ],
+    "buckets": [
+        {
+            "Name": "extras",
+            "Source": "https://github.com/ScoopInstaller/Extras",
+            "Updated": "2024-02-21T08:30:47+00:00",
+            "Manifests": 1983
+        },
+        {
+            "Name": "main",
+            "Source": "~\\scoop\\buckets\\main",
+            "Updated": "2024-02-12T15:46:52.3205351+00:00",
+            "Manifests": 1289
+        },
+        {
+            "Name": "nerd-fonts",
+            "Source": "https://github.com/matthewjberger/scoop-nerd-fonts",
+            "Updated": "2024-02-09T16:21:01+00:00",
+            "Manifests": 327
+        }
+    ]
+}
