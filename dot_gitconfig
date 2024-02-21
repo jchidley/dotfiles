@@ -3,5 +3,10 @@
 	email = 7399749+jchidley@users.noreply.github.com
 [core]
 	editor = hx
+	sshCommand = C:/Windows/System32/OpenSSH/ssh.exe
 [safe]
 	directory = C:/Users/jackc/.local/share/chezmoi
+	directory = C:\\Users\\jackc\\git\\mkdocs-material-test
+	directory = C:/Users/jackc/git/mkdocs-material-test
+[credential "helperselector"]
+	selected = manager
