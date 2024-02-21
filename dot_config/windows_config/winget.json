@@ -1,6 +1,6 @@
 {
 	"$schema" : "https://aka.ms/winget-packages.schema.2.0.json",
-	"CreationDate" : "2024-02-21T10:19:16.512-00:00",
+	"CreationDate" : "2024-02-21T15:48:48.523-00:00",
 	"Sources" : 
 	[
 		{
@@ -10,7 +10,7 @@
 					"PackageIdentifier" : "Bitwarden.Bitwarden"
 				},
 				{
-					"PackageIdentifier" : "Microsoft.VisualStudio.2022.Community"
+					"PackageIdentifier" : "Microsoft.VisualStudio.2022.BuildTools"
 				},
 				{
 					"PackageIdentifier" : "Helix.Helix"
@@ -64,10 +64,16 @@
 					"PackageIdentifier" : "Microsoft.VCRedist.2015+.x86"
 				},
 				{
+					"PackageIdentifier" : "OpenJS.NodeJS"
+				},
+				{
 					"PackageIdentifier" : "Microsoft.WindowsSDK.10.0.22621"
 				},
 				{
 					"PackageIdentifier" : "Microsoft.VisualStudioCode"
+				},
+				{
+					"PackageIdentifier" : "PuTTY.PuTTY"
 				},
 				{
 					"PackageIdentifier" : "Microsoft.PowerShell"
@@ -89,6 +95,9 @@
 			[
 				{
 					"PackageIdentifier" : "9NJNWW8PVKMN"
+				},
+				{
+					"PackageIdentifier" : "9P7KNL5RWT25"
 				}
 			],
 			"SourceDetails" : 

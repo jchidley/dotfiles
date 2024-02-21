@@ -1,52 +1,73 @@
 {
-    "apps": [
-        {
-            "Updated": "2024-02-12T15:48:10.7378599+00:00",
-            "Version": "23.01",
-            "Source": "main",
-            "Info": "",
-            "Name": "7zip"
-        },
-        {
-            "Updated": "2024-02-12T15:48:28.5596757+00:00",
-            "Version": "2.43.0",
-            "Source": "main",
-            "Info": "",
-            "Name": "git"
-        },
-        {
-            "Updated": "2024-02-12T15:50:33.4040085+00:00",
-            "Version": "3.1.1",
-            "Source": "nerd-fonts",
-            "Info": "",
-            "Name": "SourceCodePro-NF"
-        },
-        {
-            "Updated": "2024-02-12T15:47:07.321323+00:00",
-            "Version": "0.2020.01.26",
-            "Source": "main",
-            "Info": "",
-            "Name": "sudo"
-        }
-    ],
     "buckets": [
         {
             "Name": "extras",
             "Source": "https://github.com/ScoopInstaller/Extras",
-            "Updated": "2024-02-21T08:30:47+00:00",
-            "Manifests": 1983
+            "Updated": "2024-02-21T12:33:35+00:00",
+            "Manifests": 1984
         },
         {
             "Name": "main",
-            "Source": "~\\scoop\\buckets\\main",
-            "Updated": "2024-02-12T15:46:52.3205351+00:00",
-            "Manifests": 1289
+            "Source": "https://github.com/ScoopInstaller/Main",
+            "Updated": "2024-02-21T12:31:13+00:00",
+            "Manifests": 1290
         },
         {
             "Name": "nerd-fonts",
             "Source": "https://github.com/matthewjberger/scoop-nerd-fonts",
-            "Updated": "2024-02-09T16:21:01+00:00",
+            "Updated": "2024-02-19T15:18:06+00:00",
             "Manifests": 327
+        }
+    ],
+    "apps": [
+        {
+            "Version": "23.01",
+            "Name": "7zip",
+            "Info": "",
+            "Updated": "2024-01-21T11:02:43.4891276+00:00",
+            "Source": "main"
+        },
+        {
+            "Version": "9.0.0",
+            "Name": "fd",
+            "Info": "",
+            "Updated": "2024-01-31T21:16:13.924533+00:00",
+            "Source": "main"
+        },
+        {
+            "Version": "2.43.0",
+            "Name": "git",
+            "Info": "",
+            "Updated": "2024-01-21T11:09:53.8339962+00:00",
+            "Source": "main"
+        },
+        {
+            "Version": "2023-12-09",
+            "Name": "marksman",
+            "Info": "",
+            "Updated": "2024-02-16T13:07:59.0884061+00:00",
+            "Source": "main"
+        },
+        {
+            "Version": "14.1.0",
+            "Name": "ripgrep",
+            "Info": "",
+            "Updated": "2024-01-31T21:16:05.5254954+00:00",
+            "Source": "main"
+        },
+        {
+            "Version": "3.1.1",
+            "Name": "sourcecodepro-nf",
+            "Info": "",
+            "Updated": "2024-01-31T20:05:51.890029+00:00",
+            "Source": "nerd-fonts"
+        },
+        {
+            "Version": "0.2020.01.26",
+            "Name": "sudo",
+            "Info": "",
+            "Updated": "2024-01-21T11:15:35.0296947+00:00",
+            "Source": "main"
         }
     ]
 }
