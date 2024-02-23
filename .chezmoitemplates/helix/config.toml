@@ -1,5 +1,11 @@
-# The chezmoi template for this is kept at
-# .chezmoitemplates\helix\config.toml
+# To change, edit this file:
+# .local\share\chezmoi\.chezmoitemplates\helix\config.toml
+# and then 
+# chezmoi apply $env:HOMEPATH\AppData\Roaming\helix\config.toml
+# or
+# chezmoi apply .config\helix\config.toml.tmpl
+#
+# :config-reload
 theme = "gruvbox_dark_hard"
 
 [editor]
@@ -25,6 +31,9 @@ display-inlay-hints = true
 
 [editor.cursor-shape]
 insert = "bar"
+
+[editor.file-picker]
+hidden = false
 
 # [editor.whitespace]
 # render = "all"
