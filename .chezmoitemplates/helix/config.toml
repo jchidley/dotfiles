@@ -1,20 +1,40 @@
+# The chezmoi template for this is kept at
+# .chezmoitemplates\helix\config.toml
 theme = "gruvbox_dark_hard"
 
 [editor]
 line-number = "relative"
-true-color = true
+# cursorcolumn = true # uncomment to check config works
+undercurl = true # override automatic detection 
+true-color = true # override automatic detection 
 rulers = [80]
 bufferline = "multiple"
-{{ if eq .chezmoi.os "windows" }}
+{{ if eq .chezmoi.os "windows" -}} 
+# template `if eq .chezmoi.os "windows" -` 
 shell = ["pwsh.exe","-NoLogo","-NoProfile","-NoProfileLoadTime","-Command","$PSStyle.OutputRendering='PlainText';"]
-{{ end }}
+#template `- end `
+{{- end }}
+
+[editor.statusline]
+left = ["mode", "spinner", "file-name", "read-only-indicator", "file-modification-indicator", "file-type"]
+right = ["diagnostics", "selections", "register", "position", "total-line-numbers", "file-encoding"]
+
+[editor.lsp]
+display-messages = true
+display-inlay-hints = true
 
 [editor.cursor-shape]
 insert = "bar"
 
-[keys.normal]
-esc = ["collapse_selection", "keep_primary_selection"]
+# [editor.whitespace]
+# render = "all"
+
+# [editor.indent-guides]
+# render = true
 
 [editor.soft-wrap]
 enable = true
 wrap-at-text-width = true
+
+[keys.normal]
+esc = ["collapse_selection", "keep_primary_selection"]
