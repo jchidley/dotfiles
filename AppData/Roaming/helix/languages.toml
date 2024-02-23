@@ -7,23 +7,12 @@
 # [language-server.rust-analyzer.config] 
 name = "rust"
 language-servers = [ "rust-analyzer" ]
-text-width = 60 # uncomment to check if language is enabled
-
-# not checked
-# scope = "source.mylang"
-# injection-regex = "mylang"
-# file-types = ["mylang", "myl"]
-# comment-token = "#"
-# indent = { tab-width = 2, unit = "  " }
-# formatter = { command = "mylang-formatter" , args = ["--stdin"] }
+# text-width = 60 # uncomment to check if language is enabled
 
 [language-server.rust-analyzer]
-# timeout = 20
-# command = "mylang-lsp"
-# args = ["--stdio"]
-# config = { provideFormatter = true }
 # environment = { "ENV1" = "value1", "ENV2" = "value2" }
 
 [language-server.rust-analyzer.config]
 cachePriming.enable = false
-# check.command = "clippy"
+check.command = "clippy"
+
