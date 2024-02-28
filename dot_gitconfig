@@ -4,6 +4,7 @@
 [core]
 	editor = hx
 	sshCommand = C:/Windows/System32/OpenSSH/ssh.exe
+	autocrlf = input
 [safe]
 	directory = C:/Users/jackc/.local/share/chezmoi
 	directory = C:\\Users\\jackc\\git\\mkdocs-material-test
