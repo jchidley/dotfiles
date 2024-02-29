@@ -5,10 +5,16 @@
 # or
 # chezmoi apply .config\helix\config.toml.tmpl
 #
+# local helix config files are in a local .helix directory, these include:
+# .helix/config.toml (configuration) and .helix/ignore (file-picker)
+# 
 # :config-reload
 theme = "gruvbox_dark_hard"
 
 [editor]
+# enables better cross platform work, now that Windows doesn't need CRLF
+# `git config --global core.autocrlf input` for git config
+default-line-ending = "lf"
 line-number = "relative"
 # cursorcolumn = true # uncomment to check config works
 undercurl = true # override automatic detection 
@@ -33,7 +39,7 @@ display-inlay-hints = true
 insert = "bar"
 
 [editor.file-picker]
-hidden = false
+# hidden = false
 
 # [editor.whitespace]
 # render = "all"
