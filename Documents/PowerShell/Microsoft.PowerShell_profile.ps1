@@ -1,10 +1,3 @@
-# # bw login jack@chidley.org --method 0
-# if ( -not (Test-Path $env:BW_SESSION)) {
-# setx BW_SESSION (Read-host "`BW_SESSION` environment variable (including quotes)")
-# }
-
-# bw get password "surface laptop ssh - Silver"
-
 # # Make sure you're running as an Administrator.
 # # By default the ssh-agent service is disabled. Configure it to start automatically.
 #  Get-Service ssh-agent | Set-Service -StartupType Automatic
@@ -29,6 +22,12 @@ echo 'Shared history file: (Get-PSReadlineOption).HistorySavePath'
 
 # profile reminder
 echo "Run from `$profile: $PROFILE"
+
+
+echo "bw login jack@chidley.org --method 0"
+echo "bw unlock"
+echo "`$env:BW_SESSION=(read-host `"enter BW_SESSION environment variable, including quotes`")"
+echo "bw get password `"surface laptop ssh - Silver`""
 
 # ripgrep profile
 $env:RIPGREP_CONFIG_PATH="$env:USERPROFILE/.ripgreprc"
