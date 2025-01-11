@@ -1,14 +1,6 @@
 # languages.toml
 # :lsp-restart
 
-[[language]]
-# https://rust-analyzer.github.io/manual.html#configuration
-# [rust-analyzer] in rust-analyzer config documentation is translated to: 
-# [language-server.rust-analyzer.config] 
-name = "rust"
-language-servers = [ "rust-analyzer" ]
-# text-width = 60 # uncomment to check if language is enabled
-
 [language-server.rust-analyzer]
 # environment = { "ENV1" = "value1", "ENV2" = "value2" }
 
@@ -16,3 +8,19 @@ language-servers = [ "rust-analyzer" ]
 cachePriming.enable = false
 check.command = "clippy"
 
+[language-server.cspell]
+command = "cspell-lsp"
+args = ["--stdio", "--dictionary", "project-words.txt"]
+
+# Add for every language that you want to spell check
+[[language]]
+# https://rust-analyzer.github.io/manual.html#configuration
+# [rust-analyzer] in rust-analyzer config documentation is translated to:
+# [language-server.rust-analyzer.config]
+name = "rust"
+language-servers = ["rust-analyzer", "cspell"]
+# text-width = 60 # uncomment to check if language is enabled
+
+[[language]]
+name = "markdown"
+language-servers = [ "marksman", "cspell" ]

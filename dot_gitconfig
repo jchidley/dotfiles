@@ -11,3 +11,5 @@
 	directory = C:/Users/jackc/git/mkdocs-material-test
 [credential "helperselector"]
 	selected = manager
+[init]
+	defaultbranch = silver

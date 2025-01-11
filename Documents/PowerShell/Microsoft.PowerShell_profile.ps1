@@ -1,9 +1,34 @@
-if (Test-Path $env:USERPROFILE/.ssh/id_ed25519) {
-		ssh-add $env:USERPROFILE/.ssh/id_ed25519
-}
+# # bw login jack@chidley.org --method 0
+# if ( -not (Test-Path $env:BW_SESSION)) {
+# setx BW_SESSION (Read-host "`BW_SESSION` environment variable (including quotes)")
+# }
+
+# bw get password "surface laptop ssh - Silver"
+
+# # Make sure you're running as an Administrator.
+# # By default the ssh-agent service is disabled. Configure it to start automatically.
+#  Get-Service ssh-agent | Set-Service -StartupType Automatic
+#  Start-Service ssh-agent
+# # Should be only needed once per machine and per ID file
+#  if (Test-Path $env:USERPROFILE/.ssh/id_ed25519) {
+#  		sudo ssh-add $env:USERPROFILE/.ssh/id_ed25519
+#  }
 
 # powershell scripts
+if (-not ($env:path -match ";c:\\jackc\\tools($|;)")) {
+$env:path += ";c:\tools"
+}
+
+if (-not ($env:path -match ";c:\\jackc\\tools\\posh($|;)")) {
 $env:path += ";c:\tools\posh"
+}
+
+# history across all sessions
+# get-content (Get-PSReadlineOption).HistorySavePath | Out-Host -Paging
+echo 'Shared history file: (Get-PSReadlineOption).HistorySavePath'
+
+# profile reminder
+echo "Run from `$profile: $PROFILE"
 
 # ripgrep profile
 $env:RIPGREP_CONFIG_PATH="$env:USERPROFILE/.ripgreprc"
