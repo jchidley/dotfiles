@@ -35,7 +35,8 @@
     ],
     "copyFormatting": "none",
     "copyOnSelect": true,
-    "defaultProfile": "{574e775e-4f2a-5b96-ac1e-a2962a402336}",
+    "defaultProfile": "{7ec7b617-f8d9-4145-83e0-f1302adf86d8}",
+    "disableAnimations": false,
     "newTabMenu": 
     [
         {
@@ -49,7 +50,7 @@
             "colorScheme": "Gruvbox Dark (Hard)",
             "font": 
             {
-                "face": "Cascadia Mono",
+                "face": "SauceCodePro Nerd Font",
                 "size": 12
             }
         },
@@ -114,6 +115,16 @@
                 "hidden": false,
                 "name": "Pico - Developer PowerShell (SDK v1.5.1)",
                 "source": "Raspberry Pi Pico SDK v1.5.1"
+            },
+            {
+                "closeOnExit": "automatic",
+                "commandline": "%USERPROFILE%/scoop/apps/git/current/bin/bash -i -l",
+                "guid": "{7ec7b617-f8d9-4145-83e0-f1302adf86d8}",
+                "hidden": false,
+                "historySize": 9001,
+                "icon": "%USERPROFILE%/scoop/apps/git/current/usr/share/git/git-for-windows.ico",
+                "name": "Git bash",
+                "startingDirectory": "%USERPROFILE%/git"
             }
         ]
     },
@@ -144,5 +155,7 @@
         }
     ],
     "startOnUserLogin": true,
-    "themes": []
+    "tabWidthMode": "equal",
+    "themes": [],
+    "useAcrylicInTabRow": false
 }
