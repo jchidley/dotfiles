@@ -1,5 +1,18 @@
 {{- if eq .chezmoi.os "windows" -}}
-# windows
+echo bw login jack@chidley.org --method 0
+echo bw unlock
+echo export BW_SESSION=\"***REMOVED***\"
+# echo BW_SESSION=\(read-host \"enter BW_SESSION environment variable, including quotes\"\)
+echo bw get password \"surface laptop ssh - Silver\"
+echo rg chezmoi ~/.bash_history
+echo /c/Users/jackc/.local/share/chezmoi
+
+# ripgrep profile
+export RIPGREP_CONFIG_PATH="$USERPROFILE/.ripgreprc"
+alias rg='rg --path-separator="//"'
+
+export _ZO_ECHO=1
+eval "$(zoxide init bash)"
 {{- else if eq .chezmoi.osRelease.id "debian" -}}
 {{-   include ".bashrc_debian" -}}
 {{- end -}}
