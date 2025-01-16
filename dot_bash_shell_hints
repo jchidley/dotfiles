@@ -1,0 +1,8 @@
+bw login jack@chidley.org --method 0
+bw unlock # then use this to unlock the session...
+export BW_SESSION=\"***REMOVED***\"
+bw get password \"surface laptop ssh - Silver\"
+rg chezmoi ~/.bash_history
+/c/Users/jackc/.local/share/chezmoi
+MSYS_NO_PATHCONV=1 # stop path conversion
+// # stop path conversion
