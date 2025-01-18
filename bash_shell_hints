@@ -2,7 +2,11 @@ bw login jack@chidley.org --method 0
 bw unlock # then use this to unlock the session...
 export BW_SESSION=\"***REMOVED***\"
 bw get password \"surface laptop ssh - Silver\"
+# rg and fd use regex searching semantics, not glob
 rg chezmoi ~/.bash_history
-/c/Users/jackc/.local/share/chezmoi
+~/.local/share/chezmoi
 MSYS_NO_PATHCONV=1 # stop path conversion
 // # stop path conversion
+history # bash history
+!number # execute history command number
+hx ~/.bash_shell_hints # chezmoi add ~/.bash_shell_hints
