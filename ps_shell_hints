@@ -1,6 +1,6 @@
 # rg and fd use regex searching semantics or file/directory glob
 rg chezmoi (Get-PSReadlineOption).HistorySavePath
-fd --type file .* $env:USERPROFILE/.local/share
+fd --type file .* $env:USERPROFILE/.local/share/chezmoi
 bw login jack@chidley.org --method 0
 bw unlock
 $env:BW_SESSION=(read-host "enter BW_SESSION environment variable, including quotes")
