@@ -16,6 +16,9 @@ if (-not ($env:path -match ";c:\\jackc\\tools\\posh($|;)")) {
 $env:path += ";c:\tools\posh"
 }
 
+#prompt
+function Global:prompt {"PS $env:username`@$env:COMPUTERNAME $PWD`n>"}
+
 # history across all sessions
 # get-content (Get-PSReadlineOption).HistorySavePath | Out-Host -Paging
 echo 'Shared history file: (Get-PSReadlineOption).HistorySavePath'
