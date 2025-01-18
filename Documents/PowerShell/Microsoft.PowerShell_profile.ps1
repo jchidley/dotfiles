@@ -23,11 +23,7 @@ echo 'Shared history file: (Get-PSReadlineOption).HistorySavePath'
 # profile reminder
 echo "Run from `$profile: $PROFILE"
 
-
-echo "bw login jack@chidley.org --method 0"
-echo "bw unlock"
-echo "`$env:BW_SESSION=(read-host `"enter BW_SESSION environment variable, including quotes`")"
-echo "bw get password `"surface laptop ssh - Silver`""
+get-content ps_shell_hints
 
 # ripgrep profile
 $env:RIPGREP_CONFIG_PATH="$env:USERPROFILE/.ripgreprc"

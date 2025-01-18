@@ -1,0 +1,9 @@
+# rg and fd use regex searching semantics or file/directory glob
+rg chezmoi (Get-PSReadlineOption).HistorySavePath
+fd --type file .* $env:USERPROFILE/.local/share
+bw login jack@chidley.org --method 0
+bw unlock
+$env:BW_SESSION=(read-host "enter BW_SESSION environment variable, including quotes")
+bw get password "surface laptop ssh - Silver"
+hx ~/ps_shell_hints
+hx ~/bash_shell_hints
