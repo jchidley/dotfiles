@@ -23,7 +23,7 @@ echo 'Shared history file: (Get-PSReadlineOption).HistorySavePath'
 # profile reminder
 echo "Run from `$profile: $PROFILE"
 
-get-content ps_shell_hints
+echo 'get-content ps_shell_hints'
 
 # ripgrep profile
 $env:RIPGREP_CONFIG_PATH="$env:USERPROFILE/.ripgreprc"
