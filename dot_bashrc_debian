@@ -111,17 +111,4 @@ if ! shopt -oq posix; then
     . /etc/bash_completion
   fi
 fi
-. "$HOME/.cargo/env"
 
-export PATH=$HOME/.local/bin:$PATH
-eval "$(ssh-agent -s)"
-export PICO_SDK_PATH=/home/jackc/pico/pico-sdk
-export PICO_EXAMPLES_PATH=/home/jackc/pico/pico-examples
-export PICO_EXTRAS_PATH=/home/jackc/pico/pico-extras
-export PICO_PLAYGROUND_PATH=/home/jackc/pico/pico-playground
-
-# for Windows Terminal based commands
-wt() { cmd.exe /c "wt.exe" "$@"; }
-# wt -w 0 ft -t 0 sp -H -p "Debian" \; sp -V
- 
-ssh-add ~/.ssh/id_ed25519 # needs to be last, just in case Ctrl-C aborted

@@ -8,4 +8,4 @@ export BW_SESSION=\"***REMOVED***\"
 bw get password \"surface laptop ssh - Silver\"
 ~/ps_shell_hints
 wt() { cmd.exe /c "wt.exe" "$@"; }
-wt -w 0 ft -t 0 sp -H -p "Debian" \; sp -V
+wt -w 0 ft -t 0 sp -V -p "Debian" `; wt -w 0 ft -t 0 mf left sp -H
