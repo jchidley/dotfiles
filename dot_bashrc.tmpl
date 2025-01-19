@@ -1,17 +1,36 @@
 # Start chezmoi template - "dot_bashrc.tmpl"
 {{- if eq .chezmoi.os "windows" -}}
+
 # windows
 # ripgrep profile
 export RIPGREP_CONFIG_PATH="$USERPROFILE/.ripgreprc"
 alias rg='rg --path-separator=//'
 
+{{- else if eq .chezmoi.osRelease.id "debian" -}}
+
+# debian
+
+{{- include "dot_bashrc_debian" -}}
+{{- end -}}
+
+echo  cat ~/bash_shell_hints
 # echo zoxide path cd'd to 
 export _ZO_ECHO=1
 
+. "$HOME/.cargo/env"
+
+export PATH=$HOME/.local/bin:$PATH
+eval "$(ssh-agent -s)"
+export PICO_SDK_PATH=/home/jackc/pico/pico-sdk
+export PICO_EXAMPLES_PATH=/home/jackc/pico/pico-examples
+export PICO_EXTRAS_PATH=/home/jackc/pico/pico-extras
+export PICO_PLAYGROUND_PATH=/home/jackc/pico/pico-playground
+
+wt() { cmd.exe /c "wt.exe" "$@"; }
+# wt -w 0 ft -t 0 sp -H -p "Debian" \; sp -Vi
+
+# https://github.com/ajeetdsouza/zoxide?tab=readme-ov-file#configuration
 eval "$(zoxide init bash)"
-{{- else if eq .chezmoi.osRelease.id "debian" -}}
-# debian
-{{-   include ".bashrc_debian" -}}
-{{- end -}}
-echo  cat ~/.bash_shell_hints
+
+ssh-add ~/.ssh/id_ed25519 # needs to be last, just in case Ctrl-C aborted
 # End chezmoi template - "dot_bashrc.tmpl"

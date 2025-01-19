@@ -1,0 +1,15 @@
+[user]
+	name = Jack Chidley
+	email = 7399749+jchidley@users.noreply.github.com
+[core]
+	editor = hx
+{{- if eq .chezmoi.os "windows" }} 
+	sshCommand = C:/Windows/System32/OpenSSH/ssh.exe
+	autocrlf = true
+[credential "helperselector"]
+	selected = manager
+{{- else if eq .chezmoi.osRelease.id "debian" }}
+	autocrlf = input
+[credential]
+	helper = /mnt/c/Program\\ Files/Git/mingw64/bin/git-credential-manager.exe
+{{- end }}
