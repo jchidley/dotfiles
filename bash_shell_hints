@@ -1,12 +1,11 @@
+# rg and fd use regex searching semantics or file/directory glob
+history
+!number # execute history command number
+~/.local/share/chezmoi
 bw login jack@chidley.org --method 0
 bw unlock # then use this to unlock the session...
 export BW_SESSION=\"***REMOVED***\"
 bw get password \"surface laptop ssh - Silver\"
-# rg and fd use regex searching semantics, not glob
-rg chezmoi ~/.bash_history
-~/.local/share/chezmoi
-MSYS_NO_PATHCONV=1 # stop path conversion
-// # stop path conversion
-history # bash history
-!number # execute history command number
-hx ~/.bash_shell_hints # chezmoi add ~/.bash_shell_hints
+~/ps_shell_hints
+wt() { cmd.exe /c "wt.exe" "$@"; }
+wt -w 0 ft -t 0 sp -H -p "Debian" \; sp -V

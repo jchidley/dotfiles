@@ -1,5 +1,5 @@
+# Start chezmoi template - "dot_bashrc.tmpl"
 {{- if eq .chezmoi.os "windows" -}}
-# From chezmoi template
 # windows
 # ripgrep profile
 export RIPGREP_CONFIG_PATH="$USERPROFILE/.ripgreprc"
@@ -10,9 +10,8 @@ export _ZO_ECHO=1
 
 eval "$(zoxide init bash)"
 {{- else if eq .chezmoi.osRelease.id "debian" -}}
-# From chezmoi template
 # debian
 {{-   include ".bashrc_debian" -}}
 {{- end -}}
-echo rg \<part-of-command\> ~/.bash_history
 echo  cat ~/.bash_shell_hints
+# End chezmoi template - "dot_bashrc.tmpl"
