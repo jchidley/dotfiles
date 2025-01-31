@@ -16,7 +16,6 @@ theme = "gruvbox_dark_hard"
 # `git config --global core.autocrlf input` for git config
 default-line-ending = "lf"
 insert-final-newline = false
-# line-number = "relative"
 # cursorcolumn = true # uncomment to check config works
 undercurl = true # override automatic detection 
 true-color = true # override automatic detection 
@@ -59,7 +58,6 @@ insert = "bar"
 
 [editor.soft-wrap]
 enable = true
-wrap-at-text-width = true
 
 [keys.normal]
 esc = ["collapse_selection", "keep_primary_selection"]
