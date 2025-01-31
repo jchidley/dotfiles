@@ -1,4 +1,5 @@
 # rg and fd use regex searching semantics or file/directory glob
+history -a # add current history to .bash_history file
 history
 !number # execute history command number
 ~/.local/share/chezmoi
