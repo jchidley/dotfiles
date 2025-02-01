@@ -13,6 +13,10 @@ alias rg='rg --path-separator=//'
 {{- include "dot_bashrc_debian" -}}
 {{- end -}}
 
+export SUDO_EDITOR=$(which hx)
+export VISUAL=$(which hx)
+export EDITOR="$VISUAL"
+
 echo  cat ~/bash_shell_hints
 # echo zoxide path cd'd to 
 export _ZO_ECHO=1
