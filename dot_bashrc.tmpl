@@ -36,5 +36,8 @@ wt() { cmd.exe /c "wt.exe" "$@"; }
 # https://github.com/ajeetdsouza/zoxide?tab=readme-ov-file#configuration
 eval "$(zoxide init bash)"
 
+# activate python virtual environment 
+source .venv/bin/activate
+
 ssh-add ~/.ssh/id_ed25519 # needs to be last, just in case Ctrl-C aborted
 # End chezmoi template - "dot_bashrc.tmpl"
