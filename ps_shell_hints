@@ -1,9 +1,11 @@
 # rg and fd use regex searching semantics or file/directory glob
 (Get-PSReadlineOption).HistorySavePath
 $env:USERPROFILE/.local/share/chezmoi
+gci env: #environment variables
 bw login jack@chidley.org --method 0
 bw unlock
 $env:BW_SESSION=(read-host "enter BW_SESSION environment variable, including quotes")
 bw get password "surface laptop ssh - Silver"
 wt -w 0 ft -t 0 sp -V -p "Debian" `; wt -w 0 ft -t 0 mf left sp -H
+rm $env:USERPROFILE/AppData/Local/helix/helix.log # gets stupidly large
 ~/bash_shell_hints
