@@ -3,10 +3,10 @@
 	email = 7399749+jchidley@users.noreply.github.com
 [core]
 	editor = hx
+	autocrlf = input
 {{- if eq .chezmoi.os "windows" }} 
 	sshCommand = C:/Windows/System32/OpenSSH/ssh.exe
 [credential "helperselector"]
 	selected = manager
 {{- else if eq .chezmoi.osRelease.id "debian" }}
 {{- end }}
-	autocrlf = input
