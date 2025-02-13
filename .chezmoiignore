@@ -1,6 +1,13 @@
 {{ if ne .chezmoi.os "windows" }}
 AppData
+Documents
+ps_shell_hints
 {{ end }}
 {{ if ne .chezmoi.os "linux" }}
+.bashrc_debian
+.bashrc
 .config/helix
+bash_shell_hints
 {{ end }}
+LICENSE
+NOTICE
