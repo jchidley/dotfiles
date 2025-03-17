@@ -3,10 +3,15 @@ history -a # add current history to .bash_history file
 history
 !number # execute history command number
 ~/.local/share/chezmoi
+#---
 bw login jack@chidley.org --method 0
 bw unlock # then use this to unlock the session...
 export BW_SESSION=\"***REMOVED***\"
 bw get password \"surface laptop ssh - Silver\"
-~/ps_shell_hints
+#---
 wt() { cmd.exe /c "wt.exe" "$@"; }
 wt -w 0 ft -t 0 sp -V -p "Debian" `; wt -w 0 ft -t 0 mf left sp -H
+Python: use uv or uvx # curl -LsSf https://astral.sh/uv/install.sh | sh
+llm or aichat for LLM
+cd /tmp
+~/ps_shell_hints
