@@ -3,11 +3,15 @@
 $env:USERPROFILE/.local/share/chezmoi
 Documents\PowerShell\Microsoft.PowerShell_profile.ps1 # in $env:USERPROFILE/.local/share/chezmoi
 gci env: #environment variables
+#---
 bw login jack@chidley.org --method 0
 bw unlock
 $env:BW_SESSION=(read-host "enter BW_SESSION environment variable, including quotes")
 bw get password "surface laptop ssh - Silver"
+#---
 wt -w 0 ft -t 0 sp -V -p "Debian" `; wt -w 0 ft -t 0 mf left sp -H
 rm $env:USERPROFILE/AppData/Local/helix/helix.log # gets stupidly large
-~/bash_shell_hints
+Python: use uv or uvx # powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+llm or aichat for LLM
 cd $env:TEMP
+~/bash_shell_hints
