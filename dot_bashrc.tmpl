@@ -13,6 +13,8 @@ alias rg='rg --path-separator=//'
 {{- include "dot_bashrc_debian" -}}
 {{- end -}}
 
+. "$HOME/.cargo/env"
+
 export SUDO_EDITOR=$(which hx)
 export VISUAL=$(which hx)
 export EDITOR="$VISUAL"
@@ -20,8 +22,6 @@ export EDITOR="$VISUAL"
 echo  cat ~/bash_shell_hints
 # echo zoxide path cd'd to 
 export _ZO_ECHO=1
-
-. "$HOME/.cargo/env"
 
 export PATH=$HOME/.local/bin:$PATH
 eval "$(ssh-agent -s)"
