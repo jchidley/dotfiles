@@ -31,7 +31,10 @@
       "WebFetch(domain:scoop.sh)",
       "WebFetch(domain:chocolatey.org)",
       "Bash(grep:*)",
-      "Bash(rg:*)"
+      "Bash(rg:*)",
+      "Bash(grep:*)",
+      "Bash(find:*)",
+      "Bash(cp:*)"
     ],
     "deny": []
   }
