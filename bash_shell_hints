@@ -6,7 +6,9 @@ history
 #---
 bw login jack@chidley.org --method 0
 bw unlock # then use this to unlock the session...
-export BW_SESSION=\"***REMOVED***\"
+# After unlock, copy the session token and run:
+# export BW_SESSION="<paste-session-token-here>"
+# Or use: export BW_SESSION=$(bw unlock --raw)
 bw get password \"surface laptop ssh - Silver\"
 #---
 wt() { cmd.exe /c "wt.exe" "$@"; }
