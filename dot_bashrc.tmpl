@@ -24,11 +24,17 @@ echo  cat ~/bash_shell_hints
 export _ZO_ECHO=1
 
 export PATH=$HOME/.local/bin:$PATH
-eval "$(ssh-agent -s)"
-export PICO_SDK_PATH=/home/jackc/pico/pico-sdk
-export PICO_EXAMPLES_PATH=/home/jackc/pico/pico-examples
-export PICO_EXTRAS_PATH=/home/jackc/pico/pico-extras
-export PICO_PLAYGROUND_PATH=/home/jackc/pico/pico-playground
+
+# Set up SSH agent if not already running
+if [ -z "$SSH_AGENT_PID" ]; then
+    eval "$(ssh-agent -s)"
+fi
+
+# Pico SDK paths - only export if directories exist
+[ -d "$HOME/pico/pico-sdk" ] && export PICO_SDK_PATH=$HOME/pico/pico-sdk
+[ -d "$HOME/pico/pico-examples" ] && export PICO_EXAMPLES_PATH=$HOME/pico/pico-examples
+[ -d "$HOME/pico/pico-extras" ] && export PICO_EXTRAS_PATH=$HOME/pico/pico-extras
+[ -d "$HOME/pico/pico-playground" ] && export PICO_PLAYGROUND_PATH=$HOME/pico/pico-playground
 
 wt() { cmd.exe /c "wt.exe" "$@"; }
 # wt -w 0 ft -t 0 sp -H -p "Debian" \; sp -Vi
@@ -36,8 +42,16 @@ wt() { cmd.exe /c "wt.exe" "$@"; }
 # https://github.com/ajeetdsouza/zoxide?tab=readme-ov-file#configuration
 eval "$(zoxide init bash)"
 
-# activate python virtual environment 
-source .venv/bin/activate
+# Add npm global bin to PATH if it exists
+[ -d "$HOME/.npm-global/bin" ] && export PATH=$HOME/.npm-global/bin:$PATH
 
-ssh-add ~/.ssh/id_ed25519 # needs to be last, just in case Ctrl-C aborted
+# Activate python virtual environment if it exists
+if [ -d ".venv" ] && [ -f ".venv/bin/activate" ]; then
+    source .venv/bin/activate
+fi
+
+# Add SSH key if agent is running and key exists
+if [ -n "$SSH_AGENT_PID" ] && [ -f "$HOME/.ssh/id_ed25519" ]; then
+    ssh-add ~/.ssh/id_ed25519 2>/dev/null || true
+fi
 # End chezmoi template - "dot_bashrc.tmpl"
