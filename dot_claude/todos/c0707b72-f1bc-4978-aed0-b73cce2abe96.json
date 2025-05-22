@@ -1,0 +1,20 @@
+[
+  {
+    "content": "Create history-tracker.sh script",
+    "status": "completed",
+    "priority": "high",
+    "id": "1"
+  },
+  {
+    "content": "Update CLAUDE.md with tracking instructions",
+    "status": "completed",
+    "priority": "medium",
+    "id": "2"
+  },
+  {
+    "content": "Test history tracking script",
+    "status": "completed",
+    "priority": "medium",
+    "id": "3"
+  }
+]

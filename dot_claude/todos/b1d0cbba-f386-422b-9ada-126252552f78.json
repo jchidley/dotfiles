@@ -1,0 +1,44 @@
+[
+  {
+    "content": "Identify missing link files causing 404s in navigation",
+    "status": "completed",
+    "priority": "high",
+    "id": "1"
+  },
+  {
+    "content": "Fix navigation links in mkdocs.yml",
+    "status": "completed",
+    "priority": "high",
+    "id": "2"
+  },
+  {
+    "content": "Test navigation locally",
+    "status": "completed",
+    "priority": "medium",
+    "id": "3"
+  },
+  {
+    "content": "Commit and push navigation fixes",
+    "status": "completed",
+    "priority": "high",
+    "id": "4"
+  },
+  {
+    "content": "Check archive.md contains all files",
+    "status": "completed",
+    "priority": "medium",
+    "id": "5"
+  },
+  {
+    "content": "Update archive.md to include all existing files",
+    "status": "completed",
+    "priority": "high",
+    "id": "6"
+  },
+  {
+    "content": "Commit and push updated archive",
+    "status": "completed",
+    "priority": "medium",
+    "id": "7"
+  }
+]

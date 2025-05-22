@@ -1,0 +1,56 @@
+[
+  {
+    "content": "Find all files with 'link' in the name",
+    "status": "completed",
+    "priority": "high",
+    "id": "1"
+  },
+  {
+    "content": "Examine content of link files to understand their structure",
+    "status": "completed",
+    "priority": "high",
+    "id": "2"
+  },
+  {
+    "content": "Identify other md files that could match link content",
+    "status": "completed",
+    "priority": "medium",
+    "id": "3"
+  },
+  {
+    "content": "Move Python links from link files to Python content files",
+    "status": "completed",
+    "priority": "high",
+    "id": "4"
+  },
+  {
+    "content": "Move Raspberry Pi and electronics links to Pi/embedded content files",
+    "status": "completed",
+    "priority": "high",
+    "id": "5"
+  },
+  {
+    "content": "Move j-core FPGA links to FPGA content file",
+    "status": "completed",
+    "priority": "medium",
+    "id": "6"
+  },
+  {
+    "content": "Move Linux/DNS links to Linux content files",
+    "status": "pending",
+    "priority": "medium",
+    "id": "7"
+  },
+  {
+    "content": "Move web development links to web dev content files",
+    "status": "completed",
+    "priority": "medium",
+    "id": "8"
+  },
+  {
+    "content": "Move machining/3D printing links to workshop content files",
+    "status": "pending",
+    "priority": "medium",
+    "id": "9"
+  }
+]
