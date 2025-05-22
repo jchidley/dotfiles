@@ -26,7 +26,12 @@
       "Bash(cargo install:*)",
       "Bash(ls:*)",
       "Bash(chezmoi apply:*)",
-      "WebFetch(domain:chezmoi.io)"
+      "WebFetch(domain:chezmoi.io)",
+      "WebFetch(domain:docs.microsoft.com)",
+      "WebFetch(domain:scoop.sh)",
+      "WebFetch(domain:chocolatey.org)",
+      "Bash(grep:*)",
+      "Bash(rg:*)"
     ],
     "deny": []
   }
