@@ -18,6 +18,16 @@ alias rg='rg --path-separator=//'
 # Claude CLI alias
 alias claude="/home/jack/.claude/local/claude"
 
+# Claude API Switcher Integration
+# Automatically set/unset ANTHROPIC_API_KEY based on current mode
+if command -v claude-switcher &> /dev/null; then
+    eval $(claude-switcher env)
+fi
+
+# Optional: Convenience aliases for quick switching
+alias claude-max='claude-switcher switch max && eval $(claude-switcher env)'
+alias claude-api='claude-switcher switch api && eval $(claude-switcher env)'
+
 export SUDO_EDITOR=$(which hx)
 export VISUAL=$(which hx)
 export EDITOR="$VISUAL"
@@ -57,4 +67,8 @@ fi
 if [ -n "$SSH_AGENT_PID" ] && [ -f "$HOME/.ssh/id_ed25519" ]; then
     ssh-add ~/.ssh/id_ed25519 2>/dev/null || true
 fi
+
+# Connect IQ SDK
+export CONNECTIQ_SDK_HOME="$HOME/.Garmin/ConnectIQ/Sdks/connectiq-sdk-lin-8.1.1-2025-03-27-66dae750f"
+export PATH="$CONNECTIQ_SDK_HOME/bin:$PATH"
 # End chezmoi template - "dot_bashrc.tmpl"

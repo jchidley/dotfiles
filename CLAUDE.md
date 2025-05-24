@@ -2,6 +2,8 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+**IMPORTANT**: This is the PRIMARY CLAUDE.md file for the home directory. The file at `~/.local/share/chezmoi/CLAUDE.md` should be kept in sync with this one, as chezmoi manages it. Do NOT delete this file - Claude Code needs it to function properly in the home directory.
+
 ## Repository Type and Purpose
 
 This is a **chezmoi-managed dotfiles repository** - a declarative configuration management system for personal development environments. The repository manages configuration files across Windows and Debian Linux systems using Go templates for conditional logic.
@@ -109,3 +111,9 @@ chezmoi edit ~/.newconfig       # Edit in source
 - `dot_config/windows_config/winget.json`: Windows packages
 - `dot_config/cargo_install.txt`: Rust tools
 - Use uv/uvx for Python packages (not pip)
+
+## Development Standards
+
+For general development standards, see `/home/jack/tools/CLAUDE.md`
+
+This repository focuses specifically on configuration management and should follow chezmoi best practices above all else.
