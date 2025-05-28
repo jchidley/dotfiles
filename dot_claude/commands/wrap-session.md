@@ -30,7 +30,38 @@ End-of-session workflow that leverages your checkpoint work. Moves HANDOFF.md co
    - Add detailed entry to appropriate *_LOG.md file
    - Include context, technical details, and impact
 
-3. **Create Session Log Entry**
+3. **Check Tools Used During Session**
+   
+   Review which tools were used during this session and check against settings.local.json:
+   - Create a list of all tools used (Read, Write, Edit, MultiEdit, Bash, Grep, Glob, LS, etc.)
+   - Check if project has `.claude/settings.local.json` or if one should be created
+   - If settings file exists, verify all used tools are in the enabled list
+   - If tools are missing, prompt user with suggested additions
+   
+   Example prompt:
+   ```
+   ## Tools Used This Session
+   
+   During this session, I used these tools:
+   - Read (for reading files)
+   - Edit (for modifying existing files)
+   - Bash (for running commands)
+   - Grep (for searching content)
+   
+   Your current .claude/settings.local.json may need these tools added:
+   {
+     "tools": {
+       "enabled": [
+         "Read",
+         "Edit", 
+         "Bash",
+         "Grep"
+       ]
+     }
+   }
+   ```
+
+4. **Create Session Log Entry**
    
    Find or create appropriate *_LOG.md file:
    - Search for existing topic-specific *_LOG.md files
@@ -78,7 +109,7 @@ End-of-session workflow that leverages your checkpoint work. Moves HANDOFF.md co
    ```
    ```
 
-4. **Prepare for Next Session**
+5. **Prepare for Next Session**
    
    Create final message:
    ```
@@ -95,7 +126,7 @@ End-of-session workflow that leverages your checkpoint work. Moves HANDOFF.md co
    2. Or for full context: "Continue [project]. Read HANDOFF.md and latest log entry"
    ```
 
-5. **Update HANDOFF.md for Next Session**
+6. **Update HANDOFF.md for Next Session**
    - Keep essential context and next steps
    - Ensure "Related Documents" section lists all key files:
      * TODO.md (if exists)
