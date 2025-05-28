@@ -1,13 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(mkdir:*)",
-      "Bash(cp:*)",
-      "Bash(mv:*)",
-      "Bash(tree:*)",
-      "Bash(find:*)",
-      "Bash(diff:*)",
-      "Bash(rm:*)"
+      "Bash(gh auth:*)",
+      "WebFetch(domain:docs.github.com)"
     ],
     "deny": []
   }

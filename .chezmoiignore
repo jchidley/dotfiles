@@ -11,3 +11,4 @@ bash_shell_hints
 {{ end }}
 LICENSE
 NOTICE
+.claude/.credentials.json
