@@ -81,11 +81,15 @@ When user runs `/start`:
 
 1. **File Discovery Phase**:
    ```bash
-   # Check for key files in this order
+   # Check git state first
+   - Run git branch --show-current → Confirm working branch
+   - Run git status → Check for uncommitted changes
+   - Run git log --oneline -5 → Recent commits
+   
+   # Then check for key files in this order
    - If HANDOFF.md exists → Read it (primary context)
    - If TODO.md exists → Read it (active tasks)
    - If plan.md exists → Note strategic direction
-   - Check git log --oneline -5 → Recent commits
    - If PROJECT_WISDOM.md exists → Note its presence (read only if needed)
    - If CLAUDE.md exists → Read it (project instructions)
    - If README.md exists → Scan it briefly (project overview)
@@ -100,7 +104,9 @@ When user runs `/start`:
 3. **Response Format for Continuing Work**:
    ```
    ## Project: [Name]
+   Branch: [current branch]
    Current Status: [Brief status from HANDOFF.md]
+   Uncommitted Changes: [Yes/No - brief summary if yes]
    
    Recent Progress:
    - [Last commit or accomplishment]

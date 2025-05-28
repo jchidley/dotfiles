@@ -16,6 +16,8 @@ End-of-session workflow that leverages your checkpoint work. Moves HANDOFF.md co
    - Verify HANDOFF.md exists and is current
    - If not, do a quick checkpoint first
    - Review what the session accomplished
+   - Run `git status` to check for uncommitted changes
+   - Run `git log --oneline -10` to capture session's commits
 
 2. **Move to Permanent Documentation**
    
@@ -43,6 +45,12 @@ End-of-session workflow that leverages your checkpoint work. Moves HANDOFF.md co
    
    ### Key Accomplishments
    - [What got done]
+   
+   ### Git Activity
+   ```
+   [Include output of git log --oneline -10 if commits were made]
+   [Include summary of git status if uncommitted changes exist]
+   ```
    
    ### Discoveries
    - [Any breakthroughs - pull from PROJECT_WISDOM.md]

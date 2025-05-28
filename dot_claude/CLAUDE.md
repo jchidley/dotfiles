@@ -73,70 +73,22 @@ should all be documented directly in the GitHub issue comments and description.
 Custom session management exists because built-in `--continue` and `--resume` have reliability issues. This workflow ensures persistent state across all sessions.
 </context>
 
-### Session Startup Procedure
+### Workflow
 
-<startup_protocol>
-1. ALWAYS check for and load these files in order:
-   - @HANDOFF.md → Primary working memory (if exists)
-   - @TODO.md → Current task list (if exists)
-   - Execute: `git log --oneline -5` → Recent changes context
+Use these commands to maintain context across sessions:
 
-2. ONLY load if specifically needed:
-   - PROJECT_WISDOM.md → When technical details required
-   - REQUIREMENTS.md → When checking if new request is a requirement
-   - README.md → When project structure unclear
-   - *_LOG.md files → When historical context needed
-
-3. Begin work with this exact workflow:
-   ```
-   /start → work → /checkpoint → work → /wrap-session
-     ↑                                         ↓
-     └───────── Next Session ←──────────────┘
-   ```
-</startup_protocol>
-
-### Command Examples
-
-<examples>
-Starting work:
-- New session: "Starting work. Loading context files..."
-- Continuing: "Resuming from HANDOFF.md. Current task: [specific task]"
-
-During work:
-- After major progress: Run `/checkpoint` to update HANDOFF.md
-- When switching tasks: Run `/checkpoint` before context switch
-
-Ending work:
-- Always run `/wrap-session` to create permanent logs
-</examples>
+```
+/start → work → /checkpoint → work → /wrap-session
+  ↑                                         ↓
+  └───────── Next Session ←──────────────┘
+```
 
 ### Critical Commands
-- `/start` - Initialize session with proper context
-- `/checkpoint` - Capture current state (2-minute process)
-- `/wrap-session` - Archive session and prepare handoff
+- `/start` - Initialize session with proper context loading
+- `/checkpoint` - Capture current state (saves progress to HANDOFF.md)
+- `/wrap-session` - Archive session and prepare for next time
 
-Implementation details: @commands/ directory
-
-## Expected Behavior Pattern
-
-<example_interaction>
-User: "Let's work on the API integration"
-
-Claude: 
-<thinking>I need to check for existing context files first</thinking>
-
-Checking for session context files...
-- Found HANDOFF.md - loading current state
-- Found TODO.md - checking active tasks
-- Running: git log --oneline -5
-
-Current task from HANDOFF.md: Implement OAuth2 flow for external API
-High-priority items from TODO.md:
-1. Add error handling for API timeouts
-2. Implement rate limiting
-
-Ready to continue with: OAuth2 implementation. Would you like me to proceed with the error handling first, or continue where we left off with the OAuth flow?
-</example_interaction>
+Full implementation details: See individual commands in @commands/ directory
 
 ## Development Standards
 For all development standards, language selection, testing practices, and tooling guidance:
