@@ -98,3 +98,11 @@ When creating/updating HANDOFF.md:
    - Other *.md files relevant to project
 3. **Only list files that actually exist** - don't create placeholder entries
 4. **Keep descriptions brief** - just enough to know what's in each file
+
+## Git Reminder
+
+After checkpoint, consider pushing your changes:
+```bash
+git push
+```
+This ensures your progress is backed up and available to teammates.

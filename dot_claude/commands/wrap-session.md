@@ -133,3 +133,11 @@ When finalizing HANDOFF.md:
    - SESSION_003_20250526.md - Latest work log
    ```
 4. This ensures /start command can discover all context files
+
+## Git Reminder
+
+Before wrapping up the session, ensure all changes are pushed:
+```bash
+git push
+```
+This ensures your work is backed up and available for the next session.
