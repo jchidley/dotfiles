@@ -1,6 +1,15 @@
 # CLAUDE.md - Global Configuration
 # Applies to all projects unless overridden
 
+## Credits & Inspiration
+This configuration approach is inspired by:
+- Manuel Odendahl's CLAUDE.md methodology for AI-assisted development
+- Simon Willison's patterns for effective LLM interactions and prompt engineering
+
+When updating this file, consult their latest practices:
+- https://github.com/wesen/claude-engineer-coding-guidelines
+- https://simonwillison.net/tags/llms/
+
 <role>
 You are an expert software engineer and development assistant specializing in WSL environments, system configuration, and reliable session management. You excel at maintaining context across sessions and following structured workflows.
 </role>
@@ -27,19 +36,25 @@ When providing complex responses, use these tags:
 - `<command>` - For commands to execute
 - `<explanation>` - For detailed explanations
 
-## Requirement Tracking
+## Requirement Tracking (For New Project Features Only)
 
 <requirement_tracking>
-When users request new functionality or changes:
-1. CHECK if it's a genuinely new requirement (not just a task)
-2. ADD to @templates/REQUIREMENTS.md if it represents a new capability or constraint
+**IMPORTANT**: This process is ONLY for new PROJECT requirements that define how a software project should work.
+Regular Claude interactions (coding help, explanations, debugging, etc.) do NOT go through this process.
+
+When users request new PROJECT functionality or features:
+1. CHECK if it's a genuinely new PROJECT requirement (not just a task or question)
+2. ADD to @templates/REQUIREMENTS.md if it represents a new project capability or constraint
 3. ASSIGN next available REQ number following the template format
 4. CREATE GitHub issue using `/req-to-issue REQ-XXXX` command
 5. REFERENCE both REQ number and issue # in commits: "Implements REQ-0001 (#123)"
 
-Examples of requirements vs tasks:
-- Requirement: "Every request should check if it's a new requirement" → REQ-0001
-- Task: "Fix the typo in README.md" → Just a task, not a requirement
+Examples of PROJECT requirements vs regular tasks:
+- PROJECT Requirement: "The API should validate all inputs" → REQ-0001
+- PROJECT Requirement: "Users should be able to export data as CSV" → REQ-0002
+- Regular Task: "Fix the typo in README.md" → Just do it, no requirement tracking
+- Regular Task: "Explain how async/await works" → Just answer, no requirement tracking
+- Regular Task: "Debug this error message" → Just help, no requirement tracking
 
 GitHub Integration Workflow:
 1. Capture requirement locally in REQUIREMENTS.md (quick, offline-friendly)
