@@ -22,11 +22,11 @@ alias claude="/home/jack/.claude/local/claude"
 # Automatically set/unset ANTHROPIC_API_KEY based on current mode
 if command -v claude-switcher &> /dev/null; then
     eval $(claude-switcher env)
+    
+    # Convenience aliases for quick switching (only if claude-switcher exists)
+    alias claude-max='claude-switcher switch max && eval $(claude-switcher env)'
+    alias claude-api='claude-switcher switch api && eval $(claude-switcher env)'
 fi
-
-# Optional: Convenience aliases for quick switching
-alias claude-max='claude-switcher switch max && eval $(claude-switcher env)'
-alias claude-api='claude-switcher switch api && eval $(claude-switcher env)'
 
 export SUDO_EDITOR=$(which hx)
 export VISUAL=$(which hx)
