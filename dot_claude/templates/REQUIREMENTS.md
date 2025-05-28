@@ -23,7 +23,7 @@
 - **GitHub Issue**: #[issue-number] or "Not created"
 - **Description**: [Clear description of what this requirement entails]
 - **Rationale**: [Why this requirement is needed]
-- **Implementation**: See [IMPROVEMENTS.md](IMPROVEMENTS.md#req-0001-implementation-name)
+- **Implementation**: See GitHub issue for implementation details, code examples, and progress
 
 #### REQ-0002: [Requirement Name]
 - **Priority**: High/Medium/Low
@@ -31,7 +31,7 @@
 - **GitHub Issue**: #[issue-number] or "Not created"
 - **Description**: [Clear description of what this requirement entails]
 - **Rationale**: [Why this requirement is needed]
-- **Implementation**: See [IMPROVEMENTS.md](IMPROVEMENTS.md#req-0002-implementation-name)
+- **Implementation**: See GitHub issue for implementation details, code examples, and progress
 
 ### Version 1.1 - Enhancements
 *Target: [Date or milestone]*

@@ -12,7 +12,12 @@ This command creates a GitHub issue from a requirement in REQUIREMENTS.md.
      - Description from REQUIREMENTS.md
      - Rationale
      - Dependencies (if any)
-     - Implementation tracking section
+     - Implementation Details section with:
+       - Design decisions
+       - Code examples
+       - Technical notes
+       - Progress updates
+     - Testing section
      - Link back to REQUIREMENTS.md
 
 3. Update REQUIREMENTS.md to include the GitHub issue number
@@ -33,10 +38,29 @@ Every request should check if it's a new requirement and add to REQUIREMENTS.md
 ## Rationale
 Ensures all feature requests are properly tracked and documented
 
-## Implementation Tracking
-- [ ] Update CLAUDE.md with requirement checking logic
-- [ ] Create automated workflow for requirement capture
-- [ ] Test with various request types
+## Implementation Details
+
+### Design Decisions
+_Document architectural and design choices here_
+
+### Code Examples
+```language
+// Add implementation code examples here
+```
+
+### Technical Notes
+_Add technical implementation notes, gotchas, dependencies_
+
+### Progress Tracking
+- [ ] Initial implementation
+- [ ] Code review
+- [ ] Testing complete
+- [ ] Documentation updated
+
+## Testing
+- [ ] Unit tests added
+- [ ] Integration tests passed
+- [ ] Manual testing completed
 
 ---
 Requirement defined in: REQUIREMENTS.md#REQ-0001

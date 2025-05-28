@@ -44,8 +44,12 @@ Examples of requirements vs tasks:
 GitHub Integration Workflow:
 1. Capture requirement locally in REQUIREMENTS.md (quick, offline-friendly)
 2. When online, run `/req-to-issue REQ-XXXX` to create tracking issue
-3. Use GitHub Projects to track implementation progress
-4. Link PRs to requirement issues for full traceability
+3. Track ALL implementation details in the GitHub issue (not separate files)
+4. Use GitHub Projects to track implementation progress
+5. Link PRs to requirement issues for full traceability
+
+Note: Implementation details, code examples, progress updates, and technical notes
+should all be documented directly in the GitHub issue comments and description.
 </requirement_tracking>
 
 ## Session Management Protocol
