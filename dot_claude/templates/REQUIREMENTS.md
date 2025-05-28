@@ -20,6 +20,7 @@
 #### REQ-0001: [Requirement Name]
 - **Priority**: High/Medium/Low
 - **Status**: Implemented/Pending/Deprecated
+- **GitHub Issue**: #[issue-number] or "Not created"
 - **Description**: [Clear description of what this requirement entails]
 - **Rationale**: [Why this requirement is needed]
 - **Implementation**: See [IMPROVEMENTS.md](IMPROVEMENTS.md#req-0001-implementation-name)
@@ -27,6 +28,7 @@
 #### REQ-0002: [Requirement Name]
 - **Priority**: High/Medium/Low
 - **Status**: Implemented/Pending/Deprecated
+- **GitHub Issue**: #[issue-number] or "Not created"
 - **Description**: [Clear description of what this requirement entails]
 - **Rationale**: [Why this requirement is needed]
 - **Implementation**: See [IMPROVEMENTS.md](IMPROVEMENTS.md#req-0002-implementation-name)
@@ -37,6 +39,7 @@
 #### REQ-0010: [Requirement Name]
 - **Priority**: High/Medium/Low
 - **Status**: Planned/In Progress/Completed
+- **GitHub Issue**: #[issue-number] or "Not created"
 - **Description**: [Clear description of what this requirement entails]
 - **Rationale**: [Why this requirement is needed]
 - **Dependencies**: [Any requirements that must be completed first]
@@ -47,6 +50,7 @@
 #### REQ-0020: [Requirement Name]
 - **Priority**: High/Medium/Low
 - **Status**: Proposed/Approved/In Development
+- **GitHub Issue**: #[issue-number] or "Not created"
 - **Description**: [Clear description of what this requirement entails]
 - **Rationale**: [Why this requirement is needed]
 - **Breaking Changes**: [Any backwards compatibility concerns]

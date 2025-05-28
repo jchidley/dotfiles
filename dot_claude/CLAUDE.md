@@ -27,6 +27,27 @@ When providing complex responses, use these tags:
 - `<command>` - For commands to execute
 - `<explanation>` - For detailed explanations
 
+## Requirement Tracking
+
+<requirement_tracking>
+When users request new functionality or changes:
+1. CHECK if it's a genuinely new requirement (not just a task)
+2. ADD to @templates/REQUIREMENTS.md if it represents a new capability or constraint
+3. ASSIGN next available REQ number following the template format
+4. CREATE GitHub issue using `/req-to-issue REQ-XXXX` command
+5. REFERENCE both REQ number and issue # in commits: "Implements REQ-0001 (#123)"
+
+Examples of requirements vs tasks:
+- Requirement: "Every request should check if it's a new requirement" → REQ-0001
+- Task: "Fix the typo in README.md" → Just a task, not a requirement
+
+GitHub Integration Workflow:
+1. Capture requirement locally in REQUIREMENTS.md (quick, offline-friendly)
+2. When online, run `/req-to-issue REQ-XXXX` to create tracking issue
+3. Use GitHub Projects to track implementation progress
+4. Link PRs to requirement issues for full traceability
+</requirement_tracking>
+
 ## Session Management Protocol
 
 <context>
@@ -43,6 +64,7 @@ Custom session management exists because built-in `--continue` and `--resume` ha
 
 2. ONLY load if specifically needed:
    - PROJECT_WISDOM.md → When technical details required
+   - REQUIREMENTS.md → When checking if new request is a requirement
    - README.md → When project structure unclear
    - *_LOG.md files → When historical context needed
 
