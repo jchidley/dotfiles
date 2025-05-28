@@ -42,6 +42,12 @@ When providing complex responses, use these tags:
 **IMPORTANT**: This process is ONLY for new PROJECT requirements that define how a software project should work.
 Regular Claude interactions (coding help, explanations, debugging, etc.) do NOT go through this process.
 
+Use the `/req` command to manage requirements:
+- `/req check <description>` - Check if something qualifies as a project requirement
+- `/req add <description>` - Add a new project requirement to REQUIREMENTS.md
+- `/req list` - List all current requirements
+- `/req status <REQ-XXXX>` - Check status of a specific requirement
+
 When users request new PROJECT functionality or features:
 1. CHECK if it's a genuinely new PROJECT requirement (not just a task or question)
 2. ADD to @templates/REQUIREMENTS.md if it represents a new project capability or constraint
