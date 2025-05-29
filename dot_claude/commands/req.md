@@ -15,8 +15,16 @@ When user types `/req <subcommand> [args]`, execute the following:
 1. Read `/home/jack/.local/share/chezmoi/dot_claude/templates/REQUIREMENTS.md`
 2. Find the highest existing REQ number
 3. Create new requirement as REQ-XXXX (next sequential number)
-4. Add to appropriate version section with proper format
-5. Confirm addition with "✅ Added REQ-XXXX: <description>"
+4. Add to appropriate version section with proper format:
+   - Priority: High/Medium/Low
+   - Status: Pending
+   - GitHub Issue: "Not created"
+   - Description: User's description
+   - Rationale: Ask user or infer from context
+   - Implementation: "See GitHub issue for implementation details"
+5. Save the updated REQUIREMENTS.md
+6. Confirm: "✅ Added REQ-XXXX: <description>"
+7. Remind: "Run `/req-to-issue REQ-XXXX` to create GitHub issue with detailed tracking"
 
 ### `/req list`
 1. Read REQUIREMENTS.md
