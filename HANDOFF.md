@@ -2,26 +2,26 @@
 Updated: 2025-05-29
 
 ## Current State
-Status: Complete /req command with REQUIREMENTS.md management
-Target: Full requirement tracking in files AND GitHub issues
-Latest: Enhanced both file management and GitHub integration
+Status: Clarified dual-track requirements approach
+Target: Lean REQUIREMENTS.md for Claude context + detailed GitHub issues
+Latest: Confirmed design philosophy for requirement tracking
 
 ## Essential Context
-- `/req add` now properly manages REQUIREMENTS.md files:
-  - Creates from template if needed
-  - Adds requirements with proper REQ-XXXX numbering
-  - Saves to project's REQUIREMENTS.md
-- `/req list` and `/req status` work with local REQUIREMENTS.md
-- `/req-to-issue` creates detailed GitHub issues AND updates REQUIREMENTS.md
-- Complete workflow: Add to file → Create issue → Link back to file
-- All commands check for REQUIREMENTS.md in current directory
+- REQUIREMENTS.md stays lean for Claude Code context preservation:
+  - Just REQ-XXXX, name, priority, status, issue link
+  - Brief description and rationale only
+  - Points to GitHub for all implementation details
+- GitHub issues hold comprehensive implementation info:
+  - Design decisions, technical approach, code examples
+  - Progress tracking, test strategies, documentation
+  - All detailed work happens in GitHub, not local files
+- `/req` commands already implement this dual-track approach correctly
 
 ## Next Step
-1. Test /req add with a sample requirement
-2. Test /req-to-issue to create GitHub issue
-3. Verify REQUIREMENTS.md is updated with issue link
+Continue using the enhanced /req workflow as designed - lean local files, detailed GitHub issues
 
 ## Related Documents
 - CLAUDE.md - Project-specific instructions
-- dot_claude/commands/req.md - Requirements command (now fixed)
+- dot_claude/commands/req.md - Requirements command (dual-track design)
+- dot_claude/commands/req-to-issue.md - GitHub issue creation
 - CLAUDE_COMMANDS_LOG.md - Session history
