@@ -1,23 +1,22 @@
 # Project: Chezmoi Dotfiles
-Updated: 2025-05-29
+Updated: 2025-05-29 17:33
 
 ## Current State
-Status: Refactored all slash commands - documentation separated from execution
-Target: Clean command structure with centralized documentation
-Latest: Created COMMANDS.md and refactored 8 command files to pure execution instructions
+Status: Cleaned up .chezmoiignore and CLAUDE.md files
+Target: Minimal, focused configuration files
+Latest: Refactored CLAUDE.md files to ~25 lines each, moved docs to CLAUDE_METHODOLOGY.md
 
 ## Essential Context
-- Created `dot_claude/COMMANDS.md` for human-readable slash command documentation
-- Refactored command files to contain only execution instructions for Claude
-- Commands without metadata marked as "Author: Unknown, Created: 2025-05-01"
-- Major refactors: /start, /checkpoint, /wrap-session, /tool, /req, /req-to-issue, /plan, /setup
-- Command files now follow consistent pattern: pure instructions, no explanatory text
+- Removed Claude runtime data (projects/, todos/, statsig/) from chezmoi
+- CLAUDE.md now excluded from deployment - only applies in chezmoi directory
+- Global CLAUDE.md reduced from 109 to 25 lines
+- Created CLAUDE_METHODOLOGY.md for documentation/credits
 
 ## Next Step
-Test refactored commands to ensure they execute correctly
+Commit the cleanup changes to git
 
 ## Related Documents
 - CLAUDE.md - Project-specific instructions
-- dot_claude/COMMANDS.md - Central slash command documentation (NEW)
-- dot_claude/commands/*.md - Individual command execution files (REFACTORED)
-- CLAUDE_COMMANDS_LOG.md - Session history
+- dot_claude/CLAUDE.md - Global configuration
+- dot_claude/CLAUDE_METHODOLOGY.md - Full documentation
+- SESSION_20250529_150000.md - Current session log

@@ -22,6 +22,7 @@ Latest: [Most recent accomplishment/discovery]
 
 ## Related Documents
 [Auto-discover and list if exist:]
+- REQUIREMENTS.md - Project requirements and priorities
 - TODO.md - Active tasks
 - PROJECT_WISDOM.md - Technical insights
 - CLAUDE.md - Project-specific instructions

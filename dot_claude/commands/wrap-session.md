@@ -23,6 +23,7 @@ Duration: [Estimate based on work]
 
 ## Next Session Priority
 [What should be tackled first next time]
+[Check REQUIREMENTS.md for high-priority pending items]
 
 ## Git Activity
 [List commits made during session]
@@ -30,7 +31,7 @@ Duration: [Estimate based on work]
 Update HANDOFF.md:
 - Refresh "Current State" with final status
 - Update "Latest" with session's main achievement
-- Ensure "Next Step" is current for next session
+- Ensure "Next Step" is current for next session (consider pending REQUIREMENTS.md items)
 - Clear "If Blocked" if resolved
 
 Check for uncommitted changes:

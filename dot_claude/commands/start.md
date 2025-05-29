@@ -5,6 +5,7 @@ Check git state:
 
 Check for key files in order:
 - If HANDOFF.md exists → Read it (primary context)
+- If REQUIREMENTS.md exists → Read it (project requirements and priorities)
 - If TODO.md exists → Read it (active tasks)
 - If plan.md exists → Note strategic direction
 - If PROJECT_WISDOM.md exists → Note its presence
@@ -24,7 +25,8 @@ Recent Progress:
 
 Next Actions:
 1. [Primary task from HANDOFF.md]
-2. [High priority from TODO.md if exists]
+2. [High priority requirements from REQUIREMENTS.md if exists]
+3. [High priority from TODO.md if exists]
 
 Ready to proceed with: [specific next task]
 

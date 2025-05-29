@@ -9,6 +9,30 @@ ps_shell_hints
 .config/helix
 bash_shell_hints
 {{ end }}
+
+# Repository documentation (not config files)
+README.md
+CLAUDE.md
+./HANDOFF.md
+SESSION_*.md
+CLAUDE_COMMANDS_LOG.md
+
+# License and legal files
 LICENSE
 NOTICE
-.claude/.credentials.json
+
+# Claude Code runtime data (when running from this directory)
+.claude/
+dot_claude/claude_config_improvement_plan.md
+dot_claude/CLAUDE_METHODOLOGY.md
+
+# Development and build artifacts
+*.log
+*.tmp
+*.bak
+*~
+.DS_Store
+
+# Git repository files
+.git/
+.gitignore

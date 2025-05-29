@@ -186,9 +186,19 @@ Creates a concise summary of work completed during the current session.
 #### /security-review
 **Author**: Unknown  
 **Created**: 2025-05-01  
-**Purpose**: Perform security analysis
+**Purpose**: Perform comprehensive security audit
 
-Reviews code for potential security vulnerabilities and suggests improvements.
+Executes an actionable security review workflow that:
+- Identifies project type and technology stack
+- Scans for hardcoded secrets and credentials using regex patterns
+- Checks dependencies for known vulnerabilities
+- Searches for dangerous code patterns (SQL injection, command injection, etc.)
+- Reviews authentication and authorization implementations
+- Audits input validation and file operations
+- Examines configuration files for security issues
+- Generates detailed SECURITY_REVIEW report with findings by severity
+
+The command uses grep and glob tools to systematically search for security anti-patterns and produces actionable remediation guidance.
 
 #### /tool
 **Author**: Jack Chidley  
