@@ -1,23 +1,24 @@
-Make sure there is a claude.md. If there isn't, exit this prompt, and instruct the user to run /init
+Check if CLAUDE.md exists. If not, inform user: "No CLAUDE.md found. Run /init first."
 
-If there is, add the following info:
+If CLAUDE.md exists, append the following project standards:
 
-Python stuff:
+## Development Standards
 
-- we use uv for python package management
-- you don't need to use a requirements.txt
-- run a script by `uv run <script.py>`
-- add packages by `uv add <package>`
-- packages are stored in pyproject.toml
+### Python Environment
+- Package management: uv
+- No requirements.txt needed
+- Run scripts: `uv run <script.py>`
+- Add packages: `uv add <package>`
+- Dependencies in pyproject.toml
 
-Workflow stuff:
+### Workflow
+- Check TODO.md for tasks
+- Mark completed items with [x]
 
-- if there is a todo.md, then check off any work you have completed.
+### Quality Standards
+- All tests must pass before completing tasks
+- Linting must pass before completing tasks
+- Run tests with: `uv run pytest`
+- Run linting with: `uv run ruff check`
 
-Tests:
-
-- Make sure testing always passes before the task is done
-
-Linting:
-
-- Make sure linting passes before the task is done
+Output: "Project standards added to CLAUDE.md"

@@ -2,26 +2,22 @@
 Updated: 2025-05-29
 
 ## Current State
-Status: Clarified dual-track requirements approach
-Target: Lean REQUIREMENTS.md for Claude context + detailed GitHub issues
-Latest: Confirmed design philosophy for requirement tracking
+Status: Refactored all slash commands - documentation separated from execution
+Target: Clean command structure with centralized documentation
+Latest: Created COMMANDS.md and refactored 8 command files to pure execution instructions
 
 ## Essential Context
-- REQUIREMENTS.md stays lean for Claude Code context preservation:
-  - Just REQ-XXXX, name, priority, status, issue link
-  - Brief description and rationale only
-  - Points to GitHub for all implementation details
-- GitHub issues hold comprehensive implementation info:
-  - Design decisions, technical approach, code examples
-  - Progress tracking, test strategies, documentation
-  - All detailed work happens in GitHub, not local files
-- `/req` commands already implement this dual-track approach correctly
+- Created `dot_claude/COMMANDS.md` for human-readable slash command documentation
+- Refactored command files to contain only execution instructions for Claude
+- Commands without metadata marked as "Author: Unknown, Created: 2025-05-01"
+- Major refactors: /start, /checkpoint, /wrap-session, /tool, /req, /req-to-issue, /plan, /setup
+- Command files now follow consistent pattern: pure instructions, no explanatory text
 
 ## Next Step
-Continue using the enhanced /req workflow as designed - lean local files, detailed GitHub issues
+Test refactored commands to ensure they execute correctly
 
 ## Related Documents
 - CLAUDE.md - Project-specific instructions
-- dot_claude/commands/req.md - Requirements command (dual-track design)
-- dot_claude/commands/req-to-issue.md - GitHub issue creation
+- dot_claude/COMMANDS.md - Central slash command documentation (NEW)
+- dot_claude/commands/*.md - Individual command execution files (REFACTORED)
 - CLAUDE_COMMANDS_LOG.md - Session history
