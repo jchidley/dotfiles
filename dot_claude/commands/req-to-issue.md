@@ -6,22 +6,33 @@
 
 When user types `/req-to-issue REQ-XXXX`, execute these steps:
 
-1. **Read the requirement** from REQUIREMENTS.md for the specified REQ number
-2. **Extract details**: name, description, rationale, priority, dependencies
-3. **Create GitHub issue** using gh command with:
+1. **Locate REQUIREMENTS.md** in current directory
+   - If not found: "Error: No REQUIREMENTS.md found in current directory"
+2. **Read and parse** the specified requirement (REQ-XXXX)
+   - Extract: name, description, rationale, priority, status, dependencies
+3. **Create GitHub issue** using gh command:
    - Title: `[REQ-XXXX] Requirement Name`
-   - Labels: `requirement`, priority level (high/medium/low)
-   - Detailed body with implementation sections
-4. **Update REQUIREMENTS.md** to include the created issue number
-5. **Return the issue URL** to the user
+   - Labels: `requirement`, priority level (`high-priority`, `medium-priority`, `low-priority`)
+   - Body: Detailed template with all implementation sections
+4. **Update REQUIREMENTS.md**:
+   - Replace `GitHub Issue: Not created` with `GitHub Issue: #[issue-number]`
+   - Save the updated file
+5. **Commit the change**:
+   - Message: `docs: link REQ-XXXX to GitHub issue #[number]`
+6. **Display result**:
+   - "✅ Created issue #[number] for REQ-XXXX"
+   - "📋 REQUIREMENTS.md updated with issue link"
+   - Show the issue URL
 
 ## Execution Steps
 
-1. First, read REQUIREMENTS.md and find the requirement
-2. Create the issue body with all sections for detailed notes
-3. Use gh issue create command
-4. Update REQUIREMENTS.md with the issue number
-5. Commit the REQUIREMENTS.md update
+1. Check for REQUIREMENTS.md in current directory
+2. Parse requirement details from the file
+3. Build comprehensive issue body from template
+4. Create issue with gh command and capture issue number
+5. Update REQUIREMENTS.md with issue number
+6. Commit the update
+7. Display success message with issue URL
 
 ## Implementation Template
 

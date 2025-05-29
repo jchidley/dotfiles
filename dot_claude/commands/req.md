@@ -12,28 +12,58 @@ When user types `/req <subcommand> [args]`, execute the following:
 3. Provide reasoning for your decision
 
 ### `/req add <description>`
-1. Read `/home/jack/.local/share/chezmoi/dot_claude/templates/REQUIREMENTS.md`
-2. Find the highest existing REQ number
-3. Create new requirement as REQ-XXXX (next sequential number)
-4. Add to appropriate version section with proper format:
-   - Priority: High/Medium/Low
-   - Status: Pending
-   - GitHub Issue: "Not created"
-   - Description: User's description
-   - Rationale: Ask user or infer from context
-   - Implementation: "See GitHub issue for implementation details"
-5. Save the updated REQUIREMENTS.md
-6. Confirm: "✅ Added REQ-XXXX: <description>"
-7. Remind: "Run `/req-to-issue REQ-XXXX` to create GitHub issue with detailed tracking"
+1. Check for existing REQUIREMENTS.md in current project:
+   - First check: `./REQUIREMENTS.md` (current directory)
+   - If not found: Create from template at `/home/jack/.local/share/chezmoi/dot_claude/templates/REQUIREMENTS.md`
+2. Read the REQUIREMENTS.md file
+3. Find the highest existing REQ number (or start at REQ-0001)
+4. Create new requirement as REQ-XXXX (next sequential number, padded to 4 digits)
+5. Add to appropriate version section with proper format:
+   ```markdown
+   #### REQ-XXXX: [Brief requirement name from description]
+   - **Priority**: High/Medium/Low (ask user or infer)
+   - **Status**: Pending
+   - **GitHub Issue**: Not created
+   - **Description**: [User's full description]
+   - **Rationale**: [Ask user or infer from context]
+   - **Implementation**: See GitHub issue for implementation details
+   ```
+6. Write the updated REQUIREMENTS.md back to the same location
+7. Confirm: "✅ Added REQ-XXXX to REQUIREMENTS.md: <description>"
+8. Remind: "Run `/req-to-issue REQ-XXXX` to create GitHub issue with detailed tracking"
 
 ### `/req list`
-1. Read REQUIREMENTS.md
-2. Display all requirements with their status
-3. Format: "REQ-XXXX: <name> [<status>]"
+1. Check for REQUIREMENTS.md in current directory
+2. If not found, inform user: "No REQUIREMENTS.md found in current directory"
+3. Read all requirements from the file
+4. Display in organized format:
+   ```
+   ## Requirements Summary
+   
+   ### Version 1.0 - Foundation
+   REQ-0001: [Name] [Status: Pending/Implemented] [Issue: #123 or Not created]
+   REQ-0002: [Name] [Status: Pending/Implemented] [Issue: #456 or Not created]
+   
+   ### Version 1.1 - Enhancements
+   REQ-0010: [Name] [Status: Planned] [Issue: Not created]
+   
+   Total: X requirements (Y implemented, Z pending)
+   ```
 
 ### `/req status <REQ-XXXX>`
-1. Find the specified requirement in REQUIREMENTS.md
-2. Display its full details
+1. Check for REQUIREMENTS.md in current directory
+2. If not found, inform user: "No REQUIREMENTS.md found in current directory"
+3. Find the specified requirement
+4. Display full details:
+   ```
+   REQ-XXXX: [Name]
+   Priority: High/Medium/Low
+   Status: Pending/Implemented/Planned
+   GitHub Issue: #123 or Not created
+   Description: [Full description]
+   Rationale: [Rationale]
+   Dependencies: [If any]
+   ```
 
 ## Process Reminder
 

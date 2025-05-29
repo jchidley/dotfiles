@@ -2,25 +2,24 @@
 Updated: 2025-05-29
 
 ## Current State
-Status: Enhanced /req commands for GitHub integration
-Target: Full requirement tracking with detailed GitHub issues
-Latest: Updated /req and /req-to-issue commands
+Status: Complete /req command with REQUIREMENTS.md management
+Target: Full requirement tracking in files AND GitHub issues
+Latest: Enhanced both file management and GitHub integration
 
 ## Essential Context
-- Fixed /req command to execute properly instead of just showing documentation
-- Enhanced /req add to include proper format and GitHub reminder
-- Updated /req-to-issue with detailed implementation template
-- Added comprehensive GitHub issue body template with:
-  - Design decisions tracking
-  - Technical notes sections
-  - Progress tracking checklists
-  - Testing strategy sections
-  - Documentation requirements
+- `/req add` now properly manages REQUIREMENTS.md files:
+  - Creates from template if needed
+  - Adds requirements with proper REQ-XXXX numbering
+  - Saves to project's REQUIREMENTS.md
+- `/req list` and `/req status` work with local REQUIREMENTS.md
+- `/req-to-issue` creates detailed GitHub issues AND updates REQUIREMENTS.md
+- Complete workflow: Add to file → Create issue → Link back to file
+- All commands check for REQUIREMENTS.md in current directory
 
 ## Next Step
 1. Test /req add with a sample requirement
-2. Test /req-to-issue to create GitHub issue with detailed notes
-3. Verify GitHub issue includes all implementation sections
+2. Test /req-to-issue to create GitHub issue
+3. Verify REQUIREMENTS.md is updated with issue link
 
 ## Related Documents
 - CLAUDE.md - Project-specific instructions
