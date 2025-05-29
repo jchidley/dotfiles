@@ -48,6 +48,8 @@ Use the `/req` command to manage requirements:
 - `/req list` - List all current requirements
 - `/req status <REQ-XXXX>` - Check status of a specific requirement
 
+**Note**: Slash commands in Claude Code display instructions that Claude will execute. When you type a command, Claude reads the instructions and performs the requested action.
+
 When users request new PROJECT functionality or features:
 1. CHECK if it's a genuinely new PROJECT requirement (not just a task or question)
 2. ADD to @templates/REQUIREMENTS.md if it represents a new project capability or constraint

@@ -1,14 +1,31 @@
 # /req - Requirements Management
 
-Manage project requirements following the structured process defined in CLAUDE.md.
+**CLAUDE INSTRUCTION**: When the user invokes this command, YOU MUST execute the appropriate action below, not just display this documentation.
 
-## Usage
-```
-/req check <description>    # Check if something qualifies as a project requirement
-/req add <description>      # Add a new project requirement to REQUIREMENTS.md
-/req list                   # List all current requirements
-/req status <REQ-XXXX>      # Check status of a specific requirement
-```
+## Command Actions
+
+When user types `/req <subcommand> [args]`, execute the following:
+
+### `/req check <description>`
+1. Analyze if the description is a PROJECT requirement (new feature/capability)
+2. Respond with "✅ This IS a project requirement" or "❌ This is NOT a project requirement"
+3. Provide reasoning for your decision
+
+### `/req add <description>`
+1. Read `/home/jack/.local/share/chezmoi/dot_claude/templates/REQUIREMENTS.md`
+2. Find the highest existing REQ number
+3. Create new requirement as REQ-XXXX (next sequential number)
+4. Add to appropriate version section with proper format
+5. Confirm addition with "✅ Added REQ-XXXX: <description>"
+
+### `/req list`
+1. Read REQUIREMENTS.md
+2. Display all requirements with their status
+3. Format: "REQ-XXXX: <name> [<status>]"
+
+### `/req status <REQ-XXXX>`
+1. Find the specified requirement in REQUIREMENTS.md
+2. Display its full details
 
 ## Process Reminder
 
