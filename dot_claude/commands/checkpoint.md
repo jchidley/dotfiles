@@ -20,6 +20,12 @@ Latest: [Most recent accomplishment/discovery]
 ## If Blocked
 [What's stopping progress, if anything]
 
+## Failed Approaches
+[Document what hasn't worked to avoid repeating dead ends]
+- [Failed approach 1]: [Why it didn't work]
+- [Failed approach 2]: [Why it didn't work]
+(Include specific error messages or technical reasons)
+
 ## Related Documents
 [Auto-discover and list if exist:]
 - REQUIREMENTS.md - Project requirements and priorities

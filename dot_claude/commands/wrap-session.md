@@ -15,6 +15,12 @@ Duration: [Estimate based on work]
 ## Technical Insights
 [Any important discoveries or learnings]
 
+## Failed Approaches & Dead Ends
+[Document approaches that didn't work to save time in future sessions]
+- [Failed approach]: [Why it failed and what was learned]
+- [Dead end]: [Technical reason or error that made this unviable]
+(Be specific about error messages, incompatibilities, or design flaws)
+
 ## Challenges Encountered
 [Any blockers or difficulties faced]
 
