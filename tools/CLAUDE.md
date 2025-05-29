@@ -36,6 +36,114 @@ This file provides comprehensive development standards and guidance for Claude C
 4. Is it a one-off data analysis? → Consider Python with uvx
 5. **Default: Start with bash, refactor if needed**
 
+## Bash Script Standards
+
+### Testing and Debugging Requirements
+All bash scripts MUST include:
+
+1. **Error Handling**
+   ```bash
+   set -euo pipefail  # Exit on error, undefined vars, pipe failures
+   IFS=$'\n\t'        # Safe Internal Field Separator
+   ```
+
+2. **Debug Mode Support**
+   ```bash
+   # Enable with DEBUG=1 or --debug flag
+   DEBUG="${DEBUG:-0}"
+   [[ "$DEBUG" == "1" ]] && set -x  # Print commands as executed
+   ```
+
+3. **Validation Functions**
+   ```bash
+   # Command availability check
+   command_exists() {
+       command -v "$1" >/dev/null 2>&1
+   }
+   
+   # Dependency verification
+   check_dependencies() {
+       local deps=("$@")
+       for cmd in "${deps[@]}"; do
+           command_exists "$cmd" || die "Missing dependency: $cmd"
+       done
+   }
+   ```
+
+4. **Error Reporting**
+   ```bash
+   die() {
+       echo "ERROR: $*" >&2
+       exit 1
+   }
+   
+   warn() {
+       echo "WARNING: $*" >&2
+   }
+   ```
+
+5. **Testing Support**
+   ```bash
+   # Self-test mode with --test flag
+   if [[ "${1:-}" == "--test" ]]; then
+       run_tests
+       exit $?
+   fi
+   ```
+
+### Script Template
+```bash
+#!/usr/bin/env bash
+# ABOUTME: Brief description of script purpose
+# Usage: script.sh [options] <args>
+
+set -euo pipefail
+IFS=$'\n\t'
+
+# Debug mode
+DEBUG="${DEBUG:-0}"
+[[ "$DEBUG" == "1" ]] && set -x
+
+# Script directory for relative paths
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Error handling
+die() { echo "ERROR: $*" >&2; exit 1; }
+warn() { echo "WARNING: $*" >&2; }
+
+# Dependency check
+check_dependencies() {
+    local deps=("$@")
+    for cmd in "${deps[@]}"; do
+        command -v "$cmd" >/dev/null 2>&1 || die "Missing: $cmd"
+    done
+}
+
+# Main function
+main() {
+    check_dependencies "required_command1" "required_command2"
+    
+    # Script logic here
+}
+
+# Test mode
+if [[ "${1:-}" == "--test" ]]; then
+    # Run tests
+    echo "Running tests..."
+    # Test implementations
+    exit 0
+fi
+
+# Execute main
+main "$@"
+```
+
+### Testing Tools
+- Use `shellcheck` for static analysis (included in all scripts)
+- Use `bats` for unit testing when appropriate
+- Include example usage in comments
+- Provide --dry-run option for destructive operations
+
 ## STOP - CHECK BEFORE STARTING ANY TASK
 1. **System task? → Start with bash/Unix tools** (grep, awk, curl, jq, pdftotext, etc.)
 2. **Default to simplest solution** - If bash can do it, use bash
