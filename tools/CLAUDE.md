@@ -138,11 +138,231 @@ fi
 main "$@"
 ```
 
-### Testing Tools
-- Use `shellcheck` for static analysis (included in all scripts)
-- Use `bats` for unit testing when appropriate
-- Include example usage in comments
-- Provide --dry-run option for destructive operations
+### Testing Requirements
+- **Static Analysis**: Use `shellcheck` for all scripts (non-negotiable)
+- **Unit Testing**: Use `bats-core` as the primary testing framework
+- **Test Coverage**: All non-trivial scripts MUST have accompanying tests
+- **Dry Run**: Provide --dry-run option for destructive operations
+- **Self-Test**: Include --test flag for basic validation
+
+### Bash Testing with Bats
+
+#### Installation
+```bash
+# Debian/Ubuntu
+sudo apt-get install bats
+
+# Using npm
+npm install -g bats
+
+# From source (recommended for latest features)
+git clone https://github.com/bats-core/bats-core.git
+cd bats-core && ./install.sh /usr/local
+```
+
+#### Test File Structure
+```bash
+#!/usr/bin/env bats
+# test_script.bats
+
+# Load the script to test
+setup() {
+    # Run before each test
+    export TEST_DIR="$(mktemp -d)"
+    source "${BATS_TEST_DIRNAME}/../script.sh"
+}
+
+teardown() {
+    # Run after each test
+    rm -rf "$TEST_DIR"
+}
+
+@test "function validates input correctly" {
+    run validate_input "valid@email.com"
+    [ "$status" -eq 0 ]
+    [ "$output" = "Valid email" ]
+}
+
+@test "function rejects invalid input" {
+    run validate_input "invalid.email"
+    [ "$status" -eq 1 ]
+    [[ "$output" =~ "Invalid" ]]
+}
+
+@test "handles missing files gracefully" {
+    run process_file "/nonexistent"
+    [ "$status" -eq 1 ]
+    [ "${lines[0]}" = "Error: File not found" ]
+}
+```
+
+#### Testing Best Practices
+
+1. **Test Organization**
+   ```bash
+   project/
+   ├── scripts/
+   │   ├── deploy.sh
+   │   └── backup.sh
+   └── tests/
+       ├── test_deploy.bats
+       └── test_backup.bats
+   ```
+
+2. **Mocking External Commands**
+   ```bash
+   # Mock dangerous or external commands
+   setup() {
+       # Override command in test
+       curl() {
+           echo "MOCK: curl $*"
+           return 0
+       }
+       export -f curl
+   }
+   
+   @test "api call uses correct endpoint" {
+       run call_api "data"
+       [[ "$output" =~ "MOCK: curl.*https://api.example.com" ]]
+   }
+   ```
+
+3. **Testing Error Conditions**
+   ```bash
+   @test "script exits on missing dependencies" {
+       # Mock command_exists to return false
+       command_exists() { return 1; }
+       export -f command_exists
+       
+       run main
+       [ "$status" -eq 1 ]
+       [[ "$output" =~ "Missing dependency" ]]
+   }
+   ```
+
+4. **Testing with Fixtures**
+   ```bash
+   setup() {
+       # Create test data
+       cat > "$TEST_DIR/config.json" << EOF
+   {
+       "key": "value",
+       "debug": true
+   }
+   EOF
+   }
+   
+   @test "parses config correctly" {
+       run parse_config "$TEST_DIR/config.json"
+       [ "$status" -eq 0 ]
+       [[ "$output" =~ "debug mode enabled" ]]
+   }
+   ```
+
+#### CI/CD Integration
+
+**GitHub Actions Example:**
+```yaml
+name: Bash Tests
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install bats
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y bats
+      - name: Run tests
+        run: bats tests/*.bats
+      - name: Shellcheck
+        run: find . -name "*.sh" -type f | xargs shellcheck
+```
+
+#### Common Testing Patterns
+
+1. **Skip Tests Conditionally**
+   ```bash
+   @test "requires root privileges" {
+       [ "$EUID" -ne 0 ] && skip "requires root"
+       run admin_function
+       [ "$status" -eq 0 ]
+   }
+   ```
+
+2. **Test Timeout Handling**
+   ```bash
+   @test "completes within time limit" {
+       run timeout 5 ./long_running_script.sh
+       [ "$status" -eq 0 ]
+   }
+   ```
+
+3. **Debug Mode Testing**
+   ```bash
+   @test "debug mode produces verbose output" {
+       DEBUG=1 run ./script.sh
+       [[ "$output" =~ "DEBUG:" ]]
+   }
+   ```
+
+#### Common Pitfalls to Avoid
+
+1. **Variable Scope in Subshells**
+   ```bash
+   # WRONG: Variable changes in pipes are lost
+   count=0
+   cat file | while read line; do ((count++)); done
+   echo $count  # Still 0!
+   
+   # RIGHT: Avoid subshell
+   count=0
+   while read line; do ((count++)); done < file
+   echo $count  # Correct count
+   ```
+
+2. **Word Splitting Issues**
+   ```bash
+   # WRONG: Unquoted variables split on spaces
+   file="my document.txt"
+   rm $file  # Tries to remove "my" and "document.txt"
+   
+   # RIGHT: Always quote variables
+   rm "$file"
+   
+   # Test for this:
+   @test "handles spaces in filenames" {
+       touch "$TEST_DIR/file with spaces.txt"
+       run process_file "$TEST_DIR/file with spaces.txt"
+       [ "$status" -eq 0 ]
+   }
+   ```
+
+3. **Exit Code Propagation**
+   ```bash
+   # WRONG: Pipeline hides failures
+   false | true
+   echo $?  # Shows 0, not 1
+   
+   # RIGHT: Use pipefail
+   set -o pipefail
+   false | true
+   echo $?  # Shows 1
+   ```
+
+4. **Cleanup on Exit**
+   ```bash
+   # WRONG: Temp files left behind on error
+   temp=$(mktemp)
+   # Script fails here...
+   
+   # RIGHT: Use trap for cleanup
+   temp=$(mktemp)
+   trap "rm -f $temp" EXIT
+   # Cleanup happens even on error
+   ```
 
 ## STOP - CHECK BEFORE STARTING ANY TASK
 1. **System task? → Start with bash/Unix tools** (grep, awk, curl, jq, pdftotext, etc.)

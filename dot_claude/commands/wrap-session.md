@@ -1,38 +1,23 @@
-Create SESSION_[YYYYMMDD]_[HHMMSS].md:
+Create sessions directory if it doesn't exist:
+- Check if sessions/ directory exists
+- If not, create it with: mkdir -p sessions
 
-# Session Log: [Project Name]
-Date: [Current date]
-Duration: [Estimate based on work]
+Clean up checkpoint:
+- Delete SESSION_CHECKPOINT.md if exists
 
-## Summary
-[2-3 sentences of what was accomplished]
+Create sessions/SESSION_[YYYYMMDD]_[HHMMSS].md:
 
-## Key Accomplishments
-- [Specific achievement 1]
-- [Specific achievement 2]
-- [Specific achievement 3]
+# Session [YYYYMMDD]_[HHMMSS]
+Project: [Name]
 
-## Technical Insights
-[Any important discoveries or learnings]
+## Work Done
+[List what was actually accomplished - focus on completions]
 
-## Failed Approaches & Dead Ends
-[Document approaches that didn't work to save time in future sessions]
-- [Failed approach]: [Why it failed and what was learned]
-- [Dead end]: [Technical reason or error that made this unviable]
-(Be specific about error messages, incompatibilities, or design flaws)
+## Failed Approaches
+[Only if any - what didn't work and why]
 
-## Challenges Encountered
-[Any blockers or difficulties faced]
-
-## Files Modified
-[List main files changed]
-
-## Next Session Priority
-[What should be tackled first next time]
-[Check REQUIREMENTS.md for high-priority pending items]
-
-## Git Activity
-[List commits made during session]
+## Commits
+[git log --oneline output for this session]
 
 Update HANDOFF.md:
 - Refresh "Current State" with final status
@@ -49,6 +34,12 @@ Archive wisdom if PROJECT_WISDOM.md > 5KB:
 2. Move older insights to archive
 3. Keep only recent/active insights in main file
 
-Final output:
-"Session wrapped. Key accomplishments: [brief summary]
-Next session should start with: [next step from HANDOFF]"
+Check for cleanup:
+- If SESSION_*.md files exist in root: "Run 'mv SESSION_*.md sessions/' to organize"
+
+Output:
+"Session logged to sessions/SESSION_[timestamp].md
+Next: [from updated HANDOFF]
+Ready for /clear
+
+💭 Next session: If working on similar tasks, remind Claude to check history"

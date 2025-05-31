@@ -1,4 +1,13 @@
-Update or create HANDOFF.md with current timestamp:
+Create SESSION_CHECKPOINT.md (single file, overwritten each checkpoint):
+
+# Session Checkpoint
+Task: [One line description of current task]
+Progress: [What's been done THIS SESSION - 1-2 lines max]
+Next: [Immediate next action]
+
+Note: This file is temporary and only for post-/compact restoration
+
+Update HANDOFF.md with current timestamp:
 
 # Project: [Current project name]
 Updated: [Current timestamp]
@@ -27,12 +36,9 @@ Latest: [Most recent accomplishment/discovery]
 (Include specific error messages or technical reasons)
 
 ## Related Documents
-[Auto-discover and list if exist:]
-- REQUIREMENTS.md - Project requirements and priorities
-- TODO.md - Active tasks
-- PROJECT_WISDOM.md - Technical insights
-- CLAUDE.md - Project-specific instructions
-- SESSION_*.md - Recent work logs
+- REQUIREMENTS.md - Project requirements
+- TODO.md - Active tasks  
+- CLAUDE.md - Project instructions
 
 If significant discovery occurred:
 1. Check if PROJECT_WISDOM.md exists
@@ -44,4 +50,7 @@ If significant discovery occurred:
    Impact: [Why this matters]
 5. If PROJECT_WISDOM.md > 5KB, suggest migrating to hierarchical structure
 
-After update, suggest: "Consider git push to backup progress"
+After update:
+1. Output: "Checkpoint saved. Progress backed up to HANDOFF.md and SESSION_CHECKPOINT.md"
+2. If any failed approaches encountered: "Remember to document what didn't work in HANDOFF.md"
+3. Suggest: "You can now run /compact to reduce context usage"

@@ -3,32 +3,23 @@ Check git state:
 - Run git status  
 - Run git log --oneline -5
 
-Check for key files in order:
-- If HANDOFF.md exists → Read it (primary context)
-- If REQUIREMENTS.md exists → Read it (project requirements and priorities)
-- If TODO.md exists → Read it (active tasks)
-- If plan.md exists → Note strategic direction
-- If PROJECT_WISDOM.md exists → Note its presence
-- If CLAUDE.md exists → Read it (project instructions)
-- If README.md exists → Scan briefly
+Check for key files:
+1. HANDOFF.md → Read (primary project state)
+2. SESSION_CHECKPOINT.md → If exists, session was compacted mid-work
+3. TODO.md → Read if exists (active tasks)
+4. CLAUDE.md → Read if exists (project instructions)
 
-For continuing work (HANDOFF.md exists):
-Output:
-## Project: [Name]
-Branch: [current branch]
-Current Status: [from HANDOFF.md]
-Uncommitted Changes: [Yes/No - summary if yes]
+Output format:
 
-Recent Progress:
-- [Last commit or accomplishment]
-- [Key metric if applicable]
+## Project: [Name from HANDOFF]
+Status: [from HANDOFF Current State]
+Branch: [git branch] | Changes: [Yes/No]
 
-Next Actions:
-1. [Primary task from HANDOFF.md]
-2. [High priority requirements from REQUIREMENTS.md if exists]
-3. [High priority from TODO.md if exists]
+Current focus: [If SESSION_CHECKPOINT exists, use its Task; else use HANDOFF Next Step]
 
-Ready to proceed with: [specific next task]
+Ready to: [specific action]
+
+💡 Reminder: See WORKING_WITH_CLAUDE.md for collaboration tips
 
 For new work (no HANDOFF.md):
 - Create HANDOFF.md with structure:
