@@ -22,7 +22,13 @@ LICENSE
 NOTICE
 
 # Claude Code runtime data (when running from this directory)
-.claude/
+# Allow managing .claude config but ignore runtime data
+.claude/todos/
+.claude/statsig/
+.claude/projects/
+.claude/local/
+.claude/.credentials.json
+.claude/.claude/
 dot_claude/claude_config_improvement_plan.md
 dot_claude/CLAUDE_METHODOLOGY.md
 

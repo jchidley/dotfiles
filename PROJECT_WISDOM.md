@@ -27,3 +27,11 @@ Impact: Commands should ask explicit questions with concrete examples rather tha
 ### 2025-05-31: Human-AI Collaboration - Magic Phrases Over Automation
 Insight: The key to avoiding repeated mistakes isn't more automation - it's better human-AI collaboration. By documenting "magic phrases" and reminding humans when to guide AI searches, we leverage each partner's strengths.
 Impact: Created WORKING_WITH_CLAUDE.md to guide human-side patterns, reducing repeated errors through gentle reminders rather than complex automation.
+
+### 2025-06-01: Chezmoi Ignore Patterns - Selective Directory Management
+Insight: When managing configuration directories with chezmoi (like .claude/), you can selectively ignore runtime subdirectories while managing config files by listing specific paths in .chezmoiignore (e.g., `.claude/todos/` instead of `.claude/`).
+Impact: Allows version control of important config while excluding dynamic runtime data, preventing repository bloat and merge conflicts.
+
+### 2025-06-01: Session Checkpoint Workflow - Preserve Context Not Delete
+Insight: The SESSION_CHECKPOINT.md file contains valuable mid-session context that should be incorporated into the final session log, not blindly deleted. The checkpoint command creates it for post-/compact restoration.
+Impact: Wrap-session command should check for and merge checkpoint content into the final session log to preserve complete session history.
