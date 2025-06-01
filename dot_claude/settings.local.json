@@ -5,7 +5,10 @@
       "Glob",
       "TodoRead",
       "TodoWrite",
-      "Edit"
+      "Edit",
+      "Bash",
+      "Write",
+      "Task"
     ]
   }
 }

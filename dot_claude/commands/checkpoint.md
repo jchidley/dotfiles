@@ -40,19 +40,27 @@ Latest: [Most recent accomplishment/discovery]
 - TODO.md - Active tasks  
 - CLAUDE.md - Project instructions
 
-If significant discovery occurred:
-1. Check if PROJECT_WISDOM.md exists
-2. If not exists, create with:
-   # Project Wisdom
-   
-   Insights and lessons learned from development.
-   
-   ## Active Insights
-3. Append discovery with searchable title:
+Review session for PROJECT_WISDOM.md updates:
+1. Check for these common insight patterns:
+   - Tool usage patterns: "Found that [tool] works better with [specific approach]"
+   - Error solutions: "Fixed [error message] by [specific solution]"
+   - Configuration discoveries: "[Setting/config] must be [requirement] because [reason]"
+   - Workflow improvements: "Using [approach] instead of [old way] saves time/prevents errors"
+   - Integration insights: "[Tool A] and [Tool B] interact in [unexpected way]"
+   - Performance findings: "[Action] is slow/fast because [technical reason]"
+
+2. If any insights found, suggest to user:
+   "💡 Potential PROJECT_WISDOM.md entries:
+   - [Specific suggestion based on session work]
+   - [Another suggestion if applicable]
+   Add these insights? (Y/n)"
+
+3. If user agrees, update PROJECT_WISDOM.md:
    ### [Date]: [Topic/Technology - Specific Discovery]
    Insight: [The realization with specific details/errors]
    Impact: [How this changes future approach]
-   Note: Title should contain searchable keywords (e.g., "WSL Import - Windows Path Required")
+   Note: Title should contain searchable keywords
+
 4. If PROJECT_WISDOM.md > 5KB:
    - Create PROJECT_WISDOM_ARCHIVE_[YYYYMMDD].md
    - Move older insights (keep last 10-15 active)

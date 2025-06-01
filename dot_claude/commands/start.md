@@ -27,6 +27,7 @@ Recent learnings:
 Ready to: [specific action]
 
 💡 Reminder: See WORKING_WITH_CLAUDE.md for collaboration tips
+💭 Watch for insights to capture with /checkpoint (solutions, patterns, fixes)
 
 For new work (no HANDOFF.md):
 - Create HANDOFF.md with structure:

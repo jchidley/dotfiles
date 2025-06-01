@@ -29,17 +29,26 @@ Check for uncommitted changes:
 - Run git status
 - If changes exist, remind: "Uncommitted changes detected. Consider committing before ending session."
 
-Check and archive PROJECT_WISDOM.md if > 5KB:
-1. If PROJECT_WISDOM.md exists and > 5KB:
+Review session and update PROJECT_WISDOM.md:
+1. Check session log "Technical Insights" section for discoveries
+2. Look for these patterns in the work done:
+   - Tool/command discoveries: "Found [tool] works better with [approach]"
+   - Error solutions: "Fixed [error] by [solution]"
+   - Configuration insights: "[Setting] must be [value] because [reason]"
+   - Workflow improvements: "[New approach] prevents [problem]"
+   - Integration findings: "[Tool A] and [Tool B] interact via [mechanism]"
+
+3. If insights found, suggest specific entries:
+   "💡 Add these to PROJECT_WISDOM.md?
+   - [Concrete suggestion based on session]
+   - [Another if applicable]"
+
+4. Update PROJECT_WISDOM.md with user-approved insights
+
+5. Archive if > 5KB:
    - Create PROJECT_WISDOM_ARCHIVE_[YYYYMMDD].md
    - Move older insights (keep last 10-15 active)
-   - Add note after header: *Note: Older insights archived to PROJECT_WISDOM_ARCHIVE_[date].md*
-2. If not exists but session had discoveries, create with:
-   # Project Wisdom
-   
-   Insights and lessons learned from development.
-   
-   ## Active Insights
+   - Add archive note to header
 
 Check for cleanup:
 - If SESSION_*.md files exist in root: "Run 'mv SESSION_*.md sessions/' to organize"
