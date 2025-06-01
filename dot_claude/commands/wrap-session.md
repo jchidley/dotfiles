@@ -31,9 +31,9 @@ Check for uncommitted changes:
 
 Check and archive PROJECT_WISDOM.md if > 5KB:
 1. If PROJECT_WISDOM.md exists and > 5KB:
-   - Create PROJECT_WISDOM_ARCHIVE_[date].md
+   - Create PROJECT_WISDOM_ARCHIVE_[YYYYMMDD].md
    - Move older insights (keep last 10-15 active)
-   - Update PROJECT_WISDOM.md header with archive reference
+   - Add note after header: *Note: Older insights archived to PROJECT_WISDOM_ARCHIVE_[date].md*
 2. If not exists but session had discoveries, create with:
    # Project Wisdom
    

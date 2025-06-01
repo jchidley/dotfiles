@@ -2,12 +2,8 @@
 
 Insights and lessons learned from development.
 
-## Active Insights
+## Active Insights (Recent & Critical)
 
-### [Date]: [Discovery Title]
-Insight: [The realization in one sentence]
-Impact: [Why this matters]
-
----
-
-Archives: None yet (created when file > 5KB)
+### [Date]: [Brief descriptive title]
+Insight: [The key realization - what you learned]
+Impact: [Why this matters - how it changes your approach]

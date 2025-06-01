@@ -53,9 +53,9 @@ If significant discovery occurred:
    Insight: [The realization in one sentence]
    Impact: [Why this matters]
 4. If PROJECT_WISDOM.md > 5KB:
-   - Create PROJECT_WISDOM_ARCHIVE_[date].md
+   - Create PROJECT_WISDOM_ARCHIVE_[YYYYMMDD].md
    - Move older insights (keep last 10-15 active)
-   - Update PROJECT_WISDOM.md header with archive reference
+   - Add note after header: *Note: Older insights archived to PROJECT_WISDOM_ARCHIVE_[date].md*
 
 After update:
 1. Output: "Checkpoint saved. Progress backed up to HANDOFF.md and SESSION_CHECKPOINT.md"
