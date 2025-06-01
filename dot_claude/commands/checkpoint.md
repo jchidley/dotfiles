@@ -58,6 +58,18 @@ If significant discovery occurred:
    - Move older insights (keep last 10-15 active)
    - Add note after header: *Note: Older insights archived to PROJECT_WISDOM_ARCHIVE_[date].md*
 
+Check tool usage:
+- If any tools were blocked/disallowed so far, suggest:
+  "Consider adding these to .claude/settings.local.json:
+  {
+    "permissions": {
+      "allow": [
+        "Bash(command:specific_command)",
+        "WebFetch(domain:example.com)"
+      ]
+    }
+  }"
+
 After update:
 1. Output: "Checkpoint saved. Progress backed up to HANDOFF.md and SESSION_CHECKPOINT.md"
 2. If any failed approaches encountered: "Remember to document what didn't work in HANDOFF.md"
