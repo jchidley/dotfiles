@@ -44,6 +44,19 @@ Check and archive PROJECT_WISDOM.md if > 5KB:
 Check for cleanup:
 - If SESSION_*.md files exist in root: "Run 'mv SESSION_*.md sessions/' to organize"
 
+Check tool usage:
+- If any tools were blocked/disallowed during session, suggest:
+  "Consider adding these to .claude/settings.local.json:
+  {
+    "permissions": {
+      "allow": [
+        "Bash(command:specific_command)",
+        "WebFetch(domain:example.com)"
+      ]
+    }
+  }"
+- Reference: https://docs.anthropic.com/en/docs/claude-code/settings
+
 Output:
 "Session logged to sessions/SESSION_[timestamp].md
 Next: [from updated HANDOFF]
