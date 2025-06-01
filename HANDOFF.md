@@ -1,20 +1,20 @@
 # Project: Chezmoi Dotfiles
-Updated: 2025-05-31 17:15
+Updated: 2025-06-01 09:42
 
 ## Current State
-Status: Session management redesigned with human-AI collaboration patterns
+Status: Session management fully implemented with PROJECT_WISDOM.md integration
 Target: Clean, minimal dotfiles configuration with robust scripting standards
-Latest: Completed session workflow redesign - ready for real-world testing
+Latest: PROJECT_WISDOM.md now searchable by Claude with consistent handling
 
 ## Essential Context
 - WORKING_WITH_CLAUDE.md guides human-side of preventing repeated mistakes
-- SESSION_CHECKPOINT.md enables mid-session compaction (3 lines only)
+- PROJECT_WISDOM.md captures searchable insights (Topic - Discovery format)
+- Tool usage checks in /checkpoint and /wrap-session for settings.local.json
 - sessions/ directory contains all historical logs
 - Each file has ONE clear purpose - no duplication
-- Bash scripts require error handling, debug mode, and testing support
 
 ## Next Step
-Check TODO.md usage and PROJECT_WISDOM.md creation, then commit all changes
+Test full session workflow with real development tasks to validate design
 
 ## Failed Approaches
 None documented yet - new feature just added
