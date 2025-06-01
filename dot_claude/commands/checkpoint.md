@@ -1,11 +1,18 @@
-Create SESSION_CHECKPOINT.md (single file, overwritten each checkpoint):
+Create SESSION_CHECKPOINT_[HHMMSS].md (timestamped to support multiple checkpoints):
 
-# Session Checkpoint
+# Session Checkpoint [HHMMSS]
+Created: [Current timestamp]
 Task: [One line description of current task]
-Progress: [What's been done THIS SESSION - 1-2 lines max]
+Progress: [What's been done since last checkpoint - 1-2 lines max]
 Next: [Immediate next action]
 
-Note: This file is temporary and only for post-/compact restoration
+## Work Done
+[List specific accomplishments since last checkpoint]
+
+## Failed Approaches
+[Any approaches that didn't work since last checkpoint]
+
+Note: This file will be incorporated into final session log by /wrap-session
 
 Update HANDOFF.md with current timestamp:
 
@@ -105,6 +112,7 @@ Tool Permission Management:
    - Ensure no duplicates
 
 After update:
-1. Output: "Checkpoint saved. Progress backed up to HANDOFF.md and SESSION_CHECKPOINT.md"
-2. If any failed approaches encountered: "Remember to document what didn't work in HANDOFF.md"
+1. Output: "Checkpoint saved to SESSION_CHECKPOINT_[HHMMSS].md and HANDOFF.md updated"
+2. If any failed approaches encountered: "Failed approaches documented in checkpoint"
 3. Suggest: "You can now run /compact to reduce context usage"
+4. Remind: "Multiple checkpoints are preserved and will be merged by /wrap-session"

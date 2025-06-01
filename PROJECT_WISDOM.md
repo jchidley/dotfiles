@@ -4,6 +4,10 @@ Insights and lessons learned from development.
 
 ## Active Insights (Recent & Critical)
 
+### 2025-06-01: Chezmoi Directory Naming - Avoid Nested dot_ Structures
+Insight: Creating dot_claude/dot_claude/ in chezmoi source results in ~/.claude/.claude/ in the target, which is confusing and unnecessary. Chezmoi's dot_ prefix transformation should only be used at the top level of managed directories.
+Impact: Configuration files should be placed directly in dot_claude/, not in nested dot_claude/dot_claude/. This prevents duplicate directory structures and maintains clarity about source vs target paths.
+
 ### 2025-06-01: Tool Permissions - Interactive Bulk Approval System
 Insight: Claude Code's tool permissions can be tracked during sessions and bulk-approved interactively, eliminating the friction of approving each tool use individually. The system tracks both allowed and denied permissions separately.
 Impact: Future sessions will have pre-approved permissions via .claude/settings.local.json, significantly improving workflow efficiency and reducing interruptions during development.
@@ -35,3 +39,7 @@ Impact: Allows version control of important config while excluding dynamic runti
 ### 2025-06-01: Session Checkpoint Workflow - Preserve Context Not Delete
 Insight: The SESSION_CHECKPOINT.md file contains valuable mid-session context that should be incorporated into the final session log, not blindly deleted. The checkpoint command creates it for post-/compact restoration.
 Impact: Wrap-session command should check for and merge checkpoint content into the final session log to preserve complete session history.
+
+### 2025-06-01: Multiple Checkpoints - Unique Filenames Prevent Data Loss
+Insight: Users may run checkpoint multiple times during a session. Using a single SESSION_CHECKPOINT.md filename causes later checkpoints to overwrite earlier ones. Timestamped filenames (SESSION_CHECKPOINT_HHMMSS.md) preserve all checkpoints.
+Impact: Both checkpoint and wrap-session commands now handle multiple checkpoint files, ensuring no mid-session context is lost. The pattern SESSION_*.md catches all checkpoint files for incorporation.

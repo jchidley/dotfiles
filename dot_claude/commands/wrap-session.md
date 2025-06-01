@@ -2,8 +2,10 @@ Create sessions directory if it doesn't exist:
 - Check if sessions/ directory exists
 - If not, create it with: mkdir -p sessions
 
-Clean up checkpoint:
-- Delete SESSION_CHECKPOINT.md if exists
+Check for SESSION_*.md files in root:
+- Look for any SESSION_*.md files (could be multiple checkpoints)
+- Sort them by timestamp to maintain chronological order
+- Read their content to incorporate into the final session log
 
 Create sessions/SESSION_[YYYYMMDD]_[HHMMSS].md:
 
@@ -11,13 +13,18 @@ Create sessions/SESSION_[YYYYMMDD]_[HHMMSS].md:
 Project: [Name]
 
 ## Work Done
-[List what was actually accomplished - focus on completions]
+[If SESSION_*.md files exist, incorporate their "Work Done" sections in chronological order]
+[And list what was actually accomplished since the last checkpoint - focus on completions]
 
 ## Failed Approaches
-[Only if any - what didn't work and why]
+[Combine any "Failed Approaches" from checkpoint files]
+[Add any new failed approaches since last checkpoint]
 
 ## Commits
 [git log --oneline output for this session]
+
+Clean up checkpoints after using them:
+- Move all SESSION_*.md files to sessions/ directory after incorporating their content
 
 Update HANDOFF.md:
 - Refresh "Current State" with final status
@@ -50,8 +57,9 @@ Review session and update PROJECT_WISDOM.md:
    - Move older insights (keep last 10-15 active)
    - Add archive note to header
 
-Check for cleanup:
-- If SESSION_*.md files exist in root: "Run 'mv SESSION_*.md sessions/' to organize"
+Verify cleanup:
+- Confirm all SESSION_*.md files have been moved to sessions/
+- If any remain in root, notify user
 
 Tool Permission Management:
 1. Track all tool permission requests during this session:

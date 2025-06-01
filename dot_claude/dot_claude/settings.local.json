@@ -1,9 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(gh auth:*)",
-      "WebFetch(domain:docs.github.com)"
-    ],
-    "deny": []
-  }
-}

@@ -1,25 +1,26 @@
 {{ if ne .chezmoi.os "windows" }}
 AppData
 Documents
-ps_shell_hints
+./ps_shell_hints
 {{ end }}
 {{ if ne .chezmoi.os "linux" }}
-.bashrc_debian
-.bashrc
+./.bashrc_debian
+./.bashrc
 .config/helix
-bash_shell_hints
+./bash_shell_hints
 {{ end }}
 
 # Repository documentation (not config files)
-README.md
-CLAUDE.md
+./README.md
+./CLAUDE.md
 ./HANDOFF.md
-SESSION_*.md
-CLAUDE_COMMANDS_LOG.md
+./CLAUDE_COMMANDS_LOG.md
+PROJECT_WISDOM.md
+sessions/
 
 # License and legal files
-LICENSE
-NOTICE
+./LICENSE
+./NOTICE
 
 # Claude Code runtime data (when running from this directory)
 # Allow managing .claude config but ignore runtime data
@@ -29,8 +30,6 @@ NOTICE
 .claude/local/
 .claude/.credentials.json
 .claude/.claude/
-dot_claude/claude_config_improvement_plan.md
-dot_claude/CLAUDE_METHODOLOGY.md
 
 # Development and build artifacts
 *.log
