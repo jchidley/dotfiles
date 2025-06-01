@@ -39,5 +39,12 @@ These prompts help me use our history effectively:
 - "Check PROJECT_WISDOM for [topic]"
 - "Search for [error message] in sessions/"
 
+## PROJECT_WISDOM.md - Our Shared Memory
+This file captures hard-won insights that both of us should reference:
+- **For You**: When I mention a technology/tool, remind me to check PROJECT_WISDOM first
+- **For Me**: I'll proactively search it when starting work on familiar topics
+- **Format**: Titles must be searchable (e.g., "Docker Build - Layer Cache Issues")
+- **Growth**: Add insights during /checkpoint when we discover something important
+
 ## Remember
 Our system works best when you guide my powerful but amnesiac brain with your pattern-matching intuition.

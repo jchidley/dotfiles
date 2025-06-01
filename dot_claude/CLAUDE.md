@@ -6,6 +6,7 @@
 - **EXPLAIN reasoning** before making changes
 - **NEVER run sudo directly** - provide exact command for user to execute
 - **VALIDATE file existence** before editing
+- **SEARCH PROJECT_WISDOM.md** when starting work on familiar topics (e.g., grep for "Docker" when working on Docker issues)
 
 ## Session Management
 

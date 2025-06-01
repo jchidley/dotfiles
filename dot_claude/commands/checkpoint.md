@@ -48,10 +48,11 @@ If significant discovery occurred:
    Insights and lessons learned from development.
    
    ## Active Insights
-3. Append discovery:
-   ### [Date]: [Discovery]
-   Insight: [The realization in one sentence]
-   Impact: [Why this matters]
+3. Append discovery with searchable title:
+   ### [Date]: [Topic/Technology - Specific Discovery]
+   Insight: [The realization with specific details/errors]
+   Impact: [How this changes future approach]
+   Note: Title should contain searchable keywords (e.g., "WSL Import - Windows Path Required")
 4. If PROJECT_WISDOM.md > 5KB:
    - Create PROJECT_WISDOM_ARCHIVE_[YYYYMMDD].md
    - Move older insights (keep last 10-15 active)
