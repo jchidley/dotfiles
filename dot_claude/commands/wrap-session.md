@@ -29,10 +29,17 @@ Check for uncommitted changes:
 - Run git status
 - If changes exist, remind: "Uncommitted changes detected. Consider committing before ending session."
 
-Archive wisdom if PROJECT_WISDOM.md > 5KB:
-1. Create PROJECT_WISDOM_ARCHIVE_[date].md
-2. Move older insights to archive
-3. Keep only recent/active insights in main file
+Check and archive PROJECT_WISDOM.md if > 5KB:
+1. If PROJECT_WISDOM.md exists and > 5KB:
+   - Create PROJECT_WISDOM_ARCHIVE_[date].md
+   - Move older insights (keep last 10-15 active)
+   - Update PROJECT_WISDOM.md header with archive reference
+2. If not exists but session had discoveries, create with:
+   # Project Wisdom
+   
+   Insights and lessons learned from development.
+   
+   ## Active Insights
 
 Check for cleanup:
 - If SESSION_*.md files exist in root: "Run 'mv SESSION_*.md sessions/' to organize"

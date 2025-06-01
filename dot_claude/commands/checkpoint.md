@@ -42,13 +42,20 @@ Latest: [Most recent accomplishment/discovery]
 
 If significant discovery occurred:
 1. Check if PROJECT_WISDOM.md exists
-2. If exists and has hierarchical structure, append to "Active Insights"
-3. If exists as simple file, append directly
-4. Format:
+2. If not exists, create with:
+   # Project Wisdom
+   
+   Insights and lessons learned from development.
+   
+   ## Active Insights
+3. Append discovery:
    ### [Date]: [Discovery]
    Insight: [The realization in one sentence]
    Impact: [Why this matters]
-5. If PROJECT_WISDOM.md > 5KB, suggest migrating to hierarchical structure
+4. If PROJECT_WISDOM.md > 5KB:
+   - Create PROJECT_WISDOM_ARCHIVE_[date].md
+   - Move older insights (keep last 10-15 active)
+   - Update PROJECT_WISDOM.md header with archive reference
 
 After update:
 1. Output: "Checkpoint saved. Progress backed up to HANDOFF.md and SESSION_CHECKPOINT.md"
