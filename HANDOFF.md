@@ -1,25 +1,25 @@
 # Project: Chezmoi Dotfiles
-Updated: 2025-06-01 22:16
+Updated: 2025-06-02 07:26
 
 ## Current State
-Status: Enhanced checkpoint/wrap-session commands for robust multi-checkpoint handling
+Status: /req commands rewritten with natural usage pattern and smart detection
 Target: Clean, minimal dotfiles configuration with robust scripting standards
-Latest: Checkpoint commands now support multiple checkpoints without data loss
+Latest: /req command now auto-detects relationships and creates GitHub issues
 
 ## Essential Context
-- **RESOLVED**: Checkpoint/wrap-session now handle multiple checkpoints properly
-- Checkpoint creates timestamped files: SESSION_CHECKPOINT_[HHMMSS].md
-- Wrap-session reads all SESSION_*.md files before deletion (no data loss)
+- **RESOLVED**: /req commands now have detailed instructions (200+ lines vs 30)
+- /req <description> is primary usage - no subcommands needed
+- Automatically detects related requirements and offers to add detail
+- Creates GitHub issues automatically when in GitHub repository
+- Appends to existing requirements via GitHub comments or REQUIREMENTS.md
+- /req-to-issue enhanced with full error handling and prerequisite checks
+- Commands verified to have no overlap with other issue-tracking commands
+- Checkpoint/wrap-session handle multiple checkpoints properly
 - dot_claude properly transforms to ~/.claude without nested subdirectories
-- Single settings.local.json in dot_claude/ with full permissions
-- .chezmoiignore properly excludes runtime data while managing static configs
-- Runtime directories excluded: .claude/todos/, statsig/, projects/, local/, .credentials.json
-- Commands proactively suggest insights with concrete examples
 - Tool permissions fully automated with interactive approval UI
-- Documentation organized: AI context in .claude/, development guides in tools/
 
 ## Next Step
-Consider adding checkpoint metadata or consolidation features for long sessions
+Test the new /req commands with real requirements to verify workflow
 
 ## If Blocked
 None - system fully operational

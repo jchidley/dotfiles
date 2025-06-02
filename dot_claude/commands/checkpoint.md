@@ -73,44 +73,6 @@ Review session for PROJECT_WISDOM.md updates:
    - Move older insights (keep last 10-15 active)
    - Add note after header: *Note: Older insights archived to PROJECT_WISDOM_ARCHIVE_[date].md*
 
-Tool Permission Management:
-1. Track all tool permission requests during this session:
-   - Check for tools that were granted permission (you used them)
-   - Check for tools that were denied permission (you were blocked)
-   - Create a list of new permissions not in .claude/settings.local.json
-
-2. If new permissions found, prompt user:
-   "🔧 Tool Permission Update Required
-   
-   The following tools were used during this session:
-   
-   ✅ ALLOWED (will be added to allow list):
-   - Bash(git status:*)
-   - WebFetch(domain:api.example.com)
-   
-   ❌ DENIED (will be added to deny list):
-   - WebFetch(domain:suspicious-site.com)
-   
-   Do you want to:
-   [A] Accept all changes
-   [M] Modify selections
-   [S] Skip permission updates
-   
-   Your choice: "
-
-3. If user chooses [M], show each permission individually:
-   "Bash(git status:*) - Currently: ALLOWED
-   [K] Keep as allowed
-   [D] Change to denied
-   [S] Skip (don't add to either list)
-   Your choice: "
-
-4. Update .claude/settings.local.json based on user choices:
-   - Add new allowed permissions to "allow" array
-   - Add new denied permissions to "deny" array
-   - Preserve existing permissions
-   - Ensure no duplicates
-
 After update:
 1. Output: "Checkpoint saved to SESSION_CHECKPOINT_[HHMMSS].md and HANDOFF.md updated"
 2. If any failed approaches encountered: "Failed approaches documented in checkpoint"

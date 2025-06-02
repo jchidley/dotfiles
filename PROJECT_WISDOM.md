@@ -43,3 +43,11 @@ Impact: Wrap-session command should check for and merge checkpoint content into 
 ### 2025-06-01: Multiple Checkpoints - Unique Filenames Prevent Data Loss
 Insight: Users may run checkpoint multiple times during a session. Using a single SESSION_CHECKPOINT.md filename causes later checkpoints to overwrite earlier ones. Timestamped filenames (SESSION_CHECKPOINT_HHMMSS.md) preserve all checkpoints.
 Impact: Both checkpoint and wrap-session commands now handle multiple checkpoint files, ensuring no mid-session context is lost. The pattern SESSION_*.md catches all checkpoint files for incorporation.
+
+### 2025-06-02: Command Effectiveness - Instruction Detail Matters
+Insight: The /req commands went from ineffective (30 sparse lines) to robust (200+ detailed lines) by adding explicit step-by-step instructions, validation logic, and comprehensive error handling. Command effectiveness directly correlates with instruction detail.
+Impact: When writing Claude Code slash commands, invest in detailed instructions with specific examples, edge cases, and clear decision trees. More detail = better execution.
+
+### 2025-06-02: Natural Command Patterns - Implicit Over Explicit
+Insight: Users prefer natural patterns like `/req <description>` over explicit subcommands like `/req add <description>`. The primary use case should be implicit, with subcommands only for secondary functions.
+Impact: Design commands with the most common usage as the default pattern. This reduces cognitive load and makes commands feel more intuitive.

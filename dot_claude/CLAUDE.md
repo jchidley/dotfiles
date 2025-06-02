@@ -17,8 +17,10 @@ Use these commands to maintain context across sessions:
 
 ## Project Requirements
 
-For new PROJECT features (not regular tasks), use `/req` commands to track in REQUIREMENTS.md.
-See `/req` command documentation for details.
+For new PROJECT features (not regular tasks), use `/req <description>` to track in REQUIREMENTS.md.
+- `/req <description>` - Add new requirement (checks for duplicates)
+- `/req list` - View all requirements
+- `/req status REQ-XXXX` - View specific requirement
 
 ## Environment
 
