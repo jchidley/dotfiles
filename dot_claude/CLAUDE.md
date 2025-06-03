@@ -26,3 +26,4 @@ For new PROJECT features (not regular tasks), use `/req <description>` to track 
 
 - **Platform**: WSL Debian (primary), Alpine Linux (utility)
 - **Development standards**: See `/home/jack/tools/CLAUDE.md`
+

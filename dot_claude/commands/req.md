@@ -1,7 +1,7 @@
-Parse the /req command to determine action.
+Parse the arguments provided: $ARGUMENTS
 
 ## Primary Usage: Add New Requirement
-If command is "/req <description>" (no subcommand):
+If arguments don't start with "list" or "status", treat as new requirement description:
 
 1. Check if REQUIREMENTS.md exists in project root
    - If not, create it from template:
@@ -191,7 +191,7 @@ If command is "/req <description>" (no subcommand):
    ```
 
 ## Subcommand: list
-If command is "/req list":
+If arguments is exactly "list":
 
 1. Check if REQUIREMENTS.md exists
    - If not: "No REQUIREMENTS.md found. Use `/req add <description>` to create your first requirement."
@@ -223,9 +223,10 @@ If command is "/req list":
    ```
 
 ## Subcommand: status
-If command is "/req status <REQ-ID>":
+If arguments starts with "status REQ-":
 
-1. Validate REQ-ID format (REQ-XXXX where X is digit)
+1. Extract REQ-ID from arguments (e.g., "status REQ-0001" → "REQ-0001")
+   - Validate REQ-ID format (REQ-XXXX where X is digit)
    - If invalid: "Invalid requirement ID format. Use REQ-XXXX (e.g., REQ-0001)"
 
 2. Check if REQUIREMENTS.md exists
@@ -255,5 +256,5 @@ If command is "/req status <REQ-ID>":
    "Requirement REQ-XXXX not found. Use `/req list` to see all requirements."
 
 ## Error Handling
-- If no subcommand provided: "Usage: /req [check|add|list|status] <arguments>"
-- If missing arguments: "Missing required argument. Usage: /req [subcommand] <description or REQ-ID>"
+- If no arguments provided ($ARGUMENTS is empty): "Usage: /req <description> | /req list | /req status REQ-XXXX"
+- If invalid status command: "Usage: /req status REQ-XXXX (e.g., /req status REQ-0001)"

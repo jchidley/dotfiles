@@ -242,6 +242,17 @@ When deployed by chezmoi:
 5. Prefer `/plan-tdd` for new feature development
 6. Use `/security-review` before committing sensitive changes
 
+## Built-in Claude Code Commands
+
+In addition to custom `/project:*` commands, these built-in commands are available:
+- `/pr_comments` - View pull request comments
+- `/review` - Request code review
+- `/status` - View account and system statuses
+- `/memory` - Open memory files in editor
+- `/terminal-setup` - Install Shift+Enter key binding for newlines
+- `/compact` - Clear conversation while keeping files
+- `/clear` - Full reset of conversation and context
+
 ## Implementation Notes
 
 Commands should be written as direct instructions to Claude without explanatory text. Each command file should assume Claude has access to:

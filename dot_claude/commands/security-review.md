@@ -1,9 +1,11 @@
-Execute comprehensive security review:
+Execute comprehensive security review for: $ARGUMENTS
+(If no arguments provided, review the current directory. Arguments can specify directories or file patterns to focus on.)
 
 1. **Project Analysis**
    - Identify project type using glob for common files (package.json, requirements.txt, go.mod, etc.)
    - List primary language and frameworks
    - Note authentication/authorization libraries in use
+   - If arguments provided, focus analysis on specified paths/patterns
 
 2. **Secrets and Credentials Scan**
    Use grep to search for:
