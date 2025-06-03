@@ -1,25 +1,20 @@
 # Project: Chezmoi Dotfiles
-Updated: 2025-06-02 07:26
+Updated: 2025-01-03 11:27
 
 ## Current State
-Status: /req commands rewritten with natural usage pattern and smart detection
+Status: Claude Code commands updated for latest features and CLAUDE.md cleaned up
 Target: Clean, minimal dotfiles configuration with robust scripting standards
-Latest: /req command now auto-detects relationships and creates GitHub issues
+Latest: Commands support $ARGUMENTS placeholder and CLAUDE.md structure improved
 
 ## Essential Context
-- **RESOLVED**: /req commands now have detailed instructions (200+ lines vs 30)
-- /req <description> is primary usage - no subcommands needed
-- Automatically detects related requirements and offers to add detail
-- Creates GitHub issues automatically when in GitHub repository
-- Appends to existing requirements via GitHub comments or REQUIREMENTS.md
-- /req-to-issue enhanced with full error handling and prerequisite checks
-- Commands verified to have no overlap with other issue-tracking commands
-- Checkpoint/wrap-session handle multiple checkpoints properly
-- dot_claude properly transforms to ~/.claude without nested subdirectories
-- Tool permissions fully automated with interactive approval UI
+- Claude Code commands updated to use $ARGUMENTS placeholder for flexibility
+- CLAUDE.md files restructured - removed redundancy and @import syntax
+- Built-in commands documented in COMMANDS.md (not CLAUDE.md)
+- All session management commands remain fully compatible
+- Chezmoi file transformations working correctly (dot_ → .)
 
 ## Next Step
-Test the new /req commands with real requirements to verify workflow
+Test updated commands with real usage to verify $ARGUMENTS handling
 
 ## If Blocked
 None - system fully operational
