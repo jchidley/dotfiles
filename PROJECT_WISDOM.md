@@ -4,6 +4,10 @@ Insights and lessons learned from development.
 
 ## Active Insights (Recent & Critical)
 
+### 2025-01-06: Todo List Persistence - Smart Merge Strategy Prevents Data Loss
+Insight: Claude's todo list can be lost between sessions or after /compact. Implementing a merge strategy in /start (rather than simple overwrite) preserves both current session todos and recovered HANDOFF.md todos, using status hierarchy (completed > in_progress > pending) to resolve conflicts.
+Impact: Todo context persists reliably across sessions. The merge strategy prevents duplicate todos while ensuring no work is lost, even when /start is run mid-session with existing todos.
+
 ### 2025-06-01: Chezmoi Directory Naming - Avoid Nested dot_ Structures
 Insight: Creating dot_claude/dot_claude/ in chezmoi source results in ~/.claude/.claude/ in the target, which is confusing and unnecessary. Chezmoi's dot_ prefix transformation should only be used at the top level of managed directories.
 Impact: Configuration files should be placed directly in dot_claude/, not in nested dot_claude/dot_claude/. This prevents duplicate directory structures and maintains clarity about source vs target paths.

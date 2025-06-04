@@ -1,3 +1,7 @@
+IMPORTANT: Use TodoRead tool early to capture current todo state before wrapping up.
+This ensures the final todo state is preserved accurately for the next session.
+The todo list in HANDOFF.md will be used by /start to restore/merge todos.
+
 Create sessions directory if it doesn't exist:
 - Check if sessions/ directory exists
 - If not, create it with: mkdir -p sessions
@@ -29,6 +33,15 @@ Clean up checkpoints after using them:
 Update HANDOFF.md:
 - Refresh "Current State" with final status
 - Update "Latest" with session's main achievement
+- Include "Active Todo List" section:
+  1. Use TodoRead tool to get current todo list
+  2. Format todos with status indicators:
+     - [ ] for pending items
+     - [⏳] for in_progress items  
+     - [✓] for completed items
+  3. Group by status: in_progress first, then pending, then completed
+  4. Include actual todo content under "## Active Todo List" section
+  5. If no todos exist, write "No active todos"
 - Ensure "Next Step" is current for next session (consider pending REQUIREMENTS.md items)
 - Clear "If Blocked" if resolved
 

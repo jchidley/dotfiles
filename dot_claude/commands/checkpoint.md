@@ -1,3 +1,6 @@
+IMPORTANT: First use TodoRead tool to get current todo list before proceeding.
+This ensures HANDOFF.md always has the most recent todo state for proper restoration.
+
 Create SESSION_CHECKPOINT_[HHMMSS].md (timestamped to support multiple checkpoints):
 
 # Session Checkpoint [HHMMSS]
@@ -32,6 +35,15 @@ Latest: [Most recent accomplishment/discovery]
 
 ## Next Step
 [THE one thing to do next]
+
+## Active Todo List
+[Read current todos using TodoRead tool and format as follows:]
+- [ ] [Pending items - status:"pending"]
+- [⏳] [In-progress items - status:"in_progress"] 
+- [✓] [Completed items - status:"completed"]
+[Group by status: in_progress first, then pending, then completed]
+[Include the actual todo content, not placeholders]
+[If no todos exist, write: "No active todos"]
 
 ## If Blocked
 [What's stopping progress, if anything]
