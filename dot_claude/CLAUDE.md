@@ -22,6 +22,11 @@ For new PROJECT features (not regular tasks), use `/req <description>` to track 
 - `/req list` - View all requirements
 - `/req status REQ-XXXX` - View specific requirement
 
+## Refactoring Discipline
+
+When asked to refactor, ALWAYS follow REFACTORING_RULES.md.
+See REFACTORING_EXPLAINED.md for why this matters.
+
 ## Environment
 
 - **Platform**: WSL Debian (primary), Alpine Linux (utility)
