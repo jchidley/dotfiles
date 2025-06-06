@@ -188,6 +188,67 @@ When tests fail, no debugging allowed. Only revert. This prevents "fixing forwar
 - Split Phase
 - Any refactoring touching core logic
 
+## How to Activate the Refactoring Rules
+
+To ensure Claude follows the refactoring rules instead of modifying code:
+
+### Option 1: Direct Reference (Most Reliable)
+Simply mention the rules when asking for refactoring:
+```
+"Please refactor this code following REFACTORING_RULES.md"
+```
+
+### Option 2: Use the Magic Word with Context
+When you say "refactor", Claude should recognize it as entering the contract, but you can reinforce:
+```
+"I need you to refactor (not rewrite) these functions to a new module"
+```
+
+### Option 3: Quote the Contract
+Start your request with the contract to activate the mindset:
+```
+"Remember: preserve behavior EXACTLY. Now refactor..."
+```
+
+### Option 4: Specify the Refactoring Type
+Use the specific names from the catalog:
+```
+"Perform a Move Function refactoring to move parse_* functions to parsing.rs"
+"Do an Extract Function refactoring on this validation logic"
+```
+
+### Option 5: Add to Project's CLAUDE.md
+For permanent activation in a project, add to CLAUDE.md:
+```markdown
+## Refactoring Discipline
+When asked to refactor, ALWAYS follow REFACTORING_RULES.md.
+See REFACTORING_EXPLAINED.md for why this matters.
+```
+
+### What Triggers the Rules
+
+The rules should activate when Claude sees:
+- The word "refactor" (vs "rewrite", "improve", "fix")
+- References to the rules file
+- Specific refactoring type names
+- The contract language
+
+### If Claude Starts Modifying Code
+
+Interrupt immediately:
+```
+"STOP - you're changing behavior. Follow REFACTORING_RULES.md"
+```
+
+### Example of a Good Refactoring Request
+```
+"Please perform a Move Function refactoring to move parse_distance_from_description 
+and its tests from main.rs to a new parsing.rs module. Use the mechanical 
+copy-delete method from REFACTORING_RULES.md"
+```
+
+The key is being explicit that you want refactoring (structure change only) not rewriting (behavior change).
+
 ## The Paradox of AI Refactoring
 
 AI excels at:
