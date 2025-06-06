@@ -4,6 +4,10 @@ Insights and lessons learned from development.
 
 ## Active Insights (Recent & Critical)
 
+### 2025-01-06: Temporary Documentation Strategy - wip-claude Folder for Planning Artifacts  
+Insight: Creating a dedicated wip-claude/ folder with timestamped markdown files provides a structured approach to planning and documentation. Files serve dual purposes: instructions for Claude AND human-readable documentation. The timestamp naming (YYYYMMDD_HHMMSS_description.md) ensures clear chronology and prevents overwrites.
+Impact: Complex tasks now have a standard workflow for creating plans, reviews, reports, and explanations. This creates an audit trail of decision-making and improves handoff between sessions while keeping temporary work separate from permanent documentation.
+
 ### 2025-01-06: Todo List Persistence - Smart Merge Strategy Prevents Data Loss
 Insight: Claude's todo list can be lost between sessions or after /compact. Implementing a merge strategy in /start (rather than simple overwrite) preserves both current session todos and recovered HANDOFF.md todos, using status hierarchy (completed > in_progress > pending) to resolve conflicts.
 Impact: Todo context persists reliably across sessions. The merge strategy prevents duplicate todos while ensuring no work is lost, even when /start is run mid-session with existing todos.
