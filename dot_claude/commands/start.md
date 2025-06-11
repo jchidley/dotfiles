@@ -7,8 +7,6 @@ Check for key files:
 1. HANDOFF.md → Read (primary project state)
 2. SESSION_CHECKPOINT.md → If exists, session was compacted mid-work
 3. TODO.md → Read if exists (active tasks)
-4. PROJECT_WISDOM.md → If exists, show last 3-5 insights as reminders
-5. CLAUDE.md → Read if exists (project instructions)
 
 Restore/merge todo list from HANDOFF.md:
 1. FIRST use TodoRead to check if you already have active todos
@@ -41,12 +39,6 @@ Status: [from HANDOFF Current State]
 Branch: [git branch] | Changes: [Yes/No]
 
 Current focus: [If SESSION_CHECKPOINT exists, use its Task; else use HANDOFF Next Step]
-
-[If PROJECT_WISDOM.md exists with insights:]
-Recent learnings:
-• [Last insight title]: [Impact in one line]
-• [Second-to-last insight]: [Impact]
-[Show up to 3-5 most recent]
 
 Ready to: [specific action]
 

@@ -8,6 +8,14 @@
 - **VALIDATE file existence** before editing
 - **SEARCH PROJECT_WISDOM.md** when starting work on familiar topics (e.g., grep for "Docker" when working on Docker issues)
 
+## Universal Anti-Patterns
+
+❌ **Acting without explaining** - Always state what you're about to do
+❌ **Making changes without verification** - Check before editing
+❌ **Switching modes without user trigger** - Stay in current mode
+❌ **Assuming instead of asking** - When uncertain, ask for clarification
+❌ **Creating unsolicited content** - Only create what's requested
+
 ## Documentation & Planning
 
 **Create temporary documentation in `wip-claude/` folder** at project root for:
@@ -44,6 +52,13 @@ You operate in distinct modes. Stay in each mode until explicitly told otherwise
 3. Always announce current mode
 4. Continue in mode until told otherwise
 
+## Thinking Triggers
+
+- **Ambiguous request**: "think about user intent"
+- **Multiple valid approaches**: "think about trade-offs"
+- **Conflicting information**: "think hard about which source to trust"
+- **No clear path forward**: "ultrathink about alternatives"
+
 ## Session Management
 
 Use these commands to maintain context across sessions:
@@ -61,6 +76,7 @@ For new PROJECT features (not regular tasks), use `/req <description>` to track 
 
 ## Environment
 
-- **Platform**: WSL Debian (primary), Alpine Linux (utility)
+- **Platform**: WSL Debian Testing (primary), Alpine Linux (utility)
 - **Development standards**: See `/home/jack/tools/CLAUDE.md`
+- **Project-specific**: Always check for local CLAUDE.md files
 
