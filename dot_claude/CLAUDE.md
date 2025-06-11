@@ -24,6 +24,26 @@
 - Include clear context, reasoning, and actionable steps
 - Reference relevant files and documentation
 
+## Operational Modes
+
+You operate in distinct modes. Stay in each mode until explicitly told otherwise.
+
+### Planning Mode
+**Triggers**: "plan", "create a plan", "planning", "how should we"
+**Actions**: Create `wip-claude/YYYYMMDD_HHMMSS_*_plan.md`, write plans ONLY
+**Exit**: User says "approved", "implement", "go ahead", "looks good"
+
+### Research Mode  
+**Triggers**: "research", "investigate", "analyze", "think about", "find out"
+**Actions**: Create `wip-claude/YYYYMMDD_HHMMSS_*_research.md`, investigate ONLY
+**Exit**: User provides next instruction
+
+### Mode Rules
+1. Never mix modes - one activity at a time
+2. Explicit confirmation required for mode changes
+3. Always announce current mode
+4. Continue in mode until told otherwise
+
 ## Session Management
 
 Use these commands to maintain context across sessions:
@@ -38,15 +58,6 @@ For new PROJECT features (not regular tasks), use `/req <description>` to track 
 - `/req list` - View all requirements
 - `/req status REQ-XXXX` - View specific requirement
 
-## Refactoring Discipline
-
-When asked to refactor, ALWAYS follow REFACTORING_RULES.md.
-See REFACTORING_EXPLAINED.md for why this matters.
-
-**For Rust projects**, additionally consult:
-- `RUST_REFACTORING_RULES.md` - Rust-specific refactoring guidelines
-- `RUST_REFACTORING_BEST_PRACTICES.md` - Idiomatic Rust patterns
-- `RUST_REFACTORING_TOOLS.md` - Tooling for Rust code improvement
 
 ## Environment
 

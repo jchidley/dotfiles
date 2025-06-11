@@ -1,20 +1,20 @@
 # Project: Chezmoi Dotfiles
-Updated: 2025-06-06 09:46
+Updated: 2025-06-06 13:31
 
 ## Current State
-Status: Refactoring discipline documentation added to project
+Status: Documentation workflow and Rust refactoring guidance integrated
 Target: Clean, minimal dotfiles configuration with robust scripting standards
-Latest: REFACTORING_RULES.md and REFACTORING_EXPLAINED.md establish safe refactoring practices
+Latest: wip-claude folder established for temporary documentation development
 
 ## Essential Context
-- Refactoring discipline now documented with strict mechanical rules
-- REFACTORING_RULES.md defines behavior-preserving refactoring approach
-- REFACTORING_EXPLAINED.md provides detailed rationale and examples
-- CLAUDE.md updated to reference refactoring discipline
+- wip-claude folder created for temporary documentation drafts
+- CLAUDE.md enhanced with Documentation & Planning section
+- Rust-specific refactoring guidance added to CLAUDE.md
+- PROJECT_WISDOM.md updated with temporary documentation strategy
 - All changes committed, pushed, and applied with chezmoi
 
 ## Next Step
-Monitor refactoring rule effectiveness in practice during development tasks
+Use wip-claude folder for any documentation drafts before finalizing
 
 ## Active Todo List
 
