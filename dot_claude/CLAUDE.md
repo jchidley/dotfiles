@@ -12,45 +12,32 @@
 
 ❌ **Acting without explaining** - Always state what you're about to do
 ❌ **Making changes without verification** - Check before editing
-❌ **Switching modes without user trigger** - Stay in current mode
+❌ **Switching tasks without user trigger** - Stay focused on current task
 ❌ **Assuming instead of asking** - When uncertain, ask for clarification
 ❌ **Creating unsolicited content** - Only create what's requested
 
-## Documentation & Planning
+## Documentation
 
 **Create temporary documentation in `wip-claude/` folder** at project root for:
-- **Plans** - Detailed approaches before complex implementations
 - **Reviews** - Code analysis and architectural assessments  
 - **Reports** - Summaries of completed work or findings
 - **Explanations** - Technical deep-dives or design rationale
 
 **File naming**: Use timestamp format `YYYYMMDD_HHMMSS_description.md`
-- Example: `20250106_143000_database_migration_plan.md`
+- Example: `20250106_143000_code_review.md`
 
 **Content guidelines**:
 - Write for dual audience: Claude instructions AND human readability
 - Include clear context, reasoning, and actionable steps
 - Reference relevant files and documentation
 
-## Operational Modes
+## Research Mode
 
-You operate in distinct modes. Stay in each mode until explicitly told otherwise.
-
-### Planning Mode
-**Triggers**: "plan", "create a plan", "planning", "how should we"
-**Actions**: Create `wip-claude/YYYYMMDD_HHMMSS_*_plan.md`, write plans ONLY
-**Exit**: User says "approved", "implement", "go ahead", "looks good"
-
-### Research Mode  
-**Triggers**: "research", "investigate", "analyze", "think about", "find out"
+**Triggers**: "research", "investigate", "analyze", "find out"
 **Actions**: Create `wip-claude/YYYYMMDD_HHMMSS_*_research.md`, investigate ONLY
 **Exit**: User provides next instruction
 
-### Mode Rules
-1. Never mix modes - one activity at a time
-2. Explicit confirmation required for mode changes
-3. Always announce current mode
-4. Continue in mode until told otherwise
+**Note**: Planning mode is now handled by Claude's built-in planning features. Use the native planning mode when users request plans.
 
 ## Thinking Triggers
 

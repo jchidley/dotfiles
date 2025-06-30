@@ -56,7 +56,6 @@ Latest: [Most recent accomplishment/discovery]
 
 ## Related Documents
 - REQUIREMENTS.md - Project requirements
-- TODO.md - Active tasks  
 - CLAUDE.md - Project instructions
 
 Review session for PROJECT_WISDOM.md updates:

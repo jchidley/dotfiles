@@ -212,6 +212,14 @@ die() { echo "ERROR: $*" >&2; exit 1; }
 [[ "${BASH_VERSION%%.*}" -ge 4 ]] || die "Bash 4+ required"
 ```
 
+**Critical `set -e` Rules:**
+- **NEVER use `((var++))` or `((var += 1))` with `set -e`** - returns old value, causes exit when 0
+- **ALWAYS use `var=$((var + 1))`** - assignment form always succeeds
+- **SUBPROCESS CALLS**: Use `|| true` for commands that might fail: `python script.py || true`
+- **COMMAND SUBSTITUTION**: Handle failures: `result=$(command 2>&1 || true)`
+- **CONDITIONAL TESTS**: Use explicit success: `if command >/dev/null 2>&1; then`
+- **GENERAL RULE**: Any command returning non-zero terminates script - plan for failure modes
+
 Requirements:
 - Lint: `shellcheck -x *.sh scripts/**/*.sh`
 - Test: `bats-core` for all scripts

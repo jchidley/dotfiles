@@ -6,7 +6,6 @@ Check git state:
 Check for key files:
 1. HANDOFF.md → Read (primary project state)
 2. SESSION_CHECKPOINT.md → If exists, session was compacted mid-work
-3. TODO.md → Read if exists (active tasks)
 
 Restore/merge todo list from HANDOFF.md:
 1. FIRST use TodoRead to check if you already have active todos
@@ -25,7 +24,6 @@ Restore/merge todo list from HANDOFF.md:
      d. Never duplicate todos by content
      e. Preserve all current todos even if not in HANDOFF.md
 5. Use TodoWrite with the merged list, assigning new unique IDs
-6. If no Active Todo List in HANDOFF.md, check TODO.md as fallback
 
 Example merge scenarios:
 - Current: ["Fix bug X" - in_progress], HANDOFF: ["Fix bug X" - pending] → Keep in_progress

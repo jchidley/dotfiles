@@ -2,6 +2,8 @@
 
 This document provides comprehensive documentation for all Claude slash commands. The actual command files in `~/.claude/commands/` contain only execution instructions for Claude.
 
+**Note**: Claude now has built-in planning mode and todo management (TodoRead/TodoWrite). Use these native features instead of file-based planning commands.
+
 ## Command Categories
 
 ### Session Management
@@ -43,84 +45,8 @@ Creates a comprehensive session log, updates HANDOFF.md with latest state, and p
 - Work is at a logical stopping point
 - Key insights have been captured
 
-### Planning Commands
-Commands for planning and organizing work.
-
-#### /plan
-**Author**: Unknown  
-**Created**: 2025-05-01  
-**Purpose**: Create a structured development plan
-
-Generates a detailed implementation plan with requirements, constraints, and implementation approach. Plans are stored in `~/.claude/plans/[project-name]/plan_[timestamp].md`.
-
-#### /plan-tdd
-**Author**: Unknown  
-**Created**: 2025-05-01  
-**Purpose**: Create a Test-Driven Development focused plan
-
-Similar to /plan but emphasizes test-first development approach. Includes test strategy and coverage requirements.
-
-#### /plan-gh
-**Author**: Unknown  
-**Created**: 2025-05-01  
-**Purpose**: Create a plan integrated with GitHub issues
-
-Creates development plans that reference and integrate with GitHub issues for better project tracking.
-
-#### /brainstorm
-**Author**: Unknown  
-**Created**: 2025-05-01  
-**Purpose**: Iterative brainstorming process
-
-Facilitates creative problem-solving through iterative exploration of ideas and solutions.
-
-### Execution Commands
-Commands for executing planned work.
-
-#### /do-todo
-**Author**: Unknown  
-**Created**: 2025-05-01  
-**Purpose**: Execute tasks from TODO list
-
-Systematically works through tasks in TODO.md file, updating status as work progresses.
-
-#### /do-plan
-**Author**: Unknown  
-**Created**: 2025-05-01  
-**Purpose**: Execute a development plan
-
-Takes a structured plan and executes it step by step, ensuring all requirements are met.
-
-#### /do-prompt-plan
-**Author**: Unknown  
-**Created**: 2025-05-01  
-**Purpose**: Execute plan from user prompt
-
-Creates and executes a plan based on user's direct input rather than a formal plan document.
-
-#### /do-issues
-**Author**: Unknown  
-**Created**: 2025-05-01  
-**Purpose**: Work through project issues
-
-Systematically addresses issues listed in ISSUES.md or GitHub issues.
-
-#### /do-file-issues
-**Author**: Unknown  
-**Created**: 2025-05-01  
-**Purpose**: Address file-specific issues
-
-Focuses on issues within specific files, useful for targeted refactoring or bug fixes.
-
 ### Issue Management
 Commands for managing and creating issues.
-
-#### /gh-issue
-**Author**: Unknown  
-**Created**: 2025-05-01  
-**Purpose**: Create GitHub issues workflow
-
-Helps create well-structured GitHub issues with proper labels, descriptions, and acceptance criteria.
 
 #### /make-github-issues
 **Author**: Unknown  
@@ -128,13 +54,6 @@ Helps create well-structured GitHub issues with proper labels, descriptions, and
 **Purpose**: Generate GitHub issues from code analysis
 
 Analyzes codebase and creates GitHub issues for improvements, bugs, or technical debt.
-
-#### /make-local-issues
-**Author**: Unknown  
-**Created**: 2025-05-01  
-**Purpose**: Generate local ISSUES.md from code analysis
-
-Similar to make-github-issues but creates a local ISSUES.md file instead of GitHub issues.
 
 #### /find-missing-tests
 **Author**: Unknown  
@@ -167,96 +86,56 @@ Distinguishes between project requirements (tracked) and regular tasks (not trac
 Creates detailed GitHub issues from requirements in REQUIREMENTS.md, ensuring proper tracking and implementation documentation.
 
 ### Utility Commands
-General utility and setup commands.
-
-#### /setup
-**Author**: Unknown  
-**Created**: 2025-05-01  
-**Purpose**: Initialize project environment
-
-Sets up Python environment, creates necessary directories, and establishes project structure.
-
-#### /session-summary
-**Author**: Unknown  
-**Created**: 2025-05-01  
-**Purpose**: Generate session summary
-
-Creates a concise summary of work completed during the current session.
+General utility and analysis commands.
 
 #### /security-review
-**Author**: Unknown  
-**Created**: 2025-05-01  
-**Purpose**: Perform comprehensive security audit
-
-Executes an actionable security review workflow that:
-- Identifies project type and technology stack
-- Scans for hardcoded secrets and credentials using regex patterns
-- Checks dependencies for known vulnerabilities
-- Searches for dangerous code patterns (SQL injection, command injection, etc.)
-- Reviews authentication and authorization implementations
-- Audits input validation and file operations
-- Examines configuration files for security issues
-- Generates detailed SECURITY_REVIEW report with findings by severity
-
-The command uses grep and glob tools to systematically search for security anti-patterns and produces actionable remediation guidance.
-
-#### /tool
 **Author**: Jack Chidley  
 **Created**: 2025-05-25  
-**Purpose**: Access development standards
+**Purpose**: Perform comprehensive security audit of codebase
 
-Directs to comprehensive development standards documentation at `/home/jack/tools/CLAUDE.md`.
+Analyzes the entire codebase for security vulnerabilities including:
+- SQL injection risks
+- XSS vulnerabilities
+- Authentication/authorization issues
+- Cryptographic weaknesses
+- Configuration security
+- Dependency vulnerabilities
+- Input validation problems
 
-## Command Workflow Integration
+Generates a detailed security report with severity ratings and remediation suggestions.
 
-The recommended workflow for multi-session development:
+**Usage**: Run periodically or before major releases
+**Output**: Security report in PROJECT_SECURITY_REVIEW.md
 
-```
-/start → work → /checkpoint → work → /wrap-session
-  ↑                                         ↓
-  └───────── Next Session ←──────────────┘
-```
+#### /tool
+**Author**: Unknown  
+**Created**: 2025-05-01  
+**Purpose**: Load development standards from tools/CLAUDE.md
 
-For new features:
-1. `/req check` - Verify if it's a requirement
-2. `/req add` - Add to REQUIREMENTS.md
-3. `/plan` or `/plan-tdd` - Create implementation plan
-4. `/do-plan` - Execute the plan
-5. `/checkpoint` - Save progress
-6. `/req-to-issue` - Create GitHub tracking
+Reads comprehensive development standards including system architecture patterns, language-specific guidelines, and workflow standards.
 
-## File Structure
+#### /standards
+**Author**: Jack Chidley  
+**Created**: 2025-06-30  
+**Purpose**: Check project compliance with CLAUDE.md standards
 
-When deployed by chezmoi:
-- `~/.claude/COMMANDS.md` - This documentation file
-- `~/.claude/commands/*.md` - Individual command execution instructions
-- `~/.claude/plans/` - Generated development plans
-- `~/.claude/sessions/` - Archived session logs
+Analyzes the current project against all CLAUDE.md standards and creates a plan to fix any violations. Checks:
+- Global configuration standards (~/.claude/CLAUDE.md)
+- Project-specific standards (./CLAUDE.md if exists)
+- Development standards (/home/jack/tools/CLAUDE.md)
 
-## Best Practices
+Generates a compliance report showing what's properly followed, what's violated, and what needs improvement. If violations are found, uses built-in planning mode to create an implementation plan prioritizing critical issues.
 
-1. Always `/start` at the beginning of a session
-2. Use `/checkpoint` at natural breaking points
-3. Always `/wrap-session` before ending work
-4. Use `/req` commands for new feature requests
-5. Prefer `/plan-tdd` for new feature development
-6. Use `/security-review` before committing sensitive changes
+**Usage**: Run to audit project standards compliance
+**Output**: Compliance report and remediation plan if needed
 
-## Built-in Claude Code Commands
+## Workflow Summary
 
-In addition to custom `/project:*` commands, these built-in commands are available:
-- `/pr_comments` - View pull request comments
-- `/review` - Request code review
-- `/status` - View account and system statuses
-- `/memory` - Open memory files in editor
-- `/terminal-setup` - Install Shift+Enter key binding for newlines
-- `/compact` - Clear conversation while keeping files
-- `/clear` - Full reset of conversation and context
+The core workflow uses three essential commands:
+1. **`/start`** - Begin work session
+2. **`/checkpoint`** - Save progress during work
+3. **`/wrap-session`** - End work session
 
-## Implementation Notes
+Additional commands provide specialized functionality for requirements tracking, security analysis, and code quality assessment.
 
-Commands should be written as direct instructions to Claude without explanatory text. Each command file should assume Claude has access to:
-- All project files via Read/Write tools
-- Git operations via Bash
-- Context from HANDOFF.md and SESSION logs
-- This documentation for understanding command purposes
+For planning tasks, use Claude's built-in planning mode. For todo management, use the native TodoRead and TodoWrite tools.

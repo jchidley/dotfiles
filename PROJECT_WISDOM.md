@@ -59,3 +59,15 @@ Impact: When writing Claude Code slash commands, invest in detailed instructions
 ### 2025-06-02: Natural Command Patterns - Implicit Over Explicit
 Insight: Users prefer natural patterns like `/req <description>` over explicit subcommands like `/req add <description>`. The primary use case should be implicit, with subcommands only for secondary functions.
 Impact: Design commands with the most common usage as the default pattern. This reduces cognitive load and makes commands feel more intuitive.
+
+### 2025-06-30: Claude Code Native Features - Replace Custom Solutions
+Insight: Claude Code's built-in planning mode (exit_plan_mode tool) and TodoRead/TodoWrite tools eliminate need for custom file-based implementations. Native features are more reliable and better integrated than custom slash commands.
+Impact: Reduced command count from 20 to 9 by removing redundant planning and todo commands. Focus on leveraging Claude's native capabilities rather than reimplementing them.
+
+### 2025-06-30: Chezmoi Edit Discipline - Source Files Only
+Insight: When using chezmoi, always edit source files in ~/.local/share/chezmoi/, never deployed files. Direct edits to deployed files (like ~/.claude/CLAUDE.md) are lost on next `chezmoi apply`.
+Impact: Establish habit of using `chezmoi edit` command or navigating to source directory first. This prevents lost work and maintains consistency between source and deployed configurations.
+
+### 2025-06-30: Minimal Command Philosophy - Remove Don't Deprecate
+Insight: Following minimal philosophy, unused commands should be removed immediately rather than deprecated. If a command isn't actively used, it adds cognitive overhead and maintenance burden.
+Impact: Aggressive removal of 13 unused commands created cleaner, more maintainable dotfiles. Trust that git history preserves old commands if ever needed again.

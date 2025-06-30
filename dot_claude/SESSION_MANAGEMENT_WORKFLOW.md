@@ -17,8 +17,9 @@ Minimal state management for infinite context length through strategic file usag
 ## Commands
 
 ### `/start`
-Reads: HANDOFF.md, SESSION_CHECKPOINT.md (if exists), TODO.md, CLAUDE.md
+Reads: HANDOFF.md, SESSION_CHECKPOINT.md (if exists), CLAUDE.md
 Shows: Current project status and immediate focus
+Restores todo list from HANDOFF.md using TodoWrite
 
 ### `/checkpoint`  
 - Updates HANDOFF.md with project state

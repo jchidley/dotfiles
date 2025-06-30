@@ -1,22 +1,23 @@
 # Project: Chezmoi Dotfiles
-Updated: 2025-06-06 13:31
+Updated: 2025-06-30 19:09
 
 ## Current State
-Status: Documentation workflow and Rust refactoring guidance integrated
+Status: Streamlined command set to 9 essential commands, added standards compliance checking
 Target: Clean, minimal dotfiles configuration with robust scripting standards
-Latest: wip-claude folder established for temporary documentation development
+Latest: Created /standards command to verify CLAUDE.md compliance across projects
 
 ## Essential Context
-- wip-claude folder created for temporary documentation drafts
-- CLAUDE.md enhanced with Documentation & Planning section
-- Rust-specific refactoring guidance added to CLAUDE.md
-- PROJECT_WISDOM.md updated with temporary documentation strategy
-- All changes committed, pushed, and applied with chezmoi
+- Removed 13 unused commands following minimal philosophy
+- Claude Code's built-in planning and todo features replace custom implementations
+- HANDOFF.md todo persistence still necessary for cross-session continuity
+- All CLAUDE.md files updated to reflect native Claude Code features
+- New /standards command checks project compliance with all standards
 
 ## Next Step
-Use wip-claude folder for any documentation drafts before finalizing
+Use /standards command to audit projects for CLAUDE.md compliance
 
 ## Active Todo List
+No active todos
 
 ## If Blocked
 None - system fully operational
