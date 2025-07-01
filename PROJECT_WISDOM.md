@@ -4,6 +4,10 @@ Insights and lessons learned from development.
 
 ## Active Insights (Recent & Critical)
 
+### 2025-07-01: Claude Commands - Explicit Project Root Path Handling for PROJECT_WISDOM.md
+Insight: Commands that reference PROJECT_WISDOM.md must explicitly specify it should be at the project root (initial working directory). Without this, Claude may create PROJECT_WISDOM.md in subdirectories or wrong locations when navigating during work. Updated checkpoint.md and wrap-session.md to include "IMPORTANT: PROJECT_WISDOM.md should be at the project root" instructions.
+Impact: PROJECT_WISDOM.md will consistently be created/updated at the correct project root location, preventing scattered wisdom files and ensuring each project maintains its own insights properly.
+
 ### 2025-01-06: Temporary Documentation Strategy - wip-claude Folder for Planning Artifacts  
 Insight: Creating a dedicated wip-claude/ folder with timestamped markdown files provides a structured approach to planning and documentation. Files serve dual purposes: instructions for Claude AND human-readable documentation. The timestamp naming (YYYYMMDD_HHMMSS_description.md) ensures clear chronology and prevents overwrites.
 Impact: Complex tasks now have a standard workflow for creating plans, reviews, reports, and explanations. This creates an audit trail of decision-making and improves handoff between sessions while keeping temporary work separate from permanent documentation.

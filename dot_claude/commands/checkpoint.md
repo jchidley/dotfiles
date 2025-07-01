@@ -17,7 +17,7 @@ Next: [Immediate next action]
 
 Note: This file will be incorporated into final session log by /wrap-session
 
-Update HANDOFF.md with current timestamp:
+Update HANDOFF.md (at project root, same directory as PROJECT_WISDOM.md) with current timestamp:
 
 # Project: [Current project name]
 Updated: [Current timestamp]
@@ -59,6 +59,9 @@ Latest: [Most recent accomplishment/discovery]
 - CLAUDE.md - Project instructions
 
 Review session for PROJECT_WISDOM.md updates:
+IMPORTANT: PROJECT_WISDOM.md should be located at the project root (the initial working directory shown in environment info).
+If it doesn't exist at project root, create it there - NOT in subdirectories or other locations.
+
 1. Check for these common insight patterns:
    - Tool usage patterns: "Found that [tool] works better with [specific approach]"
    - Error solutions: "Fixed [error message] by [specific solution]"
@@ -73,7 +76,7 @@ Review session for PROJECT_WISDOM.md updates:
    - [Another suggestion if applicable]
    Add these insights? (Y/n)"
 
-3. If user agrees, update PROJECT_WISDOM.md:
+3. If user agrees, update PROJECT_WISDOM.md at the project root (use Read tool first to check if it exists):
    ### [Date]: [Topic/Technology - Specific Discovery]
    Insight: [The realization with specific details/errors]
    Impact: [How this changes future approach]

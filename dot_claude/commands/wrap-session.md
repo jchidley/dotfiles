@@ -50,6 +50,9 @@ Check for uncommitted changes:
 - If changes exist, remind: "Uncommitted changes detected. Consider committing before ending session."
 
 Review session and update PROJECT_WISDOM.md:
+IMPORTANT: PROJECT_WISDOM.md should be at the project root (initial working directory from environment info).
+Check for PROJECT_WISDOM.md at project root first. If it doesn't exist, create it there - NOT in subdirectories.
+
 1. Check session log "Technical Insights" section for discoveries
 2. Look for these patterns in the work done:
    - Tool/command discoveries: "Found [tool] works better with [approach]"
@@ -63,7 +66,7 @@ Review session and update PROJECT_WISDOM.md:
    - [Concrete suggestion based on session]
    - [Another if applicable]"
 
-4. Update PROJECT_WISDOM.md with user-approved insights
+4. Update PROJECT_WISDOM.md at project root with user-approved insights (use Read tool first)
 
 5. Archive if > 5KB:
    - Create PROJECT_WISDOM_ARCHIVE_[YYYYMMDD].md
