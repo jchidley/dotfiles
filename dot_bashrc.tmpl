@@ -15,19 +15,6 @@ alias rg='rg --path-separator=//'
 
 . "$HOME/.cargo/env"
 
-# Claude CLI alias
-alias claude="/home/jack/.claude/local/claude"
-
-# Claude API Switcher Integration
-# Automatically set/unset ANTHROPIC_API_KEY based on current mode
-if command -v claude-switcher &> /dev/null; then
-    eval $(claude-switcher env)
-    
-    # Convenience aliases for quick switching (only if claude-switcher exists)
-    alias claude-max='claude-switcher switch max && eval $(claude-switcher env)'
-    alias claude-api='claude-switcher switch api && eval $(claude-switcher env)'
-fi
-
 export SUDO_EDITOR=$(which hx)
 export VISUAL=$(which hx)
 export EDITOR="$VISUAL"
@@ -37,7 +24,7 @@ echo wt.exe -w 0 ft -t 0 sp -V -p "Debian"
 # echo zoxide path cd'd to 
 export _ZO_ECHO=1
 
-export PATH=$HOME/.local/bin:$PATH
+export PATH=$HOME/bin:$HOME/.local/bin:/usr/local/go/bin:$PATH
 
 # Set up SSH agent if not already running
 if [ -z "$SSH_AGENT_PID" ]; then
