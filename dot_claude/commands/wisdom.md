@@ -1,96 +1,69 @@
 # /wisdom
 
-Applies refined skeleton exemplars from PROJECT_WISDOM.md to current implementation tasks.
+Load and apply project-specific patterns from PROJECT_WISDOM.md to guide implementation.
 
-When user runs `/wisdom`, apply skeleton exemplars from accumulated project wisdom for current implementation needs.
+When user runs `/wisdom`, read PROJECT_WISDOM.md and internalize all patterns for the current project, similar to how `/standards` loads CLAUDE.md files.
 
-## Pattern Discovery Process:
+## Loading Process:
 
-1. **Primary source: PROJECT_WISDOM.md** (refined patterns from /clean-wisdom)
-   - Check for CORE PATTERNS (6+ uses) first
-   - Then ESTABLISHED PATTERNS (3-5 uses)
-   - Finally EMERGING PATTERNS (1-2 uses)
+1. **Read PROJECT_WISDOM.md** from current project directory
+   - Load all CORE PATTERNS (6+ uses) 
+   - Load all ESTABLISHED PATTERNS (3-5 uses)
+   - Load all EMERGING PATTERNS (1-2 uses)
+   - Note any anti-patterns and failed approaches
 
-2. **Secondary source: CURRENT_PROJECT_WISDOM.md** (recent discoveries)
-   - Check if no PROJECT_WISDOM.md exists
-   - Or if working on cutting-edge features
+2. **If no PROJECT_WISDOM.md exists**:
+   - Check CURRENT_PROJECT_WISDOM.md as fallback
+   - Report that no refined wisdom exists yet
+   - Suggest running /clean-wisdom after accumulating sessions
 
-3. **Extract actionable patterns**:
-   - Copy-paste ready code blocks
-   - Specific trigger conditions ("When to use")
-   - Failed alternatives to avoid
-   - Evolution notes for context
+3. **Apply patterns throughout session**:
+   - Use these patterns as primary reference for implementation
+   - When writing code, check if a pattern exists before creating new approach
+   - Apply patterns exactly as documented, adapting only when necessary
+   - Respect "empirically validated" patterns as system invariants
 
-## Enhanced Reporting Format:
-
-When patterns found, structure report for immediate use:
-
-```
-🔍 Found 5 relevant patterns for your task:
-
-🔷 CORE PATTERN (used 12 times): Bash Error Handling with set -e
-   When you need: Safe subprocess execution in bash scripts
-   Apply this pattern:
-   ```bash
-   if result=$(command 2>&1 || true); then
-       process_success "$result"
-   else
-       handle_failure "$result"
-   fi
-   ```
-   
-🔹 ESTABLISHED PATTERN (used 4 times): Cross-Platform Path Conversion
-   When you need: WSL↔Windows file operations
-   Apply: Use wslpath -w for Windows paths, wslpath -u for Unix paths
-
-📋 Quick reference:
-- For Docker memory: Use 4GB limit pattern (see line 127)
-- For Python execution: Use fallback chain pattern (see line 195)
-- Avoid: Direct cmd.exe calls (causes UNC warnings)
-```
-
-## Pattern Application Tracking:
-
-When suggesting patterns, note which ones get used:
-- Track pattern name and context
-- Feed usage data back to repetition count
-- Note any modifications needed for current context
-
-## If no wisdom found:
+## Report Format:
 
 ```
-⚠️ No PROJECT_WISDOM.md found in this project.
+📚 Loading project wisdom from PROJECT_WISDOM.md...
 
-I'll proceed with first principles, but recommend:
-1. Run /checkpoint and /wrap-session to capture discoveries
-2. After a few sessions, run /clean-wisdom to distill patterns
-3. This creates your project's skeleton exemplar library
+Found patterns to guide implementation:
+- 🔷 X CORE PATTERNS (highest priority)
+- 🔹 Y ESTABLISHED PATTERNS (proven approaches)
+- 🔸 Z EMERGING PATTERNS (promising techniques)
 
-Current approach: [Explain derivation strategy]
-Alternative: Would you like me to check parent directories for inherited wisdom?
+Key patterns loaded:
+- Bash Error Handling: Safe arithmetic and subprocess patterns
+- Python Execution: Fallback chain for cross-environment compatibility
+- Progress Messages: Always use stderr for progress output
+- [List other major patterns by category]
+
+Anti-patterns to avoid:
+- [List documented failures and what not to do]
+
+✅ Project wisdom loaded. I'll apply these patterns throughout our session.
 ```
 
-## Active Pattern Instantiation:
+## Behavioral Impact:
 
-During implementation:
-1. **Before writing new code**: Check if wisdom has relevant pattern
-2. **When pattern exists**: Copy it exactly, then adapt minimally
-3. **When pattern partially fits**: Note the adaptation for future wisdom
-4. **After using pattern**: Track success/failure for evolution
+After loading wisdom, I will:
+1. **Prioritize documented patterns** over general best practices
+2. **Use exact code snippets** from patterns when applicable
+3. **Avoid all documented anti-patterns** and failed approaches
+4. **Respect empirical validations** - never change "magic numbers" without evidence
+5. **Follow evolution history** - use the most recent validated approach
 
-## Pattern Categories to Check:
+## Pattern Application:
 
-Based on current task, prioritize these pattern types:
-- **Error Handling**: How this project handles failures
-- **Configuration**: Project-specific settings and constants
-- **Integration**: How tools/services connect
-- **Performance**: Validated optimization patterns
-- **Testing**: Project's test patterns and assertions
-- **Anti-patterns**: What specifically doesn't work here
+When implementing any feature:
+- First check: Does PROJECT_WISDOM.md have a pattern for this?
+- If yes: Use that pattern exactly, mention which pattern I'm applying
+- If partial match: Adapt minimally, note the adaptation
+- If no match: Proceed with first principles, document new discovery
 
-## Usage Notes:
+## Integration with Other Commands:
 
-- Patterns marked "empirically validated" are system invariants - never modify without regression evidence
-- Evolution notes explain why current approach won over alternatives
-- Failed alternatives prevent re-trying dead ends
-- CORE PATTERNS should be your first choice when applicable
+- Works with `/standards`: Standards define rules, wisdom provides patterns
+- Complements `/checkpoint`: Captures new patterns for future wisdom
+- Feeds `/clean-wisdom`: Usage tracking helps refine pattern emphasis

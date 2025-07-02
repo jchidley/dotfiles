@@ -5,7 +5,6 @@ Check git state:
 
 Check for key files:
 1. HANDOFF.md → Read (primary project state)
-2. SESSION_CHECKPOINT.md → If exists, session was compacted mid-work
 
 Restore/merge todo list from HANDOFF.md:
 1. FIRST use TodoRead to check if you already have active todos
@@ -36,7 +35,7 @@ Output format:
 Status: [from HANDOFF Current State]
 Branch: [git branch] | Changes: [Yes/No]
 
-Current focus: [If SESSION_CHECKPOINT exists, use its Task; else use HANDOFF Next Step]
+Current focus: [from HANDOFF Next Step]
 
 Ready to: [specific action]
 
