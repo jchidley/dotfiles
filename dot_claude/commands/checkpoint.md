@@ -1,9 +1,13 @@
+# /checkpoint
+
+Captures work progress and raw wisdom discoveries into CURRENT_PROJECT_WISDOM.md for later refinement.
+
 IMPORTANT: First use TodoRead tool to get current todo list before proceeding.
 This ensures HANDOFF.md always has the most recent todo state for proper restoration.
 
-Create SESSION_CHECKPOINT_[HHMMSS].md (timestamped to support multiple checkpoints):
+Create SESSION_CHECKPOINT_[YYYYMMDD_HHMMSS].md (timestamped to support multiple checkpoints):
 
-# Session Checkpoint [HHMMSS]
+# Session Checkpoint [YYYYMMDD_HHMMSS]
 Created: [Current timestamp]
 Task: [One line description of current task]
 Progress: [What's been done since last checkpoint - 1-2 lines max]
@@ -58,37 +62,23 @@ Latest: [Most recent accomplishment/discovery]
 - REQUIREMENTS.md - Project requirements
 - CLAUDE.md - Project instructions
 
-Review session for PROJECT_WISDOM.md updates:
-IMPORTANT: PROJECT_WISDOM.md should be located at the project root (the initial working directory shown in environment info).
+Review session for wisdom capture to CURRENT_PROJECT_WISDOM.md:
+IMPORTANT: CURRENT_PROJECT_WISDOM.md should be located at the project root (the initial working directory shown in environment info).
 If it doesn't exist at project root, create it there - NOT in subdirectories or other locations.
 
-1. Check for these common insight patterns:
-   - Tool usage patterns: "Found that [tool] works better with [specific approach]"
-   - Error solutions: "Fixed [error message] by [specific solution]"
-   - Configuration discoveries: "[Setting/config] must be [requirement] because [reason]"
-   - Workflow improvements: "Using [approach] instead of [old way] saves time/prevents errors"
-   - Integration insights: "[Tool A] and [Tool B] interact in [unexpected way]"
-   - Performance findings: "[Action] is slow/fast because [technical reason]"
+1. Check for wisdom patterns using the triggers listed in wisdom-triggers.md:
+   - Technical discoveries (tool usage, error solutions, configurations)
+   - Conversation triggers ("we should always", "remember that", etc.)
+   - Evolution patterns ("tried X, Y worked better", anti-patterns)
 
-2. If any insights found, suggest to user:
-   "💡 Potential PROJECT_WISDOM.md entries:
-   - [Specific suggestion based on session work]
-   - [Another suggestion if applicable]
-   Add these insights? (Y/n)"
+2. Use the prompting format from wisdom-triggers.md to suggest captured insights to the user.
 
-3. If user agrees, update PROJECT_WISDOM.md at the project root (use Read tool first to check if it exists):
-   ### [Date]: [Topic/Technology - Specific Discovery]
-   Insight: [The realization with specific details/errors]
-   Impact: [How this changes future approach]
-   Note: Title should contain searchable keywords
+3. If user agrees, append to CURRENT_PROJECT_WISDOM.md using the entry format from wisdom-triggers.md.
 
-4. If PROJECT_WISDOM.md > 5KB:
-   - Create PROJECT_WISDOM_ARCHIVE_[YYYYMMDD].md
-   - Move older insights (keep last 10-15 active)
-   - Add note after header: *Note: Older insights archived to PROJECT_WISDOM_ARCHIVE_[date].md*
+4. Note: CURRENT_PROJECT_WISDOM.md accumulates across sessions. Archive management handled by /clean-wisdom command.
 
 After update:
-1. Output: "Checkpoint saved to SESSION_CHECKPOINT_[HHMMSS].md and HANDOFF.md updated"
+1. Output: "Checkpoint saved to SESSION_CHECKPOINT_[YYYYMMDD_HHMMSS].md and HANDOFF.md updated"
 2. If any failed approaches encountered: "Failed approaches documented in checkpoint"
 3. Suggest: "You can now run /compact to reduce context usage"
 4. Remind: "Multiple checkpoints are preserved and will be merged by /wrap-session"

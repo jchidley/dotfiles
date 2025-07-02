@@ -1,3 +1,7 @@
+# /wrap-session
+
+Finalizes session work and captures raw wisdom discoveries into CURRENT_PROJECT_WISDOM.md for later refinement.
+
 IMPORTANT: Use TodoRead tool early to capture current todo state before wrapping up.
 This ensures the final todo state is preserved accurately for the next session.
 The todo list in HANDOFF.md will be used by /start to restore/merge todos.
@@ -49,29 +53,23 @@ Check for uncommitted changes:
 - Run git status
 - If changes exist, remind: "Uncommitted changes detected. Consider committing before ending session."
 
-Review session and update PROJECT_WISDOM.md:
-IMPORTANT: PROJECT_WISDOM.md should be at the project root (initial working directory from environment info).
-Check for PROJECT_WISDOM.md at project root first. If it doesn't exist, create it there - NOT in subdirectories.
+Review session for wisdom capture to CURRENT_PROJECT_WISDOM.md:
+IMPORTANT: CURRENT_PROJECT_WISDOM.md should be at the project root (initial working directory from environment info).
+Check for CURRENT_PROJECT_WISDOM.md at project root first. If it doesn't exist, create it there - NOT in subdirectories.
 
-1. Check session log "Technical Insights" section for discoveries
-2. Look for these patterns in the work done:
-   - Tool/command discoveries: "Found [tool] works better with [approach]"
-   - Error solutions: "Fixed [error] by [solution]"
-   - Configuration insights: "[Setting] must be [value] because [reason]"
-   - Workflow improvements: "[New approach] prevents [problem]"
-   - Integration findings: "[Tool A] and [Tool B] interact via [mechanism]"
+1. Check session log and work done for wisdom patterns:
+   a. Look for explicit "Technical Insights" section in the session file (if present)
+   b. Apply triggers from wisdom-triggers.md to all content:
+      - Technical discoveries (tool usage, error solutions, configurations)
+      - Conversation triggers ("we should always", "remember that", etc.)
+      - Evolution patterns ("tried X, Y worked better", anti-patterns)
 
-3. If insights found, suggest specific entries:
-   "💡 Add these to PROJECT_WISDOM.md?
-   - [Concrete suggestion based on session]
-   - [Another if applicable]"
+2. Use the prompting format from wisdom-triggers.md to suggest captured insights to the user.
+   Include any insights found in Technical Insights sections.
 
-4. Update PROJECT_WISDOM.md at project root with user-approved insights (use Read tool first)
+3. If user agrees, append to CURRENT_PROJECT_WISDOM.md using the entry format from wisdom-triggers.md.
 
-5. Archive if > 5KB:
-   - Create PROJECT_WISDOM_ARCHIVE_[YYYYMMDD].md
-   - Move older insights (keep last 10-15 active)
-   - Add archive note to header
+4. Note: CURRENT_PROJECT_WISDOM.md accumulates across sessions. Archive management handled by /clean-wisdom command.
 
 Verify cleanup:
 - Confirm all SESSION_*.md files have been moved to sessions/

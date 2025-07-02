@@ -1,10 +1,10 @@
 # Project: Chezmoi Dotfiles
-Updated: 2025-07-02 08:42
+Updated: 2025-07-02 14:34
 
 ## Current State
-Status: Windows Terminal configuration completed and applied
+Status: Wisdom command system refactored with centralized patterns
 Target: Clean, minimal dotfiles configuration with robust scripting standards
-Latest: Fixed PowerShell profile to properly display Windows Terminal command hints
+Latest: Extracted wisdom capture patterns to wisdom-triggers.md, added /clean-wisdom and /wisdom commands
 
 ## Essential Context
 - Removed 13 unused commands following minimal philosophy
@@ -13,6 +13,8 @@ Latest: Fixed PowerShell profile to properly display Windows Terminal command hi
 - All CLAUDE.md files updated to reflect native Claude Code features
 - New /standards command checks project compliance with all standards
 - Windows Terminal commands now properly echo as hints in PowerShell
+- Wisdom capture patterns centralized in wisdom-triggers.md (DRY principle)
+- New commands: /clean-wisdom (pattern distillation), /wisdom (pattern application)
 
 ## Next Step
 Continue with any other dotfiles improvements or maintenance tasks
