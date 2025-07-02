@@ -48,7 +48,7 @@ echo 'Shared history file: (Get-PSReadlineOption).HistorySavePath'
 echo "Run from `$profile: $PROFILE"
 
 echo 'get-content ~/ps_shell_hints'
-echo 'wt -w 0 -p "Debian" `; wt -w 0 ft -t 1 sp -V -p "Debian"'
+echo 'wt -w 0 ft -t 0 sp -V `; wt -w 0 -p "Debian" `; wt -w 0 ft -t 1 sp -V -p "Debian"'
 
 # ripgrep profile
 $env:RIPGREP_CONFIG_PATH="$env:USERPROFILE/.ripgreprc"
