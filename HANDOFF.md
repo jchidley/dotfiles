@@ -1,10 +1,10 @@
 # Project: Chezmoi Dotfiles
-Updated: 2025-07-02 08:29
+Updated: 2025-07-02 08:42
 
 ## Current State
-Status: Updated Windows Terminal tab targeting configuration
+Status: Windows Terminal configuration completed and applied
 Target: Clean, minimal dotfiles configuration with robust scripting standards
-Latest: Changed Windows Terminal commands from `-t 0` to `-t 1` across bash and PowerShell configs
+Latest: Fixed PowerShell profile to properly display Windows Terminal command hints
 
 ## Essential Context
 - Removed 13 unused commands following minimal philosophy
@@ -12,9 +12,10 @@ Latest: Changed Windows Terminal commands from `-t 0` to `-t 1` across bash and 
 - HANDOFF.md todo persistence still necessary for cross-session continuity
 - All CLAUDE.md files updated to reflect native Claude Code features
 - New /standards command checks project compliance with all standards
+- Windows Terminal commands now properly echo as hints in PowerShell
 
 ## Next Step
-Apply changes with `chezmoi apply` and verify Windows Terminal behavior
+Continue with any other dotfiles improvements or maintenance tasks
 
 ## Active Todo List
 [✓] Update wt.exe command in dot_bashrc.tmpl from -t 0 to -t 1
