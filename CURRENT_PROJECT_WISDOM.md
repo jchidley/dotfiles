@@ -16,3 +16,13 @@ Raw insights captured during sessions for later refinement by /clean-wisdom.
 **Insight**: Core principles like "always edit source files, never deployed files" apply universally, but implementation differs by user type. Humans use `chezmoi edit` command, Claude uses Read/Edit/Write tools on source files directly. The directory structure principle is what matters.
 **Impact**: Patterns can be more accurate by distinguishing universal principles from implementation details, making them useful for both human and AI collaboration.
 **Note**: Updated Chezmoi Source File Discipline pattern to reflect both approaches while maintaining the core insight about source-to-target deployment model.
+
+### 2025-07-02: UX Enhancement - Contextual Workflow Prompts
+**Insight**: Adding optional prompts at the end of commands suggests natural next steps without forcing automation
+**Impact**: Users get workflow guidance while maintaining control over when to extend their work
+**Note**: Enhanced /clean-wisdom with cross-project analysis prompt. Better than automatic scanning
+
+### 2025-07-02: UX Design - Optional Suggestions vs Automatic Features
+**Insight**: Prompts for related actions preserve user agency while preventing missed opportunities
+**Impact**: Avoids feature creep and complexity while still surfacing valuable workflow extensions
+**Note**: Chose prompt-based approach over automatic cross-directory scanning for /clean-wisdom enhancement

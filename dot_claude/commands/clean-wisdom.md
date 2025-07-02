@@ -110,6 +110,16 @@ Archive Management:
 Ready to apply refined patterns with /wisdom command.
 ```
 
+## Cross-Project Opportunity
+
+💡 **Consider broader pattern analysis?**
+
+Since you've just distilled patterns for this project, this might be a good time to analyze patterns across all your PROJECT_WISDOM.md files:
+
+"Find all PROJECT_WISDOM.md files in subdirectories, analyze patterns using /clean-wisdom methodology, and identify patterns that: 1) appear in 2+ different subdirectories, 2) meet frequency thresholds (3+ occurrences), 3) can be generalized beyond specific context. Report candidates for promotion to root PROJECT_WISDOM.md."
+
+This would help surface cross-project patterns that might be worth promoting to your root wisdom file.
+
 ## Special Cases:
 
 **Competing Patterns**: When same problem has multiple solutions:
