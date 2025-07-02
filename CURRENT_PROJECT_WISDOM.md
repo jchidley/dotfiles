@@ -2,12 +2,17 @@
 
 Raw insights captured during sessions for later refinement by /clean-wisdom.
 
-### 2025-07-02: Command Refactoring - Extract shared patterns to single source
-**Insight**: When multiple commands contain identical instruction blocks (like wisdom capture patterns in checkpoint.md and wrap-session.md), extract them to a dedicated reference file that commands can point to.
-**Impact**: Eliminates duplication, ensures consistency, and makes updates easier - change once, apply everywhere.
-**Note**: Created wisdom-triggers.md as the single source for wisdom capture patterns, referenced by both checkpoint and wrap-session commands.
+### 2025-07-02: Session Command Directory Independence - Working Directory Management Pattern
+**Insight**: Session commands were directory-unsafe, creating files in wrong locations if Claude navigated to subdirectories during work. Fixed by adding explicit cd to project root using environment working directory reference.
+**Impact**: Session files (HANDOFF.md, SESSION_*.md, REQUIREMENTS.md, PROJECT_WISDOM.md) now consistently managed in correct location regardless of Claude's navigation.
+**Note**: Working Directory Management elevated to CORE pattern through repetition analysis - found 6+ occurrences across sessions.
 
-### 2025-07-02: DRY principle - Central reference file for command patterns  
-**Insight**: Commands should contain only procedural instructions, while domain knowledge (what patterns to look for, formatting rules) belongs in a separate reference file that multiple commands can share.
-**Impact**: Creates proper separation of concerns - commands focus on "how to execute", reference files contain "what to look for".
-**Note**: This pattern could apply to other shared command elements like error handling patterns or validation rules.
+### 2025-07-02: Pattern Distillation Success - First Clean-Wisdom Execution  
+**Insight**: Successfully analyzed 25+ sessions spanning 2025-01-06 to 2025-07-02, identifying 3 CORE patterns, 4 established patterns, and 2 emerging patterns through repetition analysis. Created refined PROJECT_WISDOM.md with proper emphasis based on occurrence frequency.
+**Impact**: Established working pattern distillation process that converts raw session insights into actionable, copy-paste ready patterns with context and evolution tracking.
+**Note**: Most repeated pattern was Chezmoi Source File Discipline (7+ occurrences), validating the importance of source vs deployed file distinction.
+
+### 2025-07-02: Universal Principles with Implementation-Specific Tooling
+**Insight**: Core principles like "always edit source files, never deployed files" apply universally, but implementation differs by user type. Humans use `chezmoi edit` command, Claude uses Read/Edit/Write tools on source files directly. The directory structure principle is what matters.
+**Impact**: Patterns can be more accurate by distinguishing universal principles from implementation details, making them useful for both human and AI collaboration.
+**Note**: Updated Chezmoi Source File Discipline pattern to reflect both approaches while maintaining the core insight about source-to-target deployment model.

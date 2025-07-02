@@ -1,10 +1,10 @@
 # Project: Chezmoi Dotfiles
-Updated: 2025-07-02 14:34
+Updated: 2025-07-02 15:45
 
 ## Current State
-Status: Wisdom command system refactored with centralized patterns
+Status: Session commands made directory-independent, wisdom patterns distilled
 Target: Clean, minimal dotfiles configuration with robust scripting standards
-Latest: Extracted wisdom capture patterns to wisdom-triggers.md, added /clean-wisdom and /wisdom commands
+Latest: Fixed 7 session management commands to work from any directory, distilled 25+ sessions into refined patterns
 
 ## Essential Context
 - Removed 13 unused commands following minimal philosophy
@@ -22,6 +22,14 @@ Continue with any other dotfiles improvements or maintenance tasks
 ## Active Todo List
 [✓] Update wt.exe command in dot_bashrc.tmpl from -t 0 to -t 1
 [✓] Update wt.exe command in bash_shell_hints from -t 0 to -t 1
+[✓] Fix /checkpoint command to cd to project root before file operations
+[✓] Fix /wrap-session command to cd to project root before file operations
+[✓] Fix /req command to cd to project root before REQUIREMENTS.md operations
+[✓] Fix /req-to-issue command to cd to project root before file operations
+[✓] Fix /clean-wisdom command to cd to project root before wisdom file operations
+[✓] Fix /wisdom command to cd to project root before PROJECT_WISDOM.md operations
+[✓] Remove documentation clutter from command files
+[✓] Capture working directory/cd patterns in PROJECT_WISDOM.md
 
 ## If Blocked
 None - system fully operational

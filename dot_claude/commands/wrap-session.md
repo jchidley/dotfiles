@@ -6,6 +6,9 @@ IMPORTANT: Use TodoRead tool early to capture current todo state before wrapping
 This ensures the final todo state is preserved accurately for the next session.
 The todo list in HANDOFF.md will be used by /start to restore/merge todos.
 
+IMPORTANT: Change to project root directory before file operations.
+Use the working directory from the environment info as the project root.
+
 Create sessions directory if it doesn't exist:
 - Check if sessions/ directory exists
 - If not, create it with: mkdir -p sessions

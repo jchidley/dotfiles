@@ -1,5 +1,8 @@
 Parse the arguments provided: $ARGUMENTS
 
+IMPORTANT: Change to project root directory before file operations.
+Use the working directory from the environment info as the project root.
+
 ## Primary Usage: Add New Requirement
 If arguments don't start with "list" or "status", treat as new requirement description:
 

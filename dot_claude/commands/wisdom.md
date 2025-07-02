@@ -4,6 +4,9 @@ Load and apply project-specific patterns from PROJECT_WISDOM.md to guide impleme
 
 When user runs `/wisdom`, read PROJECT_WISDOM.md and internalize all patterns for the current project, similar to how `/standards` loads CLAUDE.md files.
 
+IMPORTANT: Change to project root directory before file operations.
+Use the working directory from the environment info as the project root.
+
 ## Loading Process:
 
 1. **Read PROJECT_WISDOM.md** from current project directory

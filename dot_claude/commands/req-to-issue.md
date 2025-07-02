@@ -6,6 +6,9 @@ This command is useful for:
 - Recreating issues if they were deleted
 - Creating issues after GitHub authentication is set up
 
+IMPORTANT: Change to project root directory before file operations.
+Use the working directory from the environment info as the project root.
+
 ## Step 1: Validate Input
 1. Extract REQ-ID from command (expect format: `/req-to-issue REQ-XXXX`)
 2. Validate format: must match pattern `REQ-\d{4}`

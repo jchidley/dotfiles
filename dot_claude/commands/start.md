@@ -4,7 +4,7 @@ Check git state:
 - Run git log --oneline -5
 
 Check for key files:
-1. HANDOFF.md → Read (primary project state)
+1. ./HANDOFF.md → Read (primary project state in current directory)
 
 Restore/merge todo list from HANDOFF.md:
 1. FIRST use TodoRead to check if you already have active todos

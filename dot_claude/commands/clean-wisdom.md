@@ -4,6 +4,9 @@ Distills patterns through repetition analysis to create refined PROJECT_WISDOM.m
 
 When user runs `/clean-wisdom`, distill patterns from all wisdom files through repetition analysis and emphasis tracking.
 
+IMPORTANT: Change to project root directory before file operations.
+Use the working directory from the environment info as the project root.
+
 ## Pattern Distillery Process:
 
 1. **Gather all wisdom sources**:

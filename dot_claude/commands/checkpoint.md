@@ -5,6 +5,9 @@ Captures work progress and raw wisdom discoveries into CURRENT_PROJECT_WISDOM.md
 IMPORTANT: First use TodoRead tool to get current todo list before proceeding.
 This ensures HANDOFF.md always has the most recent todo state for proper restoration.
 
+IMPORTANT: Change to project root directory before file operations.
+Use the working directory from the environment info as the project root.
+
 Create SESSION_CHECKPOINT_[YYYYMMDD_HHMMSS].md (timestamped to support multiple checkpoints):
 
 # Session Checkpoint [YYYYMMDD_HHMMSS]

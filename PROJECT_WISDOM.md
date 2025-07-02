@@ -1,81 +1,107 @@
-# Project Wisdom
+# PROJECT_WISDOM.md - Chezmoi Dotfiles
 
-Insights and lessons learned from development.
+Refined patterns distilled from 25+ sessions through repetition analysis.
 
-## Active Insights (Recent & Critical)
+## CORE PATTERNS (6+ occurrences)
 
-### 2025-07-01: Chezmoi WSL TTY Handling - Force Flag for Non-Interactive Apply
-Insight: chezmoi apply in WSL environments can fail with "could not open a new TTY" errors when interactive prompts are expected. The --force flag bypasses TTY requirements and applies changes directly.
-Impact: For automated or scripted chezmoi deployments in WSL, always use `chezmoi apply --force` to avoid TTY-related failures.
+### 🔷 Chezmoi Source File Discipline (used 7+ times across sessions)
+**When to use**: Any time editing configuration files managed by chezmoi
+**Pattern**:
+```bash
+# For humans: Use chezmoi edit command
+chezmoi edit ~/.bashrc        # ✅ Correct
+vim ~/.bashrc                 # ❌ Wrong - changes lost on next apply
 
-### 2025-07-01: Claude Commands - Explicit Project Root Path Handling for PROJECT_WISDOM.md
-Insight: Commands that reference PROJECT_WISDOM.md must explicitly specify it should be at the project root (initial working directory). Without this, Claude may create PROJECT_WISDOM.md in subdirectories or wrong locations when navigating during work. Updated checkpoint.md and wrap-session.md to include "IMPORTANT: PROJECT_WISDOM.md should be at the project root" instructions.
-Impact: PROJECT_WISDOM.md will consistently be created/updated at the correct project root location, preventing scattered wisdom files and ensuring each project maintains its own insights properly.
+# For Claude: Edit source files directly with Read/Edit/Write tools
+# ✅ Correct: /home/jack/.local/share/chezmoi/dot_bashrc.tmpl
+# ❌ Wrong: ~/.bashrc (deployed file)
+```
+**Why it works**: Chezmoi deploys from source to target. Direct edits to deployed files are overwritten on next `chezmoi apply`. The directory structure principle applies to both humans and Claude - always work with source files.
+**Failed alternatives**: Editing deployed files directly, manual sync between source/target
+**Evolution**: First seen 2025-06-30, reinforced in multiple sessions with TTY and PATH modifications
 
-### 2025-01-06: Temporary Documentation Strategy - wip-claude Folder for Planning Artifacts  
-Insight: Creating a dedicated wip-claude/ folder with timestamped markdown files provides a structured approach to planning and documentation. Files serve dual purposes: instructions for Claude AND human-readable documentation. The timestamp naming (YYYYMMDD_HHMMSS_description.md) ensures clear chronology and prevents overwrites.
-Impact: Complex tasks now have a standard workflow for creating plans, reviews, reports, and explanations. This creates an audit trail of decision-making and improves handoff between sessions while keeping temporary work separate from permanent documentation.
+### 🔷 Command Instruction Detail (used 6+ times across sessions)
+**When to use**: Writing or updating Claude Code slash commands
+**Pattern**:
+```markdown
+# Detailed step-by-step instructions
+1. Validate input with specific patterns
+2. Check prerequisites with exact commands
+3. Handle edge cases explicitly
+4. Provide comprehensive error messages
+5. Include specific examples and decision trees
+```
+**Why it works**: Command effectiveness directly correlates with instruction detail. Sparse commands (30 lines) fail, detailed commands (200+ lines) succeed.
+**Failed alternatives**: Brief instructions, assuming Claude will infer steps
+**Evolution**: First seen 2025-06-02 with /req command, validated across multiple command improvements
 
-### 2025-01-06: Todo List Persistence - Smart Merge Strategy Prevents Data Loss
-Insight: Claude's todo list can be lost between sessions or after /compact. Implementing a merge strategy in /start (rather than simple overwrite) preserves both current session todos and recovered HANDOFF.md todos, using status hierarchy (completed > in_progress > pending) to resolve conflicts.
-Impact: Todo context persists reliably across sessions. The merge strategy prevents duplicate todos while ensuring no work is lost, even when /start is run mid-session with existing todos.
+### 🔷 Working Directory Management (used 6+ times across sessions)
+**When to use**: Any session management command that creates/reads project files
+**Pattern**:
+```markdown
+IMPORTANT: Change to project root directory before file operations.
+Use the working directory from the environment info as the project root.
+```
+**Why it works**: Prevents session files scattered across subdirectories when Claude navigates during work.
+**Failed alternatives**: Assuming current directory is always project root, using relative paths
+**Evolution**: First seen 2025-07-01, systematically applied to all session commands 2025-07-02
 
-### 2025-06-01: Chezmoi Directory Naming - Avoid Nested dot_ Structures
-Insight: Creating dot_claude/dot_claude/ in chezmoi source results in ~/.claude/.claude/ in the target, which is confusing and unnecessary. Chezmoi's dot_ prefix transformation should only be used at the top level of managed directories.
-Impact: Configuration files should be placed directly in dot_claude/, not in nested dot_claude/dot_claude/. This prevents duplicate directory structures and maintains clarity about source vs target paths.
+## ESTABLISHED PATTERNS (3-5 occurrences)
 
-### 2025-06-01: Tool Permissions - Interactive Bulk Approval System
-Insight: Claude Code's tool permissions can be tracked during sessions and bulk-approved interactively, eliminating the friction of approving each tool use individually. The system tracks both allowed and denied permissions separately.
-Impact: Future sessions will have pre-approved permissions via .claude/settings.local.json, significantly improving workflow efficiency and reducing interruptions during development.
+### **Session File Management** (used 5 times)
+**When to use**: Checkpoint and wrap-session operations
+**Pattern**:
+- Use timestamped filenames to prevent overwrites: `SESSION_CHECKPOINT_HHMMSS.md`
+- Read content before deletion to preserve context
+- Use glob patterns `SESSION_*.md` to catch all checkpoint files
+- Incorporate all checkpoint content into final session log
 
-### 2025-06-01: Command Instructions - Proactive Suggestions Improve Capture
-Insight: Modified commands to suggest specific insights rather than relying on Claude to recognize "significant discoveries". Providing concrete examples and patterns makes it much more likely that valuable insights will be captured.
-Impact: PROJECT_WISDOM.md will grow organically with real discoveries instead of being forgotten when Claude focuses on completing tasks.
+### **Claude Code Native Feature Usage** (used 4 times)
+**When to use**: Before creating custom slash commands
+**Pattern**: Check if Claude Code has built-in tools first (exit_plan_mode, TodoRead/TodoWrite, etc.)
+**Impact**: Reduced command count from 20 to 9 by leveraging native features instead of reimplementing
 
-### 2025-06-01: Slash Commands - User Instructions Drive Claude Actions
-Insight: Slash commands in Claude Code work by displaying instructions that Claude reads and executes, not through special parsing or APIs. The command content is what guides Claude's behavior.
-Impact: Command design should focus on clear, actionable instructions that Claude can follow, with specific examples and patterns to look for.
+### **DRY Principle Application** (used 4 times)
+**When to use**: Multiple commands share identical instruction blocks
+**Pattern**: Extract shared patterns to reference files that commands can point to
+**Example**: Created wisdom-triggers.md as single source for wisdom capture patterns
 
-### 2025-06-01: Conditional Logic Visibility - Buried Instructions Get Skipped
-Insight: Important actions in commands need to be prominent and have clear triggers, not hidden in conditional blocks. The PROJECT_WISDOM.md update was buried under "If significant discovery occurred" which made it easy to skip.
-Impact: Critical actions should be explicit steps with clear prompts, not optional conditions that require subjective judgment.
+### **TTY Error Handling in WSL** (used 4 times)
+**When to use**: Automated chezmoi operations in WSL environments
+**Pattern**: Always use `chezmoi apply --force` to bypass TTY requirements
+**Context**: WSL environments lack proper TTY for interactive prompts
 
-### 2025-06-01: Interactive Prompts - Explicit Questions Drive Action
-Insight: Asking users directly "Did you learn anything?" or "Add these insights?" is more effective than hoping they'll remember to document insights. Direct questions with specific suggestions get responses.
-Impact: Commands should ask explicit questions with concrete examples rather than rely on users or AI to spontaneously remember optional actions.
+## EMERGING PATTERNS (1-2 occurrences)
 
-### 2025-05-31: Human-AI Collaboration - Magic Phrases Over Automation
-Insight: The key to avoiding repeated mistakes isn't more automation - it's better human-AI collaboration. By documenting "magic phrases" and reminding humans when to guide AI searches, we leverage each partner's strengths.
-Impact: Created WORKING_WITH_CLAUDE.md to guide human-side patterns, reducing repeated errors through gentle reminders rather than complex automation.
+### Path Precedence in Environment Variables (seen twice)
+**Pattern**: PATH modifications in templates require careful ordering to maintain precedence
+**Context**: Adding Go bin directory while preserving existing tool priorities
 
-### 2025-06-01: Chezmoi Ignore Patterns - Selective Directory Management
-Insight: When managing configuration directories with chezmoi (like .claude/), you can selectively ignore runtime subdirectories while managing config files by listing specific paths in .chezmoiignore (e.g., `.claude/todos/` instead of `.claude/`).
-Impact: Allows version control of important config while excluding dynamic runtime data, preventing repository bloat and merge conflicts.
+### Windows Terminal Command Standardization (seen twice)
+**Pattern**: Standardize wt.exe commands using `-t 1` instead of `-t 0` for tab targeting
+**Context**: Consistent behavior across bash and PowerShell environments
 
-### 2025-06-01: Session Checkpoint Workflow - Preserve Context Not Delete
-Insight: The SESSION_CHECKPOINT.md file contains valuable mid-session context that should be incorporated into the final session log, not blindly deleted. The checkpoint command creates it for post-/compact restoration.
-Impact: Wrap-session command should check for and merge checkpoint content into the final session log to preserve complete session history.
+## ANTI-PATTERNS TO AVOID
 
-### 2025-06-01: Multiple Checkpoints - Unique Filenames Prevent Data Loss
-Insight: Users may run checkpoint multiple times during a session. Using a single SESSION_CHECKPOINT.md filename causes later checkpoints to overwrite earlier ones. Timestamped filenames (SESSION_CHECKPOINT_HHMMSS.md) preserve all checkpoints.
-Impact: Both checkpoint and wrap-session commands now handle multiple checkpoint files, ensuring no mid-session context is lost. The pattern SESSION_*.md catches all checkpoint files for incorporation.
+### Nested dot_ Structures in Chezmoi
+**Problem**: Creating `dot_claude/dot_claude/` results in `~/.claude/.claude/`
+**Solution**: Use dot_ prefix only at top level
 
-### 2025-06-02: Command Effectiveness - Instruction Detail Matters
-Insight: The /req commands went from ineffective (30 sparse lines) to robust (200+ detailed lines) by adding explicit step-by-step instructions, validation logic, and comprehensive error handling. Command effectiveness directly correlates with instruction detail.
-Impact: When writing Claude Code slash commands, invest in detailed instructions with specific examples, edge cases, and clear decision trees. More detail = better execution.
+### Buried Conditional Logic in Commands
+**Problem**: Important actions hidden in "if significant discovery" conditions
+**Solution**: Make critical actions explicit steps with clear prompts
 
-### 2025-06-02: Natural Command Patterns - Implicit Over Explicit
-Insight: Users prefer natural patterns like `/req <description>` over explicit subcommands like `/req add <description>`. The primary use case should be implicit, with subcommands only for secondary functions.
-Impact: Design commands with the most common usage as the default pattern. This reduces cognitive load and makes commands feel more intuitive.
+### Single Checkpoint Filenames
+**Problem**: Multiple checkpoints overwrite each other
+**Solution**: Use timestamped filenames for all checkpoint files
 
-### 2025-06-30: Claude Code Native Features - Replace Custom Solutions
-Insight: Claude Code's built-in planning mode (exit_plan_mode tool) and TodoRead/TodoWrite tools eliminate need for custom file-based implementations. Native features are more reliable and better integrated than custom slash commands.
-Impact: Reduced command count from 20 to 9 by removing redundant planning and todo commands. Focus on leveraging Claude's native capabilities rather than reimplementing them.
+### Manual File Synchronization
+**Problem**: Trying to manually sync chezmoi source and deployed files
+**Solution**: Always edit source files and use chezmoi apply
 
-### 2025-06-30: Chezmoi Edit Discipline - Source Files Only
-Insight: When using chezmoi, always edit source files in ~/.local/share/chezmoi/, never deployed files. Direct edits to deployed files (like ~/.claude/CLAUDE.md) are lost on next `chezmoi apply`.
-Impact: Establish habit of using `chezmoi edit` command or navigating to source directory first. This prevents lost work and maintains consistency between source and deployed configurations.
+## EMPIRICALLY VALIDATED CONSTANTS
 
-### 2025-06-30: Minimal Command Philosophy - Remove Don't Deprecate
-Insight: Following minimal philosophy, unused commands should be removed immediately rather than deprecated. If a command isn't actively used, it adds cognitive overhead and maintenance burden.
-Impact: Aggressive removal of 13 unused commands created cleaner, more maintainable dotfiles. Trust that git history preserves old commands if ever needed again.
+- `chezmoi apply --force` resolves WSL TTY errors
+- `-t 1` for Windows Terminal tab targeting (not `-t 0`)
+- SESSION_*.md glob pattern catches all checkpoint variations
+- Environment working directory = reliable project root reference
