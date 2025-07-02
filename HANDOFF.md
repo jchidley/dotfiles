@@ -1,10 +1,10 @@
 # Project: Chezmoi Dotfiles
-Updated: 2025-06-30 19:09
+Updated: 2025-07-02 08:29
 
 ## Current State
-Status: Streamlined command set to 9 essential commands, added standards compliance checking
+Status: Updated Windows Terminal tab targeting configuration
 Target: Clean, minimal dotfiles configuration with robust scripting standards
-Latest: Created /standards command to verify CLAUDE.md compliance across projects
+Latest: Changed Windows Terminal commands from `-t 0` to `-t 1` across bash and PowerShell configs
 
 ## Essential Context
 - Removed 13 unused commands following minimal philosophy
@@ -14,10 +14,11 @@ Latest: Created /standards command to verify CLAUDE.md compliance across project
 - New /standards command checks project compliance with all standards
 
 ## Next Step
-Use /standards command to audit projects for CLAUDE.md compliance
+Apply changes with `chezmoi apply` and verify Windows Terminal behavior
 
 ## Active Todo List
-No active todos
+[✓] Update wt.exe command in dot_bashrc.tmpl from -t 0 to -t 1
+[✓] Update wt.exe command in bash_shell_hints from -t 0 to -t 1
 
 ## If Blocked
 None - system fully operational
