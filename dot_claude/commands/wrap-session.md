@@ -1,84 +1,65 @@
 # /wrap-session
 
-Finalizes session work and captures raw wisdom discoveries into CURRENT_PROJECT_WISDOM.md for later refinement.
+Finalizes session work with minimal context usage by prioritizing critical saves first.
 
-IMPORTANT: Use TodoRead tool early to capture current todo state before wrapping up.
-This ensures the final todo state is preserved accurately for the next session.
-The todo list in HANDOFF.md will be used by /start to restore/merge todos.
+cd <working directory from environment info>
 
-IMPORTANT: Change to project root directory before file operations.
-Use the working directory from the environment info as the project root.
+STEP 1: Create safety net (minimal context)
+- Use TodoRead tool to get current todo state
+- Immediately write CHECKPOINT.md with todos + latest achievement
+- This ensures todos are safe even if wrap-session fails
 
-Create sessions directory if it doesn't exist:
+STEP 2: Capture git state (small context)
+- Run git status to check for uncommitted changes
+- Run git log --oneline -10 to capture recent commits
+- If uncommitted changes exist, note for user reminder
+
+STEP 3: Create session directory (tiny context)
 - Check if sessions/ directory exists
 - If not, create it with: mkdir -p sessions
 
-Check for SESSION_*.md files in root:
-- Look for any SESSION_*.md files (could be multiple checkpoints)
-- Sort them by timestamp to maintain chronological order
-- Read their content to incorporate into the final session log
-
+STEP 4: Create basic session log (medium write)
 Create sessions/SESSION_[YYYYMMDD]_[HHMMSS].md:
 
 # Session [YYYYMMDD]_[HHMMSS]
 Project: [Name]
 
 ## Work Done
-[If SESSION_*.md files exist, incorporate their "Work Done" sections in chronological order]
-[And list what was actually accomplished since the last checkpoint - focus on completions]
-
-## Failed Approaches
-[Combine any "Failed Approaches" from checkpoint files]
-[Add any new failed approaches since last checkpoint]
+[Main accomplishments from todos + git commits]
 
 ## Commits
-[git log --oneline output for this session]
+[git log output captured earlier]
 
-Clean up checkpoints after using them:
-- Move all SESSION_*.md files to sessions/ directory after incorporating their content
+## Active Todos
+[Copy from CHECKPOINT.md]
 
-Update HANDOFF.md:
-- Refresh "Current State" with final status
-- Update "Latest" with session's main achievement
-- Include "Active Todo List" section:
-  1. Use TodoRead tool to get current todo list
-  2. Format todos with status indicators:
-     - [ ] for pending items
-     - [⏳] for in_progress items  
-     - [✓] for completed items
-  3. Group by status: in_progress first, then pending, then completed
-  4. Include actual todo content under "## Active Todo List" section
-  5. If no todos exist, write "No active todos"
-- Ensure "Next Step" is current for next session (consider pending REQUIREMENTS.md items)
-- Clear "If Blocked" if resolved
+STEP 5: Clean up old files (no reading needed)
+- Check for any SESSION_*.md files in current directory
+- If found, move them to sessions/ without reading content
+- This preserves history without adding context
 
-Check for uncommitted changes:
-- Run git status
-- If changes exist, remind: "Uncommitted changes detected. Consider committing before ending session."
+STEP 6: Update HANDOFF.md (medium context)
+- Check if CHECKPOINT.md exists and read latest/todos from it
+- Read current HANDOFF.md
+- Update with:
+  - Current timestamp
+  - Latest achievement from checkpoint
+  - Active todo list from checkpoint
+  - Refresh Current State and Next Step
+- If update succeeds, delete CHECKPOINT.md
 
-Review session for wisdom capture to CURRENT_PROJECT_WISDOM.md:
-IMPORTANT: CURRENT_PROJECT_WISDOM.md should be at the project root (initial working directory from environment info).
-Check for CURRENT_PROJECT_WISDOM.md at project root first. If it doesn't exist, create it there - NOT in subdirectories.
+STEP 7: Check for uncommitted changes reminder
+If uncommitted changes were detected in Step 2:
+- Output: "⚠️ Uncommitted changes detected. Consider committing before ending session."
 
-1. Check session log and work done for wisdom patterns:
-   a. Look for explicit "Technical Insights" section in the session file (if present)
-   b. Apply triggers from wisdom-triggers.md to all content:
-      - Technical discoveries (tool usage, error solutions, configurations)
-      - Conversation triggers ("we should always", "remember that", etc.)
-      - Evolution patterns ("tried X, Y worked better", anti-patterns)
+STEP 8: Review for wisdom capture (large context - optional)
+Only if context allows:
+- Check if CURRENT_PROJECT_WISDOM.md exists in working directory
+- Review session for wisdom patterns using wisdom-triggers.md
+- Suggest any insights found to user
+- If user agrees, append to CURRENT_PROJECT_WISDOM.md
 
-2. Use the prompting format from wisdom-triggers.md to suggest captured insights to the user.
-   Include any insights found in Technical Insights sections.
-
-3. If user agrees, append to CURRENT_PROJECT_WISDOM.md using the entry format from wisdom-triggers.md.
-
-4. Note: CURRENT_PROJECT_WISDOM.md accumulates across sessions. Archive management handled by /clean-wisdom command.
-
-Verify cleanup:
-- Confirm all SESSION_*.md files have been moved to sessions/
-- If any remain in root, notify user
-
-Tool Permission Management:
+STEP 9: Tool Permission Management (if context allows)
 1. Track all tool permission requests during this session:
    - Check for tools that were granted permission (you used them)
    - Check for tools that were denied permission (you were blocked)
@@ -119,7 +100,9 @@ Tool Permission Management:
 
 Output:
 "Session logged to sessions/SESSION_[timestamp].md
+HANDOFF.md updated with current state
 Next: [from updated HANDOFF]
-Ready for /clear
 
-💭 Next session: If working on similar tasks, remind Claude to check history"
+Ready for /clear or /compact"
+
+Note: Steps are ordered by context impact. If context runs out, todos are already safe in CHECKPOINT.md for recovery by /start.

@@ -4,25 +4,35 @@ Check git state:
 - Run git log --oneline -5
 
 Check for key files:
-1. ./HANDOFF.md → Read (primary project state in current directory)
+1. ./CHECKPOINT.md → Check if exists (safety net from interrupted session)
+   - If found: Read it for todos and latest achievement
+   - This takes precedence over HANDOFF.md as most recent state
+   
+2. ./HANDOFF.md → Read if exists (ONLY in current directory, NEVER parent directories)
+   - If not found: Ask user "No HANDOFF.md found in current directory. Create new project handoff? (y/n)"
+   - Only create if user confirms with 'y' or 'yes'
 
-Restore/merge todo list from HANDOFF.md:
+Restore/merge todo list (prioritizing CHECKPOINT.md if exists):
 1. FIRST use TodoRead to check if you already have active todos
-2. Look for "## Active Todo List" section in HANDOFF.md
-3. Parse HANDOFF.md todo items with these status indicators:
+2. If CHECKPOINT.md exists:
+   - Parse todos from "## Todos" section
+   - Use these as the source of truth (most recent)
+   - Delete CHECKPOINT.md after successful merge
+3. Otherwise, look for "## Active Todo List" section in HANDOFF.md
+4. Parse todo items with these status indicators:
    - [ ] = pending
    - [⏳] = in_progress
    - [✓] = completed
-4. Apply merge logic:
-   - If current todo list is empty: restore all from HANDOFF.md
+5. Apply merge logic:
+   - If current todo list is empty: restore all from source
    - If current todo list exists: merge intelligently
-     a. For each HANDOFF.md todo, check if content already exists in current list
-     b. If not exists: add it with status from HANDOFF.md
+     a. For each source todo, check if content already exists in current list
+     b. If not exists: add it with status from source
      c. If exists with different status: keep the MORE ADVANCED status
         (hierarchy: completed > in_progress > pending)
      d. Never duplicate todos by content
-     e. Preserve all current todos even if not in HANDOFF.md
-5. Use TodoWrite with the merged list, assigning new unique IDs
+     e. Preserve all current todos even if not in source
+6. Use TodoWrite with the merged list, assigning new unique IDs
 
 Example merge scenarios:
 - Current: ["Fix bug X" - in_progress], HANDOFF: ["Fix bug X" - pending] → Keep in_progress
@@ -42,11 +52,12 @@ Ready to: [specific action]
 [If todos were restored/merged:]
 Active todos: [X pending, Y in progress, Z completed]
 [If merge happened:] (merged [N] todos from HANDOFF.md, [M] were new/updated)
+[If checkpoint recovered:] (recovered from CHECKPOINT.md - session was interrupted)
 
 💡 Reminder: See WORKING_WITH_CLAUDE.md for collaboration tips
 💭 Watch for insights to capture with /checkpoint (solutions, patterns, fixes)
 
-For new work (no HANDOFF.md):
+For new work (when user confirms creation of HANDOFF.md):
 - Create HANDOFF.md with structure:
   # Project: [Name]
   Updated: [Timestamp]
@@ -63,3 +74,6 @@ For new work (no HANDOFF.md):
   Define project goals
 
 - Output: "Starting new work session. What would you like to work on?"
+
+If user declines HANDOFF.md creation:
+- Output: "Starting work session without HANDOFF.md. What would you like to work on?"

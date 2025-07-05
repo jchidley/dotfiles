@@ -29,6 +29,7 @@ This file provides behavioral instructions for Claude Code (claude.ai/code) when
 - Start files with 2-line ABOUTME: comment
 - Keep comments evergreen (describe current state)
 - Only create docs when explicitly requested
+- README.md structure: Always put commands/usage at the top under a "## Quick Start" or "## Commands" heading
 
 ### Changes & Commits
 - Never make unrelated changes to current task

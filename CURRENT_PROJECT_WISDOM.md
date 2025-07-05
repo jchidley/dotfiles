@@ -26,3 +26,8 @@ Raw insights captured during sessions for later refinement by /clean-wisdom.
 **Insight**: Prompts for related actions preserve user agency while preventing missed opportunities
 **Impact**: Avoids feature creep and complexity while still surfacing valuable workflow extensions
 **Note**: Chose prompt-based approach over automatic cross-directory scanning for /clean-wisdom enhancement
+
+### 2025-01-05: Command Clarity - Eliminating "Project Root" Ambiguity
+**Insight**: The term "project root" in /wrap-session and /checkpoint commands caused confusion when Claude was invoked from subdirectories. Claude interpreted it as parent directory instead of the initial working directory.
+**Impact**: Commands failed with security errors when trying to cd to parent directories. Fixed by replacing all "project root" references with explicit "cd <working directory from environment info>".
+**Note**: Simple, explicit instructions prevent interpretation errors. The working directory from environment info is fixed at Claude start and never changes.

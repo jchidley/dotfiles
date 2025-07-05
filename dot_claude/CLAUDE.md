@@ -67,3 +67,37 @@ For new PROJECT features (not regular tasks), use `/req <description>` to track 
 - **Development standards**: See `/home/jack/tools/CLAUDE.md`
 - **Project-specific**: Always check for local CLAUDE.md files
 
+## PowerShell Script Requirements (WSL)
+
+**Critical patterns when calling PowerShell from WSL:**
+
+1. **Navigate to WSL path first:**
+   ```bash
+   cd \\wsl.localhost\Debian\home\jack\tools\project-name
+   ```
+   **Why:** PowerShell can't find scripts without the full WSL path
+
+2. **Use `-Command` syntax, never `-File`:**
+   ```powershell
+   # CORRECT
+   sudo powershell -ExecutionPolicy Bypass -Command "& {.\script.ps1 -DryRun:`$false}"
+   
+   # WRONG
+   sudo powershell -ExecutionPolicy Bypass -File ".\script.ps1"
+   ```
+   **Why:** `-File` fails with sudo and can't handle boolean parameters properly
+
+3. **Start-Transcript in every script:**
+   ```powershell
+   # At script start
+   Start-Transcript -Path ".\output-log.txt" -Force
+   
+   # At script end
+   Stop-Transcript
+   ```
+   **Why:** Write-Host output bypasses normal redirection and gets lost without transcript
+
+**Additional notes:**
+- Boolean parameters need backtick escaping: `-DryRun:`$false`
+- Requires Windows sudo: `scoop install sudo`
+

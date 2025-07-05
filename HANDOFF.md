@@ -1,10 +1,10 @@
 # Project: Chezmoi Dotfiles
-Updated: 2025-07-02 17:11
+Updated: 2025-01-05 14:16
 
 ## Current State
-Status: Enhanced /clean-wisdom with cross-project analysis capabilities
+Status: Simplified session management commands for minimal context usage
 Target: Clean, minimal dotfiles configuration with robust scripting standards
-Latest: Added cross-project analysis prompt to /clean-wisdom command for multi-directory pattern discovery
+Latest: Updated session management commands for minimal context usage
 
 ## Essential Context
 - Removed 13 unused commands following minimal philosophy
@@ -15,12 +15,14 @@ Latest: Added cross-project analysis prompt to /clean-wisdom command for multi-d
 - Windows Terminal commands now properly echo as hints in PowerShell
 - Wisdom capture patterns centralized in wisdom-triggers.md (DRY principle)
 - New commands: /clean-wisdom (pattern distillation), /wisdom (pattern application)
+- /checkpoint now creates minimal CHECKPOINT.md safety net
+- /wrap-session writes checkpoint first for resilience to context limits
 
 ## Next Step
-Continue with any other dotfiles improvements or maintenance tasks
+Commit the session management improvements
 
 ## Active Todo List
-[✓] Add cross-project analysis prompt to /clean-wisdom command
+All tasks completed
 
 ## If Blocked
 None - system fully operational
