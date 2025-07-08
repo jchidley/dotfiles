@@ -1,6 +1,6 @@
 Check git state:
 - Run git branch --show-current
-- Run git status  
+- Run git status (note if working tree is clean or has changes)
 - Run git log --oneline -5
 
 Check for key files:
@@ -43,7 +43,7 @@ Output format:
 
 ## Project: [Name from HANDOFF]
 Status: [from HANDOFF Current State]
-Branch: [git branch] | Changes: [Yes/No]
+Branch: [git branch] | Changes: [Yes/No based on git status - "No" if clean]
 
 Current focus: [from HANDOFF Next Step]
 
@@ -55,7 +55,7 @@ Active todos: [X pending, Y in progress, Z completed]
 [If checkpoint recovered:] (recovered from CHECKPOINT.md - session was interrupted)
 
 💡 Reminder: See WORKING_WITH_CLAUDE.md for collaboration tips
-💭 Watch for insights to capture with /checkpoint (solutions, patterns, fixes)
+💭 Watch for insights to capture with /wrap-session (solutions, patterns, fixes)
 
 For new work (when user confirms creation of HANDOFF.md):
 - Create HANDOFF.md with structure:
