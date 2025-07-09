@@ -6,7 +6,6 @@
 - **EXPLAIN reasoning** before making changes
 - **NEVER run sudo directly** - provide exact command for user to execute
 - **VALIDATE file existence** before editing
-- **SEARCH PROJECT_WISDOM.md** when starting work on familiar topics (e.g., grep for "Docker" when working on Docker issues)
 
 ## Universal Anti-Patterns
 
@@ -18,10 +17,7 @@
 
 ## Documentation
 
-**Create temporary documentation in `wip-claude/` folder** at project root for:
-- **Reviews** - Code analysis and architectural assessments  
-- **Reports** - Summaries of completed work or findings
-- **Explanations** - Technical deep-dives or design rationale
+**Create temporary documentation in `wip-claude/` folder** at project root when asked to document work or when documentation would be helpful for complex tasks.
 
 **File naming**: Use timestamp format `YYYYMMDD_HHMMSS_description.md`
 - Example: `20250106_143000_code_review.md`
@@ -46,26 +42,12 @@
 - **Conflicting information**: "think hard about which source to trust"
 - **No clear path forward**: "ultrathink about alternatives"
 
-## Session Management
-
-Use these commands to maintain context across sessions:
-- `/start` - Initialize session with context
-- `/checkpoint` - Save progress to HANDOFF.md
-- `/wrap-session` - Archive and prepare for next session
-
 ## Project Requirements
 
 For new PROJECT features (not regular tasks), use `/req <description>` to track in REQUIREMENTS.md.
 - `/req <description>` - Add new requirement (checks for duplicates)
 - `/req list` - View all requirements
 - `/req status REQ-XXXX` - View specific requirement
-
-
-## Environment
-
-- **Platform**: WSL Debian Testing (primary), Alpine Linux (utility)
-- **Development standards**: See `/home/jack/tools/CLAUDE.md`
-- **Project-specific**: Always check for local CLAUDE.md files
 
 ## PowerShell Script Requirements (WSL)
 
@@ -100,4 +82,63 @@ For new PROJECT features (not regular tasks), use `/req <description>` to track 
 **Additional notes:**
 - Boolean parameters need backtick escaping: `-DryRun:`$false`
 - Requires Windows sudo: `scoop install sudo`
+
+## Python Requirements
+
+**Critical patterns for Python usage:**
+
+1. **ALWAYS use uv/uvx with Python 3.12:**
+   ```bash
+   # CORRECT - Use uvx with Python 3.12
+   uvx python@3.12 script.py
+   
+   # CORRECT - Default to Python 3.12
+   uvx --python 3.12 python script.py
+   
+   # WRONG - Direct python call or unspecified version
+   python3 script.py
+   uvx python script.py  # May use wrong version
+   ```
+   **Why:** Ensures consistent Python 3.12 environment across all operations
+
+2. **Check Python location with which:**
+   ```bash
+   # Always verify Python path on Debian
+   which python3
+   # Typically: /usr/bin/python3
+   ```
+   **Why:** Debian uses `python3` command, not `python`
+
+3. **Running Python tools:**
+   ```bash
+   # CORRECT - Ephemeral tool execution
+   uvx ruff check
+   uvx mypy src/
+   
+   # CORRECT - Install persistent tools
+   uv tool install ruff
+   uv tool install pre-commit
+   ```
+   **Why:** uvx runs tools in isolated environments, preventing conflicts
+
+4. **Project Python management:**
+   ```bash
+   # ALWAYS create virtual environment with Python 3.12
+   uv venv --python 3.12
+   
+   # Run within project context (uses .python-version or venv)
+   uv run python script.py
+   uv run pytest
+   
+   # Ensure Python 3.12 in pyproject.toml
+   # requires-python = ">=3.12"
+   ```
+   **Why:** `uv run` automatically manages virtual environments
+
+**Additional notes:**
+- Never use pip directly - use `uv pip` instead
+- For project dependencies: `uv add package` not `pip install`
+- uv automatically downloads Python 3.12 if not available
+- Always specify `requires-python = ">=3.12"` in pyproject.toml
+- Use `.python-version` file with content `3.12` for project consistency
 

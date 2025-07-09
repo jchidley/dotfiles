@@ -2,6 +2,8 @@
 
 This file provides behavioral instructions for Claude Code (claude.ai/code) when working on any development project. For detailed reference material, see the docs/ directory.
 
+**Note**: Mechanical formatting and linting patterns (black, ruff, prettier, cargo fmt, shellcheck) are enforced automatically via Claude Code hooks. This file focuses on behavioral guidelines and philosophy.
+
 ## 🚨 Language Selection (Behavioral Rules)
 
 ### Primary Rule: ALWAYS Start with Bash
@@ -222,9 +224,9 @@ die() { echo "ERROR: $*" >&2; exit 1; }
 - **GENERAL RULE**: Any command returning non-zero terminates script - plan for failure modes
 
 Requirements:
-- Lint: `shellcheck -x *.sh scripts/**/*.sh`
 - Test: `bats-core` for all scripts
 - Self-test mode with `--test` flag
+- Note: Shellcheck validation and header requirements are enforced automatically by hooks
 
 ## Pedantic Languages as Force Multipliers
 
@@ -242,11 +244,13 @@ Rust and TypeScript help you through compiler feedback:
 - Commit format: `type(scope): description` where type ∈ {feat, fix, docs, style, refactor, test, chore}
 
 ### Pre-commit Checks
-Before ANY commit, check for and run:
+Before ANY commit, ensure tests pass. Note that formatting and basic linting are handled automatically by Claude Code hooks when files are modified.
+
+For comprehensive checks before committing:
 1. `mask pre-commit` if maskfile.md exists
 2. `pre-commit run --all-files` if .pre-commit-config.yaml exists
 3. `npm run pre-commit` if defined in package.json
-4. At minimum: format + lint + test
+4. Run project tests
 
 NEVER use `--no-verify` to skip checks.
 
@@ -254,24 +258,23 @@ NEVER use `--no-verify` to skip checks.
 
 ### Python
 - Use `uv` exclusively (not pip, poetry)
-- Format: `black . --check` → `black .`
-- Lint: `ruff check .` → `ruff check . --fix`
 - Test: `pytest -xvs` (stop on first failure)
 - Error handling: Return `Optional[T]` or `Union[T, Error]`
+- Note: Formatting (black) and linting (ruff) are handled automatically by hooks
 
 ### Rust
-- Format: `cargo fmt -- --check` → `cargo fmt`
 - Lint: `cargo clippy -- -D warnings`
 - Test: `cargo test && cargo mutants`
 - Use workspace for multiple tools
 - Prefer `Result<T, E>` over panics
+- Note: Formatting (cargo fmt) is handled automatically by hooks
 
 ### TypeScript
-- Format: `npx prettier --check .` → `npx prettier --write .`
 - Lint: `npx eslint . --ext .ts,.tsx,.js,.jsx`
 - Type check: `npx tsc --noEmit`
 - Choose runtime based on needs (Bun/Node+pnpm/Deno)
 - Avoid for system tools
+- Note: Formatting (prettier) is handled automatically by hooks
 
 ## References
 

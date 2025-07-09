@@ -1,10 +1,10 @@
 # Project: Chezmoi Dotfiles
-Updated: 2025-01-05 14:16
+Updated: 2025-01-09 17:52
 
 ## Current State
-Status: Simplified session management commands for minimal context usage
+Status: Claude Code hooks implemented and documentation consolidated
 Target: Clean, minimal dotfiles configuration with robust scripting standards
-Latest: Updated session management commands for minimal context usage
+Latest: Consolidated Claude Code hooks documentation, removing 5 outdated files
 
 ## Essential Context
 - Removed 13 unused commands following minimal philosophy
@@ -17,9 +17,11 @@ Latest: Updated session management commands for minimal context usage
 - New commands: /clean-wisdom (pattern distillation), /wisdom (pattern application)
 - /checkpoint now creates minimal CHECKPOINT.md safety net
 - /wrap-session writes checkpoint first for resilience to context limits
+- Claude Code hooks now enforce formatting/linting automatically (tools/claude-hooks/)
+- tools/CLAUDE.md updated to focus on philosophy while hooks handle mechanics
 
 ## Next Step
-Commit the session management improvements
+Commit the Claude Code hooks implementation and updated documentation
 
 ## Active Todo List
 All tasks completed
