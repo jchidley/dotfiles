@@ -7,10 +7,12 @@ IMPORTANT: First use TodoRead tool to get current todo list.
 
 cd <working directory from environment info>
 
+First get timestamp: `TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S")`
+
 Write CHECKPOINT.md (overwrites if exists):
 
 # Checkpoint
-Created: [Current timestamp]
+Created: ${TIMESTAMP}
 Latest: [One line - most recent accomplishment or current focus]
 
 ## Todos

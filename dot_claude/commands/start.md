@@ -39,6 +39,11 @@ Example merge scenarios:
 - Current: ["Add feature Y" - pending], HANDOFF: ["Add feature Y" - completed] → Update to completed
 - Current: ["Task A"], HANDOFF: ["Task A", "Task B"] → Result: ["Task A", "Task B"]
 
+Check for context reload suggestions:
+- If HANDOFF.md has "## Context Reload After Clear" section:
+  - Extract the document list exactly as written
+  - Echo it to the user without reading any files
+
 Output format:
 
 ## Project: [Name from HANDOFF]
@@ -53,6 +58,10 @@ Ready to: [specific action]
 Active todos: [X pending, Y in progress, Z completed]
 [If merge happened:] (merged [N] todos from HANDOFF.md, [M] were new/updated)
 [If checkpoint recovered:] (recovered from CHECKPOINT.md - session was interrupted)
+
+[If context reload section found:]
+📚 Key context from last session:
+[Echo the exact content from HANDOFF.md Context Reload section]
 
 💡 Reminder: See WORKING_WITH_CLAUDE.md for collaboration tips
 💭 Watch for insights to capture with /wrap-session (solutions, patterns, fixes)
@@ -72,8 +81,24 @@ For new work (when user confirms creation of HANDOFF.md):
   
   ## Next Step
   Define project goals
+  
+  ## Active Todo List
+  - [ ] Define project requirements
+  - [ ] Set up initial structure
+  
+  ## If Blocked
+  None - just starting
+  
+  ## Context Reload After Clear
+  Essential documents for continuing work:
+  1. HANDOFF.md - This file (project state and todos)
+  
+  ## Related Documents
+  - CLAUDE.md - Project instructions (if exists)
+  - PROJECT_WISDOM.md - Development insights (if exists)
 
 - Output: "Starting new work session. What would you like to work on?"
+- Echo: "✨ Created HANDOFF.md for session continuity"
 
 If user declines HANDOFF.md creation:
 - Output: "Starting work session without HANDOFF.md. What would you like to work on?"

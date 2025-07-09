@@ -1,8 +1,10 @@
 # Claude Code Hooks Expansion Analysis
+Created: 2025-01-09 16:50
+Updated: 2025-01-09 18:55
 
 ## Overview
 
-After implementing basic formatting/linting hooks and updating tools/CLAUDE.md, this document analyzes what additional mechanical patterns could be moved from CLAUDE.md to hooks, creating a clearer separation between mechanical enforcement and philosophical guidance.
+After implementing basic formatting/linting hooks and updating tools/CLAUDE.md, this document analyzes what additional mechanical patterns could be moved from CLAUDE.md to hooks. Now updated with clear separation: dot_claude/CLAUDE.md (global rules), hooks (mechanical enforcement), tools/CLAUDE.md (philosophy).
 
 ## Current State
 
