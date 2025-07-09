@@ -59,9 +59,12 @@ Active todos: [X pending, Y in progress, Z completed]
 [If merge happened:] (merged [N] todos from HANDOFF.md, [M] were new/updated)
 [If checkpoint recovered:] (recovered from CHECKPOINT.md - session was interrupted)
 
-[If context reload section found:]
-📚 Key context from last session:
-[Echo the exact content from HANDOFF.md Context Reload section]
+[If "## Context Reload After Clear" section exists in HANDOFF.md:]
+**Key wip-claude documents:**
+[Extract and display each document path from that section, formatted as:]
+- path/to/document1.md
+- path/to/document2.md
+[etc.]
 
 💡 Reminder: See WORKING_WITH_CLAUDE.md for collaboration tips
 💭 Watch for insights to capture with /wrap-session (solutions, patterns, fixes)

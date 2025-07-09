@@ -1,1 +1,0 @@
-/home/jack/.claude/WORKING_WITH_CLAUDE.md
