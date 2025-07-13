@@ -46,11 +46,6 @@ eval "$(zoxide init bash)"
 # Add npm global bin to PATH if it exists
 [ -d "$HOME/.npm-global/bin" ] && export PATH=$HOME/.npm-global/bin:$PATH
 
-# Activate python virtual environment if it exists
-if [ -d ".venv" ] && [ -f ".venv/bin/activate" ]; then
-    source .venv/bin/activate
-fi
-
 # Add SSH key if agent is running and key exists
 if [ -n "$SSH_AGENT_PID" ] && [ -f "$HOME/.ssh/id_ed25519" ]; then
     ssh-add ~/.ssh/id_ed25519 2>/dev/null || true
