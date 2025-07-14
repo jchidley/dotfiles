@@ -57,3 +57,5 @@ cd $env:TEMP
 
 # needs to be last, just in case you Ctrl-C to abort it
 Invoke-Expression (& { (zoxide init powershell | Out-String) })
+(& uv generate-shell-completion powershell) | Out-String | Invoke-Expression
+(& uvx --generate-shell-completion powershell) | Out-String | Invoke-Expression
