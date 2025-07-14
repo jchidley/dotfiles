@@ -85,60 +85,144 @@ For new PROJECT features (not regular tasks), use `/req <description>` to track 
 
 ## Python Requirements
 
-**Critical patterns for Python usage:**
+**MANDATORY: Always use uv/uvx for ALL Python operations with inline script metadata**
 
-1. **ALWAYS use uv/uvx with Python 3.12:**
-   ```bash
-   # CORRECT - Use uvx with Python 3.12
-   uvx python@3.12 script.py
-   
-   # CORRECT - Default to Python 3.12
-   uvx --python 3.12 python script.py
-   
-   # WRONG - Direct python call or unspecified version
-   python3 script.py
-   uvx python script.py  # May use wrong version
-   ```
-   **Why:** Ensures consistent Python 3.12 environment across all operations
+### 1. Core Rule - Every Python Script MUST Have This Header
 
-2. **Check Python location with which:**
-   ```bash
-   # Always verify Python path on Debian
-   which python3
-   # Typically: /usr/bin/python3
-   ```
-   **Why:** Debian uses `python3` command, not `python`
+```python
+#!/usr/bin/env python3
+# /// script
+# dependencies = [
+#   "requests",
+#   "pandas>=2.0",
+# ]
+# requires-python = ">=3.12"
+# ///
 
-3. **Running Python tools:**
-   ```bash
-   # CORRECT - Ephemeral tool execution
-   uvx ruff check
-   uvx mypy src/
-   
-   # CORRECT - Install persistent tools
-   uv tool install ruff
-   uv tool install pre-commit
-   ```
-   **Why:** uvx runs tools in isolated environments, preventing conflicts
+import requests
+import pandas as pd
+```
 
-4. **Project Python management:**
-   ```bash
-   # ALWAYS create virtual environment with Python 3.12
-   uv venv --python 3.12
-   
-   # Run within project context (uses .python-version or venv)
-   uv run python script.py
-   uv run pytest
-   
-   # Ensure Python 3.12 in pyproject.toml
-   # requires-python = ">=3.12"
-   ```
-   **Why:** `uv run` automatically manages virtual environments
+**This PEP 723 metadata is REQUIRED for every standalone Python script - no exceptions.**
 
-**Additional notes:**
-- Never use pip directly - use `uv pip` instead
-- For project dependencies: `uv add package` not `pip install`
-- uv automatically downloads Python 3.12 if not available
-- Always specify `requires-python = ">=3.12"` in pyproject.toml
-- Use `.python-version` file with content `3.12` for project consistency
+### 2. Execution Rules
+
+**For scripts with inline dependencies:**
+```bash
+uv run script.py            # ALWAYS use this
+uv run script.py --args     # With arguments
+```
+
+**For ephemeral tool execution:**
+```bash
+uvx ruff check              # One-time tool run
+uvx --python 3.12 mypy .    # Specify Python version
+```
+
+**FORBIDDEN - Never use these:**
+```bash
+python script.py            # ❌ WRONG
+python3 script.py          # ❌ WRONG  
+./script.py                # ❌ WRONG
+pip install anything       # ❌ WRONG
+source venv/bin/activate   # ❌ WRONG
+```
+
+### 3. Decision Tree
+
+1. **Creating/editing a Python script?** → Add PEP 723 header
+2. **Running a local script?** → Use `uv run`
+3. **Running a tool once?** → Use `uvx`
+4. **Installing a tool permanently?** → Use `uv tool install`
+5. **Need specific Python version?** → Use `uvx python@3.12`
+
+### 4. Tool Management
+
+```bash
+# Install development tools permanently
+uv tool install ruff mypy black pytest pre-commit
+
+# Run ephemeral tools
+uvx ruff check
+uvx mypy src/
+
+# Run with specific Python
+uvx --python 3.12 pytest
+```
+
+### 5. Project Management (for full projects, not single scripts)
+
+```bash
+# Initialize project (creates pyproject.toml)
+uv init
+
+# Add dependencies to project
+uv add pandas numpy
+
+# Run in project context
+uv run python main.py
+```
+
+**In pyproject.toml:**
+```toml
+requires-python = ">=3.12"
+```
+
+### 6. Conversion Checklist
+
+When updating existing Python scripts:
+- [ ] Add shebang: `#!/usr/bin/env python3`
+- [ ] Add PEP 723 metadata block after shebang
+- [ ] List ALL non-stdlib imports in dependencies
+- [ ] Set `requires-python = ">=3.12"`
+- [ ] Remove any pip install instructions
+- [ ] Update execution commands to use `uv run`
+
+### 7. Common Patterns
+
+**Data analysis script:**
+```python
+#!/usr/bin/env python3
+# /// script
+# dependencies = [
+#   "pandas",
+#   "matplotlib",
+#   "seaborn",
+# ]
+# requires-python = ">=3.12"
+# ///
+```
+
+**Web scraping script:**
+```python
+#!/usr/bin/env python3
+# /// script
+# dependencies = [
+#   "requests",
+#   "beautifulsoup4",
+#   "lxml",
+# ]
+# requires-python = ">=3.12"
+# ///
+```
+
+**CLI tool:**
+```python
+#!/usr/bin/env python3
+# /// script
+# dependencies = [
+#   "click",
+#   "rich",
+# ]
+# requires-python = ">=3.12"
+# ///
+```
+
+### Why This Matters
+- **Reproducibility**: Scripts work identically everywhere
+- **No environment pollution**: No global pip installs
+- **Version consistency**: Always Python 3.12+
+- **Zero setup**: `uv run` handles everything automatically
+
+**Remember: If it imports non-stdlib modules, it MUST have inline metadata.**
 
