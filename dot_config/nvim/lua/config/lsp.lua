@@ -54,5 +54,6 @@ end
 require('nvim-treesitter.configs').setup({
   highlight = { enable = true },
   indent = { enable = true },
-  ensure_installed = { 'lua', 'rust', 'bash', 'json', 'yaml', 'toml', 'markdown', 'markdown_inline' },
+  -- Include 'vimdoc' to avoid errors when opening :help
+  ensure_installed = { 'lua', 'rust', 'bash', 'json', 'yaml', 'toml', 'markdown', 'markdown_inline', 'vimdoc' },
 })
