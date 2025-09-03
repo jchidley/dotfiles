@@ -15,6 +15,9 @@ alias rg='rg --path-separator=//'
 
 . "$HOME/.cargo/env"
 
+# Prefer vi-style keybindings in Bash
+set -o vi
+
 export SUDO_EDITOR=$(which hx)
 export VISUAL=$(which hx)
 export EDITOR="$VISUAL"
@@ -55,11 +58,19 @@ fi
 export CONNECTIQ_SDK_HOME="$HOME/.Garmin/ConnectIQ/Sdks/connectiq-sdk-lin-8.1.1-2025-03-27-66dae750f"
 export PATH="$CONNECTIQ_SDK_HOME/bin:$PATH"
 
-# fnm
-FNM_PATH="/home/jack/.local/share/fnm"
+# fnm (resolve path relative to current user)
+if [ -n "$XDG_DATA_HOME" ] && [ -d "$XDG_DATA_HOME/fnm" ]; then
+  FNM_PATH="$XDG_DATA_HOME/fnm"
+elif [ -d "$HOME/.local/share/fnm" ]; then
+  FNM_PATH="$HOME/.local/share/fnm"
+elif [ -d "$HOME/.fnm" ]; then
+  FNM_PATH="$HOME/.fnm"
+else
+  FNM_PATH="$HOME/.local/share/fnm"
+fi
 if [ -d "$FNM_PATH" ]; then
   export PATH="$FNM_PATH:$PATH"
-  eval "`fnm env`"
+  eval "$(fnm env)"
 fi
 
 # uv shell completions
