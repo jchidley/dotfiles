@@ -29,9 +29,29 @@ export _ZO_ECHO=1
 
 export PATH=$HOME/bin:$HOME/.local/bin:/usr/local/go/bin:$PATH
 
-# Set up SSH agent if not already running
-if [ -z "$SSH_AGENT_PID" ]; then
-    eval "$(ssh-agent -s)"
+# Reuse a single ssh-agent across shells (DIY)
+AGENT_ENV="$HOME/.ssh/agent.env"
+# Import saved agent env if present
+if [ -f "$AGENT_ENV" ]; then
+  . "$AGENT_ENV" >/dev/null 2>&1
+fi
+# If no usable agent, start a new one and persist its env
+if ! ssh-add -l >/dev/null 2>&1; then
+  rc=$?
+  if [ $rc -eq 2 ] || [ -z "${SSH_AUTH_SOCK:-}" ] || [ ! -S "$SSH_AUTH_SOCK" ] || ! kill -0 "${SSH_AGENT_PID:-0}" 2>/dev/null; then
+    eval "$(ssh-agent -s)" >/dev/null
+    mkdir -p "$HOME/.ssh"
+    {
+      echo "export SSH_AUTH_SOCK=$SSH_AUTH_SOCK"
+      echo "export SSH_AGENT_PID=$SSH_AGENT_PID"
+    } >"$AGENT_ENV"
+    chmod 600 "$AGENT_ENV"
+  fi
+fi
+# If agent has no identities, optionally add default key (no timeout by default)
+if ! ssh-add -l >/dev/null 2>&1; then
+  # exit code 1 usually means: agent present, no identities
+  [ -t 0 ] && [ -f "$HOME/.ssh/id_ed25519" ] && ssh-add "$HOME/.ssh/id_ed25519"
 fi
 
 # Pico SDK paths - only export if directories exist
@@ -49,10 +69,6 @@ eval "$(zoxide init bash)"
 # Add npm global bin to PATH if it exists
 [ -d "$HOME/.npm-global/bin" ] && export PATH=$HOME/.npm-global/bin:$PATH
 
-# Add SSH key if agent is running and key exists
-if [ -n "$SSH_AGENT_PID" ] && [ -f "$HOME/.ssh/id_ed25519" ]; then
-    ssh-add ~/.ssh/id_ed25519 2>/dev/null || true
-fi
 
 # Connect IQ SDK
 export CONNECTIQ_SDK_HOME="$HOME/.Garmin/ConnectIQ/Sdks/connectiq-sdk-lin-8.1.1-2025-03-27-66dae750f"
