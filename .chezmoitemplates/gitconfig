@@ -2,7 +2,7 @@
 	name = Jack Chidley
 	email = 7399749+jchidley@users.noreply.github.com
 [core]
-	editor = hx
+	editor = nvim
 	autocrlf = input
 {{- if eq .chezmoi.os "windows" }} 
 	sshCommand = C:/Windows/System32/OpenSSH/ssh.exe

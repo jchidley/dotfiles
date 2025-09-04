@@ -22,7 +22,7 @@ chezmoi update
 
 - **Cross-platform support**: Windows (PowerShell) and Debian Linux (Bash)
 - **Conditional configuration**: OS-specific settings using chezmoi templates
-- **Development tools integration**: Helix, Rust, Python (uv/uvx), Git
+- **Development tools integration**: Neovim, Rust, Python (uv/uvx), Git
 - **Shell enhancements**: zoxide navigation, ripgrep search, shared history
 - **Package management**: Automated tool installation configs
 
@@ -33,7 +33,7 @@ chezmoi update
 
 ## Key Tools Configured
 
-- **Editor**: [Helix](https://helix-editor.com/) as primary editor
+- **Editor**: [Neovim](https://neovim.io/) as primary editor
 - **Shell**: Enhanced Bash/PowerShell with custom prompts and aliases
 - **Python**: [uv](https://github.com/astral-sh/uv) for package management
 - **Rust**: Cargo environment and development tools
@@ -112,7 +112,7 @@ git push
 
 ### Linux (Debian)
 - Enhanced bash configuration
-- Helix editor integration  
+- Neovim editor integration  
 - Cargo/Rust development environment
 - Python virtual environment auto-activation
 - SSH key management
@@ -134,7 +134,7 @@ git push
 - curl
 
 ### Development Tools (auto-configured)
-- [Helix](https://helix-editor.com/)
+- [Neovim](https://neovim.io/)
 - [Rust/Cargo](https://rustup.rs/)
 - [uv](https://github.com/astral-sh/uv) (Python)
 - [zoxide](https://github.com/ajeetdsouza/zoxide)

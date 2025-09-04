@@ -18,8 +18,8 @@ alias rg='rg --path-separator=//'
 # Prefer vi-style keybindings in Bash
 set -o vi
 
-export SUDO_EDITOR=$(which hx)
-export VISUAL=$(which hx)
+export SUDO_EDITOR=$(which nvim || which vim || which vi)
+export VISUAL=$(which nvim || which vim || which vi)
 export EDITOR="$VISUAL"
 
 echo  cat ~/bash_shell_hints
