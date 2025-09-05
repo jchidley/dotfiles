@@ -16,6 +16,7 @@ require('lazy').setup({
     },
   },
   { 'folke/which-key.nvim', event = 'VeryLazy', opts = { delay = 300 } },
+  { 'ggandor/leap.nvim', config = function() require('leap').add_default_mappings() end },
 }, { change_detection = { notify = false } })
 
 require('config.lsp')
