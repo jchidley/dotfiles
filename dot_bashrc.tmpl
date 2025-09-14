@@ -67,6 +67,9 @@ wt() { cmd.exe /c "wt.exe" "$@"; }
 # https://github.com/ajeetdsouza/zoxide?tab=readme-ov-file#configuration
 eval "$(zoxide init bash)"
 
+# mcfly
+eval "$(mcfly init bash)"
+
 # Add npm global bin to PATH if it exists
 [ -d "$HOME/.npm-global/bin" ] && export PATH=$HOME/.npm-global/bin:$PATH
 
