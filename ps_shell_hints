@@ -9,8 +9,8 @@ bw unlock
 $env:BW_SESSION=(read-host "enter BW_SESSION environment variable, including quotes")
 bw get password "surface laptop ssh - Silver"
 #---
-wt -w 0 ft -t 0 sp -V -p "Debian" `; wt -w 0 ft -t 0 mf left sp -H
-wt -w 0 -p "Debian" `; wt -w 0 ft -t 1 sp -V -p "Debian"
+wt -w last sp -V -p "Debian" `; mf left `; sp -H
+wt -w last sp -V `; new-tab -p "Debian" `; split-pane -V -p "Debian"
 rm $env:USERPROFILE/AppData/Local/helix/helix.log # gets stupidly large
 Python: use uv or uvx # powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
 llm or aichat for LLM
