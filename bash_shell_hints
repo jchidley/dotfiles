@@ -12,7 +12,8 @@ bw unlock # then use this to unlock the session...
 bw get password \"surface laptop ssh - Silver\"
 #---
 wt() { cmd.exe /c "wt.exe" "$@"; }
-wt.exe -w 0 ft -t 1 sp -V -p "Debian" `; wt -w 0 ft -t 1 mf left sp -H
+wt.exe -w last sp -V -p "Debian"
+wt.exe -w last new-tab -p "Debian" \; split-pane -V -p "Debian"
 Python: use uv or uvx # curl -LsSf https://astral.sh/uv/install.sh | sh
 llm or aichat for LLM
 cd /tmp

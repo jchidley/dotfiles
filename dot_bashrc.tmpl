@@ -23,8 +23,8 @@ export VISUAL=$(which nvim || which vim || which vi)
 export EDITOR="$VISUAL"
 
 echo  cat ~/bash_shell_hints
-echo wt.exe -w 0 ft -t 1 sp -V -p "Debian"
-echo 'wt.exe -w 0 -p Debian; wt.exe -w 0 ft -t 2 sp -H -p Debian'
+echo 'wt.exe -w last sp -V -p "Debian"'
+echo 'wt.exe -w last new-tab -p "Debian" \; split-pane -V -p "Debian"'
 # echo zoxide path cd'd to 
 export _ZO_ECHO=1
 
@@ -61,8 +61,6 @@ fi
 [ -d "$HOME/pico/pico-extras" ] && export PICO_EXTRAS_PATH=$HOME/pico/pico-extras
 [ -d "$HOME/pico/pico-playground" ] && export PICO_PLAYGROUND_PATH=$HOME/pico/pico-playground
 
-wt() { cmd.exe /c "wt.exe" "$@"; }
-# wt -w 0 ft -t 0 sp -H -p "Debian" \; sp -Vi
 
 # https://github.com/ajeetdsouza/zoxide?tab=readme-ov-file#configuration
 eval "$(zoxide init bash)"
