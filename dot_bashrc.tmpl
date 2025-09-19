@@ -29,6 +29,8 @@ echo 'wt.exe -w last new-tab -p "Debian" \; split-pane -V -p "Debian"'
 export _ZO_ECHO=1
 
 export PATH=$HOME/bin:$HOME/.local/bin:/usr/local/go/bin:$PATH
+# see https://github.com/neovim/neovim/blob/master/INSTALL.md#install-from-package
+export PATH="$PATH:/opt/nvim-linux-x86_64/bin"
 
 # Reuse a single ssh-agent across shells (DIY)
 AGENT_ENV="$HOME/.ssh/agent.env"
