@@ -1,20 +1,3 @@
-local o = vim.opt
-o.termguicolors = true
-o.number = true
-o.relativenumber = false
-o.mouse = 'a'
-o.clipboard = 'unnamedplus'
-o.updatetime = 250
-o.timeout = true
-o.timeoutlen = 600
-o.splitright = true
-o.splitbelow = true
-o.ignorecase = true
-o.smartcase = true
-o.incsearch = true
-o.undofile = true
-o.signcolumn = 'yes'
-o.expandtab = true
-o.shiftwidth = 2
-o.tabstop = 2
-o.scrolloff = 4
+-- Options are automatically loaded before lazy.nvim startup
+-- Default options that are always set: https://github.com/LazyVim/LazyVim/blob/main/lua/lazyvim/config/options.lua
+-- Add any additional options here
