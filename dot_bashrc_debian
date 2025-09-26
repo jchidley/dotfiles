@@ -62,12 +62,36 @@ if [ "$color_prompt" = yes ]; then
 else
     PS1='${debian_chroot:+($debian_chroot)}\u@\h:\w\n\$ '
 fi
+# Save color_prompt before unsetting (needed for set-title function)
+export SAVED_COLOR_PROMPT="$color_prompt"
 unset color_prompt force_color_prompt
 
-# If this is an xterm set the title to user@host:dir
+# Custom title functionality
+set-title() {
+    if [ -n "$1" ]; then
+        export CUSTOM_TITLE="$1"
+    fi
+
+    # Use custom title if set, otherwise default to user@host:dir
+    local title_part
+    if [ -n "$CUSTOM_TITLE" ]; then
+        title_part="\[\e]0;${CUSTOM_TITLE}\a\]"
+    else
+        title_part="\[\e]0;${debian_chroot:+($debian_chroot)}\u@\h: \w\a\]"
+    fi
+
+    # Rebuild PS1 with title
+    if [ "$SAVED_COLOR_PROMPT" = yes ]; then
+        PS1="${title_part}"'${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\n\$ '
+    else
+        PS1="${title_part}"'${debian_chroot:+($debian_chroot)}\u@\h:\w\n\$ '
+    fi
+}
+
+# Initialize with default behavior
 case "$TERM" in
 xterm*|rxvt*)
-    PS1="\[\e]0;${debian_chroot:+($debian_chroot)}\u@\h: \w\a\]$PS1"
+    set-title  # This will set up the default auto-updating title
     ;;
 *)
     ;;

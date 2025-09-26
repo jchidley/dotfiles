@@ -2,6 +2,7 @@
 history -a # add current history to .bash_history file
 history
 !number # execute history command number
+# McFly used for Ctrl-R history search
 ~/.local/share/chezmoi
 #---
 bw login jack@chidley.org --method 0
@@ -11,9 +12,8 @@ bw unlock # then use this to unlock the session...
 # Or use: export BW_SESSION=$(bw unlock --raw)
 bw get password \"surface laptop ssh - Silver\"
 #---
-wt() { cmd.exe /c "wt.exe" "$@"; }
-wt.exe -w last sp -V -p "Debian"
 wt.exe -w last new-tab -p "Debian" \; split-pane -V -p "Debian"
+set-title "Amazing Title"
 Python: use uv or uvx # curl -LsSf https://astral.sh/uv/install.sh | sh
 llm or aichat for LLM
 cd /tmp
