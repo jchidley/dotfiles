@@ -18,3 +18,4 @@ Python: use uv or uvx # curl -LsSf https://astral.sh/uv/install.sh | sh
 llm or aichat for LLM
 cd /tmp
 ~/ps_shell_hints
+wslpath "C:\Users\jackc\Downloads" # /mnt/c/Users/jackc/Downloads
