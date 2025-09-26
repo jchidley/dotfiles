@@ -1,0 +1,42 @@
+#!/bin/bash
+# Automatically check for McFly history on first run
+
+set -e
+
+# Only run on Linux
+{{- if ne .chezmoi.os "linux" }}
+exit 0
+{{- end }}
+
+# Check if mcfly is installed
+if ! command -v mcfly &> /dev/null; then
+    exit 0  # Silently skip if McFly not installed
+fi
+
+# Get current machine identifier
+HOSTNAME=$(hostname)
+MACHINE_ID=$(cat /etc/machine-id 2>/dev/null | head -c 8 || echo "unknown")
+CURRENT_MACHINE="${HOSTNAME}_${MACHINE_ID}"
+
+# Check if any exports exist
+ENCRYPTED_DIR="{{ .chezmoi.sourceDir }}/mcfly_backups"
+if [ -d "$ENCRYPTED_DIR" ]; then
+    EXPORTS_EXIST=false
+    for file in "$ENCRYPTED_DIR"/encrypted_mcfly_*.db.gpg; do
+        if [ -f "$file" ]; then
+            EXPORTS_EXIST=true
+            break
+        fi
+    done
+
+    if [ "$EXPORTS_EXIST" = true ]; then
+        echo ""
+        echo "=== McFly History Available ==="
+        echo "Found encrypted McFly exports in chezmoi"
+        echo ""
+        echo "To manage your McFly history:"
+        echo "  Import:  cd ~/.local/share/chezmoi && ./scripts/mcfly-import.sh"
+        echo "  Export:  cd ~/.local/share/chezmoi && ./scripts/mcfly-export.sh"
+        echo ""
+    fi
+fi

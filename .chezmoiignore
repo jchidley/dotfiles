@@ -41,3 +41,6 @@ sessions/
 # Git repository files
 .git/
 .gitignore
+
+# McFly encrypted backups (handled by scripts)
+mcfly_backups/
