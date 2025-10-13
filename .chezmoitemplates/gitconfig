@@ -4,6 +4,16 @@
 [core]
 	editor = nvim
 	autocrlf = input
+	pager = delta
+[interactive]
+	diffFilter = delta
+[delta]
+	navigate = true
+	side-by-side = true
+	line-numbers = true
+	syntax-theme = gruvbox-dark
+[merge]
+	conflictStyle = zdiff3
 {{- if eq .chezmoi.os "windows" }} 
 	sshCommand = C:/Windows/System32/OpenSSH/ssh.exe
 [credential "helperselector"]

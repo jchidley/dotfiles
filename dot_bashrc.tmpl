@@ -22,6 +22,9 @@ export SUDO_EDITOR=$(which nvim || which vim || which vi)
 export VISUAL=$(which nvim || which vim || which vi)
 export EDITOR="$VISUAL"
 
+# bat theme
+export BAT_THEME="gruvbox-dark"
+
 echo  cat ~/bash_shell_hints
 echo 'wt.exe -w last new-tab -p "Debian" \; split-pane -V -p "Debian"'
 echo 'set-title "Amazing Title"'
@@ -71,6 +74,12 @@ eval "$(zoxide init bash)"
 # mcfly
 export MCFLY_RESULTS=60
 eval "$(mcfly init bash)"
+
+# direnv
+eval "$(direnv hook bash)"
+
+# Aliases
+alias lg='lazygit'
 
 # Add npm global bin to PATH if it exists
 [ -d "$HOME/.npm-global/bin" ] && export PATH=$HOME/.npm-global/bin:$PATH

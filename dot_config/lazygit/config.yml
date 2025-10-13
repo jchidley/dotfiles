@@ -1,0 +1,26 @@
+git:
+  paging:
+    colorArg: always
+    pager: delta --dark --paging=never --syntax-theme=gruvbox-dark
+
+gui:
+  theme:
+    activeBorderColor:
+      - '#fe8019'  # gruvbox orange
+      - bold
+    inactiveBorderColor:
+      - '#3c3836'  # gruvbox dark gray
+    optionsTextColor:
+      - '#83a598'  # gruvbox blue
+    selectedLineBgColor:
+      - '#3c3836'  # gruvbox dark gray
+    cherryPickedCommitBgColor:
+      - '#b16286'  # gruvbox purple
+    cherryPickedCommitFgColor:
+      - '#1d2021'  # gruvbox bg0_h (hard)
+    unstagedChangesColor:
+      - '#fb4934'  # gruvbox red
+    defaultFgColor:
+      - '#ebdbb2'  # gruvbox fg
+    searchingActiveBorderColor:
+      - '#fabd2f'  # gruvbox yellow
