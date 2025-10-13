@@ -86,6 +86,64 @@ alias xselp='xsel -b -o'
 # Add npm global bin to PATH if it exists
 [ -d "$HOME/.npm-global/bin" ] && export PATH=$HOME/.npm-global/bin:$PATH
 
+# Claude Code (Podman) helpers
+export CLAUDE_PODMAN_IMAGE="${CLAUDE_PODMAN_IMAGE:-claude-code:latest}"
+export CLAUDE_PODMAN_VOLUME="${CLAUDE_PODMAN_VOLUME:-claude_cli_data}"
+
+_claude_podman_base() {
+  local claude_args
+  claude_args=$(printf '%q ' "$@")
+  podman run --rm -it \
+    --userns=keep-id \
+    --user "$(id -u)":"$(id -g)" \
+    -e HOME=/home/node \
+    -v "${CLAUDE_PODMAN_VOLUME}:/home/node" \
+    "$CLAUDE_PODMAN_IMAGE" \
+    bash -lc "claude ${claude_args}"
+}
+
+claude_here() {
+  local claude_args
+  claude_args=$(printf '%q ' "$@")
+  podman run --rm -it \
+    --userns=keep-id \
+    --user "$(id -u)":"$(id -g)" \
+    -e HOME=/home/node \
+    -v "${CLAUDE_PODMAN_VOLUME}:/home/node" \
+    -v "$(pwd)":/home/node/project:rw \
+    -w /home/node/project \
+    "$CLAUDE_PODMAN_IMAGE" \
+    bash -lc "claude ${claude_args}"
+}
+alias claude-here=claude_here
+
+claude_dir() {
+  local target_dir="."
+  if [[ $# -gt 0 && "$1" != -* ]]; then
+    target_dir="$1"
+    shift
+  fi
+  local claude_args
+  claude_args=$(printf '%q ' "$@")
+  local resolved
+  resolved=$(realpath "$target_dir")
+  podman run --rm -it \
+    --userns=keep-id \
+    --user "$(id -u)":"$(id -g)" \
+    -e HOME=/home/node \
+    -v "${CLAUDE_PODMAN_VOLUME}:/home/node" \
+    -v "${resolved}:/home/node/project:rw" \
+    -w /home/node/project \
+    "$CLAUDE_PODMAN_IMAGE" \
+    bash -lc "claude ${claude_args}"
+}
+alias claude-dir=claude_dir
+
+claude_ask() {
+  _claude_podman_base "$@"
+}
+alias claude-ask=claude_ask
+
 
 # Connect IQ SDK
 export CONNECTIQ_SDK_HOME="$HOME/.Garmin/ConnectIQ/Sdks/connectiq-sdk-lin-8.1.1-2025-03-27-66dae750f"
