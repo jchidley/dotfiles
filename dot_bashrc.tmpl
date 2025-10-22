@@ -80,6 +80,8 @@ eval "$(direnv hook bash)"
 
 # Aliases
 alias lg='lazygit'
+alias xselc='xsel -b -i'
+alias xselp='xsel -b -o'
 
 # Add npm global bin to PATH if it exists
 [ -d "$HOME/.npm-global/bin" ] && export PATH=$HOME/.npm-global/bin:$PATH
@@ -107,4 +109,7 @@ fi
 # uv shell completions
 eval "$(uv generate-shell-completion bash)"
 eval "$(uvx --generate-shell-completion bash)"
+
+alias glm="ANTHROPIC_AUTH_TOKEN=super-secret-api-key ANTHROPIC_BASE_URL=\"https://api.z.ai/api/anthropic\" claude"
+
 # End chezmoi template - "dot_bashrc.tmpl"
