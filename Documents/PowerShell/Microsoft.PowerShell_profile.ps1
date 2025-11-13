@@ -59,3 +59,4 @@ cd $env:TEMP
 Invoke-Expression (& { (zoxide init powershell | Out-String) })
 (& uv generate-shell-completion powershell) | Out-String | Invoke-Expression
 (& uvx --generate-shell-completion powershell) | Out-String | Invoke-Expression
+Invoke-Expression (&starship init powershell)
