@@ -49,6 +49,7 @@ echo "Run from `$profile: $PROFILE"
 
 echo 'get-content ~/ps_shell_hints'
 echo 'wt -w last sp -V `; new-tab -p "Debian" `; split-pane -V -p "Debian"'
+echo 'wt -w last new-tab -p "Debian"'
 
 # ripgrep profile
 $env:RIPGREP_CONFIG_PATH="$env:USERPROFILE/.ripgreprc"

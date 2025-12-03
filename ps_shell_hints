@@ -11,6 +11,7 @@ bw get password "surface laptop ssh - Silver"
 #---
 wt -w last sp -V -p "Debian" `; mf left `; sp -H
 wt -w last sp -V `; new-tab -p "Debian" `; split-pane -V -p "Debian"
+wt -w last new-tab -p "Debian"
 rm $env:USERPROFILE/AppData/Local/helix/helix.log # gets stupidly large
 Python: use uv or uvx # powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
 llm or aichat for LLM
