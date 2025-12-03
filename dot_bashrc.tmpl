@@ -27,6 +27,7 @@ export BAT_THEME="gruvbox-dark"
 
 echo  cat ~/bash_shell_hints
 echo 'wt.exe -w last new-tab -p "Debian" \; split-pane -V -p "Debian"'
+echo 'wt.exe -w last new-tab -p "Debian"'
 echo 'set-title "Amazing Title"'
 echo 'wslpath "C:\Users\jackc\Downloads" # /mnt/c/Users/jackc/Downloads'
 # echo zoxide path cd'd to 
@@ -169,5 +170,8 @@ eval "$(uv generate-shell-completion bash)"
 eval "$(uvx --generate-shell-completion bash)"
 
 alias glm="ANTHROPIC_AUTH_TOKEN=super-secret-api-key ANTHROPIC_BASE_URL=\"https://api.z.ai/api/anthropic\" claude"
+
+# starship prompt (must be last - overrides PS1)
+command -v starship &>/dev/null && eval "$(starship init bash)"
 
 # End chezmoi template - "dot_bashrc.tmpl"
