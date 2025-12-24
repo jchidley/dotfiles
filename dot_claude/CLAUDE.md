@@ -226,3 +226,57 @@ When updating existing Python scripts:
 
 **Remember: If it imports non-stdlib modules, it MUST have inline metadata.**
 
+## Version Control (jj + Git)
+
+**Use jj (Jujutsu) commands instead of git when available.** GitHub is the remote.
+
+### Command Mapping
+
+| Instead of | Use |
+|------------|-----|
+| `git status` | `jj status` |
+| `git diff` | `jj diff` |
+| `git log` | `jj log` |
+| `git add && git commit -m "msg"` | `jj describe -m "msg"` |
+| `git checkout -b feature` | `jj new -m "feature"` |
+| `git pull` | `jj git fetch && jj rebase -d main` |
+| `git push` | `jj git push --bookmark <name>` |
+
+### Workflow
+
+1. `jj new` — start new change (auto-tracks all edits)
+2. Edit files (no staging needed)
+3. `jj describe -m "message"` — describe the change
+4. `jj bookmark create feature-x -r @` — name it for GitHub
+5. `jj git push --bookmark feature-x` — push to GitHub
+
+### Mixing with Raw Git
+
+If you must use raw git commands:
+- Run `jj git export` **before** git commands
+- Run `jj git import` **after** git commands
+
+### Commit Messages
+
+Same format as before — use heredoc for multi-line:
+```bash
+jj describe -m "$(cat <<'EOF'
+Summary line
+
+Details here.
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+EOF
+)"
+```
+
+### Key Concepts
+
+- `@` = current working copy (always a commit in jj)
+- `@-` = parent of working copy (≈ HEAD in git)
+- Bookmarks ≈ branches (required for pushing to GitHub)
+- No staging area — all changes auto-included
+- Use `jj split` to break up changes if needed
+
