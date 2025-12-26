@@ -79,6 +79,37 @@ eval "$(mcfly init bash)"
 # direnv
 eval "$(direnv hook bash)"
 
+# Bitwarden CLI helper (unlocks vault and reloads direnv to pick up secrets)
+bw_unlock() {
+  export BW_SESSION=$(bw unlock --raw)
+  if [[ -n "$BW_SESSION" ]]; then
+    echo "Bitwarden unlocked. Reloading direnv..."
+    direnv reload
+  else
+    echo "Failed to unlock Bitwarden"
+  fi
+}
+
+bw_lock() {
+  bw lock
+  unset BW_SESSION
+  direnv reload
+}
+
+# Find all API-key-like fields in Bitwarden
+bw_find_api_keys() {
+  if [[ -z "$BW_SESSION" ]]; then
+    echo "BW_SESSION not set. Run: bw_unlock" >&2
+    return 1
+  fi
+
+  bw list items --session "$BW_SESSION" 2>/dev/null | jq -r '
+    .[] | select(.fields != null) |
+    select(.fields | any(.name | test("api[_\\- ]?key"; "i"))) |
+    "\(.name): \([.fields[] | select(.name | test("api[_\\- ]?key"; "i")) | .name] | join(", "))"
+  '
+}
+
 # Aliases
 alias lg='lazygit'
 alias xselc='xsel -b -i'
