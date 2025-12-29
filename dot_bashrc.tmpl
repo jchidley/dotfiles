@@ -132,6 +132,9 @@ alias xselp='xsel -b -o'
 # Add npm global bin to PATH if it exists
 [ -d "$HOME/.npm-global/bin" ] && export PATH=$HOME/.npm-global/bin:$PATH
 
+# Claude Code
+export ENABLE_LSP_TOOL=1  # temporary: enable experimental LSP tool
+
 # Claude Code (Podman) helpers
 export CLAUDE_PODMAN_IMAGE="${CLAUDE_PODMAN_IMAGE:-claude-code:latest}"
 export CLAUDE_PODMAN_VOLUME="${CLAUDE_PODMAN_VOLUME:-claude_cli_data}"
