@@ -1,7 +1,0 @@
-command_timeout = 3000  # increase from default 500ms to give more time for context detection
-scan_timeout = 500      # increase from default 30ms to avoid timeout warnings in large directories
-
-# [battery]
-# disabled = true  # takes ~340ms on Windows - uncomment to re-enable if needed
-[battery]
-disabled = true
