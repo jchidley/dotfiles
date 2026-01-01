@@ -235,7 +235,7 @@ alias glm="ANTHROPIC_AUTH_TOKEN=super-secret-api-key ANTHROPIC_BASE_URL=\"https:
 
 # Load MOONSHOT_API_KEY from Bitwarden (if unlocked)
 if [[ -n "$BW_SESSION" ]]; then
-  export MOONSHOT_API_KEY=$(bw_get_api_key "moonshot.ai kimi k2" "api-key")
+  export MOONSHOT_API_KEY=$(bw_get_api_key "moonshot.ai" "pi-agent api-key")
 fi
 
 # starship prompt (must be last - overrides PS1)
