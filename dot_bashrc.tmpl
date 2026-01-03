@@ -80,8 +80,7 @@ bw_unlock() {
   export BW_SESSION=$(bw unlock --raw)
   if [[ -n "$BW_SESSION" ]]; then
     echo "Bitwarden unlocked. Reloading direnv..."
-    # Load API keys into current shell
-    load_api_keys
+    # direnv reload triggers ~/.envrc which calls load_api_keys
     direnv reload
   else
     echo "Failed to unlock Bitwarden"
