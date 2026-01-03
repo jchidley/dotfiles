@@ -79,9 +79,13 @@ eval "$(direnv hook bash)"
 bw_unlock() {
   export BW_SESSION=$(bw unlock --raw)
   if [[ -n "$BW_SESSION" ]]; then
-    echo "Bitwarden unlocked. Reloading direnv..."
-    # direnv reload triggers ~/.envrc which calls load_api_keys
+    echo "Bitwarden unlocked. Reloading direnv for current directory..."
+    # direnv reload only affects the current directory's .envrc
+    # If you're in ~, it loads ~/.envrc; project dirs need their own reload
     direnv reload
+    if [[ "$PWD" == "$HOME" ]]; then
+      echo "Tip: cd to project directories to reload their .envrc files"
+    fi
   else
     echo "Failed to unlock Bitwarden"
   fi
