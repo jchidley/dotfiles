@@ -34,6 +34,14 @@ load_api_keys() {
     return 0
   fi
 
+  # Verify session is still valid
+  local status
+  status=$(bw status --session "$BW_SESSION" 2>/dev/null | jq -r '.status' 2>/dev/null)
+  if [[ "$status" != "unlocked" ]]; then
+    log_error "Bitwarden session expired. Run: bw_unlock"
+    return 0
+  fi
+
   # Fetch all items once (this is the slow operation ~5s)
   local all_items
   all_items=$(bw list items --session "$BW_SESSION" 2>/dev/null)
