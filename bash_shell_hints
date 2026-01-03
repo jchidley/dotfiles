@@ -5,11 +5,7 @@ history
 # McFly used for Ctrl-R history search
 ~/.local/share/chezmoi
 #---
-bw login jack@chidley.org --method 0
-bw unlock # then use this to unlock the session...
-# After unlock, copy the session token and run:
-# export BW_SESSION="<paste-session-token-here>"
-# Or use: export BW_SESSION=$(bw unlock --raw)
+bw_unlock              # Unlock Bitwarden and load API keys into environment
 bw get password \"surface laptop ssh - Silver\"
 #---
 wt.exe -w last new-tab -p "Debian" \; split-pane -V -p "Debian"
