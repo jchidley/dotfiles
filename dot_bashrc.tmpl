@@ -33,29 +33,28 @@ export PATH=$HOME/bin:$HOME/.local/bin:$HOME/.amp/bin:/usr/local/go/bin:$PATH
 # see https://github.com/neovim/neovim/blob/master/INSTALL.md#install-from-package
 export PATH="$PATH:/opt/nvim-linux-x86_64/bin"
 
-# Reuse a single ssh-agent across shells (DIY)
-AGENT_ENV="$HOME/.ssh/agent.env"
-# Import saved agent env if present
-if [ -f "$AGENT_ENV" ]; then
-  . "$AGENT_ENV" >/dev/null 2>&1
-fi
-# If no usable agent, start a new one and persist its env
-if ! ssh-add -l >/dev/null 2>&1; then
-  rc=$?
-  if [ $rc -eq 2 ] || [ -z "${SSH_AUTH_SOCK:-}" ] || [ ! -S "$SSH_AUTH_SOCK" ] || ! kill -0 "${SSH_AGENT_PID:-0}" 2>/dev/null; then
-    eval "$(ssh-agent -s)" >/dev/null
-    mkdir -p "$HOME/.ssh"
-    {
-      echo "export SSH_AUTH_SOCK=$SSH_AUTH_SOCK"
-      echo "export SSH_AGENT_PID=$SSH_AGENT_PID"
-    } >"$AGENT_ENV"
-    chmod 600 "$AGENT_ENV"
+# API Keys Manager (ak) - GPG-based secret management
+export PATH="$HOME/tools/api-keys/bin:$PATH"
+[[ -f "$HOME/tools/api-keys/bin/ak-functions.sh" ]] && source "$HOME/tools/api-keys/bin/ak-functions.sh"
+
+# GPG agent (for ak/GPG encryption, 20h cache)
+export GPG_TTY=$(tty)
+gpgconf --launch gpg-agent 2>/dev/null
+
+# SSH agent (separate from gpg-agent - gpg-agent has issues with OpenSSH key format)
+# Reuse a single ssh-agent across shells
+if [ -z "$SSH_AUTH_SOCK" ] || [ ! -S "$SSH_AUTH_SOCK" ]; then
+  SSH_AGENT_SOCK="/run/user/$UID/ssh-agent.sock"
+  if [ -S "$SSH_AGENT_SOCK" ]; then
+    export SSH_AUTH_SOCK="$SSH_AGENT_SOCK"
+  else
+    eval "$(ssh-agent -a "$SSH_AGENT_SOCK" 2>/dev/null)" >/dev/null
   fi
 fi
-# If agent has no identities, optionally add default key (no timeout by default)
+
+# Add SSH key if agent has no identities
 if ! ssh-add -l >/dev/null 2>&1; then
-  # exit code 1 usually means: agent present, no identities
-  [ -t 0 ] && [ -f "$HOME/.ssh/id_ed25519" ] && ssh-add "$HOME/.ssh/id_ed25519"
+  [ -t 0 ] && [ -f "$HOME/.ssh/id_ed25519" ] && ssh-add -t 72000 "$HOME/.ssh/id_ed25519"
 fi
 
 # Pico SDK paths - only export if directories exist
@@ -75,56 +74,17 @@ eval "$(mcfly init bash)"
 # direnv
 eval "$(direnv hook bash)"
 
-# Bitwarden CLI helper (unlocks vault and reloads direnv to pick up secrets)
-bw_unlock() {
-  local skip_reload=false
-  if [[ "$1" == "--no-reload" ]] || [[ "$1" == "-n" ]]; then
-    skip_reload=true
-  fi
-
-  # Check if already unlocked with a valid session
-  local status
-  status=$(bw status 2>/dev/null | jq -r '.status' 2>/dev/null)
-  
-  if [[ "$status" == "unlocked" ]] && [[ -n "$BW_SESSION" ]]; then
-    if [[ "$skip_reload" == true ]]; then
-      echo "Bitwarden is already unlocked."
-      return 0
-    fi
-    echo "Bitwarden already unlocked. Reloading direnv..."
-    direnv reload
-    return 0
-  fi
-  
-  # Try to unlock
-  local session
-  session=$(bw unlock --raw)
-  
-  if [[ -n "$session" ]]; then
-    export BW_SESSION="$session"
-    echo "Bitwarden unlocked. Reloading direnv for current directory..."
-    # direnv reload only affects the current directory's .envrc
-    # If you're in ~, it loads ~/.envrc; project dirs need their own reload
-    direnv reload
-    if [[ "$PWD" == "$HOME" ]]; then
-      echo "Tip: cd to project directories to reload their .envrc files"
-    fi
-  else
-    echo "Failed to unlock Bitwarden"
-  fi
-}
-
-bw_lock() {
-  bw lock
-  unset BW_SESSION
-  direnv reload
-}
-
-# Source Bitwarden helper functions (shared with direnv)
-# These are in ~/.config/direnv/lib/bitwarden.sh - single source of truth
-if [ -f "$HOME/.config/direnv/lib/bitwarden.sh" ]; then
-  source "$HOME/.config/direnv/lib/bitwarden.sh"
-fi
+# API Keys - GPG-based management (see ~/tools/api-keys/LLM.md)
+# 
+# Quick usage:
+#   ak list              # Show all services with secret status
+#   ak get <service>     # Decrypt secret to stdout
+#   ak set <service>     # Store secret (prompts for value)
+#   ak export            # Print "export VAR='value'" for eval
+#   load-api-keys        # Alias for: eval "$(ak export)"
+#
+# GPG agent caches passphrase (~20h TTL, see ~/.gnupg/gpg-agent.conf)
+# Lock immediately: gpgconf --kill gpg-agent
 
 # Aliases
 alias lg='lazygit'
