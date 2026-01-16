@@ -54,6 +54,26 @@ echo 'wt -w last new-tab -p "Debian"'
 # ripgrep profile
 $env:RIPGREP_CONFIG_PATH="$env:USERPROFILE/.ripgreprc"
 
+# API Keys Manager (ak) - Windows Credential Manager
+# See ~/tools/api-keys/LLM.md for full docs
+#
+# Quick usage:
+#   ak-list              # Show all services with secret status
+#   ak-get <service>     # Get secret from Credential Manager
+#   ak-set <service>     # Store secret (prompts for value)
+#   ak-rm <service>      # Remove secret
+#   load-api-keys        # Load all keys into env vars
+#
+# View credentials: Control Panel > Credential Manager > Windows Credentials
+# Secrets stored with "ak:" prefix
+$env:PATH += ";$env:USERPROFILE\tools\api-keys\bin"
+
+# Load ak PowerShell functions
+$akScript = "$env:USERPROFILE\tools\api-keys\bin\ak.ps1"
+if (Test-Path $akScript) {
+    . $akScript
+}
+
 cd $env:TEMP
 
 # needs to be last, just in case you Ctrl-C to abort it

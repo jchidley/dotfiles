@@ -137,8 +137,7 @@ alias xselp='xsel -b -o'
 # tmux session launcher - each session gets its own socket (all peers at host level)
 # See ~/tools/pi-automation-patterns/TMUX_CONVENTIONS.md
 t() {
-    local prefix="${1:-default}"
-    local id="$prefix-$(date +%s%N | sha256sum | head -c 8)"
+    local id="$(date +%s%N | sha256sum | head -c 6)"
     local socket_dir="${TMPDIR:-/tmp}/tmux-sockets"
     mkdir -p "$socket_dir"
     local socket="$socket_dir/$id.sock"
