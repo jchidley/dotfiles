@@ -149,6 +149,19 @@ t() {
     echo "Socket: $socket"
 }
 
+tclean() {
+    local socket_dir="${TMPDIR:-/tmp}/tmux-sockets"
+    for sock in "$socket_dir"/*.sock; do
+        [[ -S "$sock" ]] || continue
+        local session=$(basename "$sock" .sock)
+        if ! tmux -S "$sock" has-session -t "$session" 2>/dev/null; then
+            tmux -S "$sock" kill-server 2>/dev/null || true
+            rm -f "$sock"
+            echo "Removed: $session"
+        fi
+    done
+}
+
 # Claude Code
 export ENABLE_LSP_TOOL=1  # temporary: enable experimental LSP tool
 
