@@ -134,6 +134,22 @@ alias xselp='xsel -b -o'
 # Add npm global bin to PATH if it exists
 [ -d "$HOME/.npm-global/bin" ] && export PATH=$HOME/.npm-global/bin:$PATH
 
+# tmux session launcher - each session gets its own socket (all peers at host level)
+# See ~/tools/pi-automation-patterns/TMUX_CONVENTIONS.md
+t() {
+    local prefix="${1:-default}"
+    local id="$prefix-$(date +%s%N | sha256sum | head -c 8)"
+    local socket_dir="${TMPDIR:-/tmp}/tmux-sockets"
+    mkdir -p "$socket_dir"
+    local socket="$socket_dir/$id.sock"
+    
+    # TMUX= ensures host-level creation (never nested)
+    TMUX= tmux -S "$socket" new-session -s "$id"
+    
+    echo "Session: $id"
+    echo "Socket: $socket"
+}
+
 # Claude Code
 export ENABLE_LSP_TOOL=1  # temporary: enable experimental LSP tool
 
