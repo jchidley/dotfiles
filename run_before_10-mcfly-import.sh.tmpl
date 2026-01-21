@@ -1,12 +1,8 @@
+{{- if eq .chezmoi.os "linux" }}
 #!/bin/bash
 # Automatically check for McFly history on first run
 
 set -e
-
-# Only run on Linux
-{{- if ne .chezmoi.os "linux" }}
-exit 0
-{{- end }}
 
 # Check if mcfly is installed
 if ! command -v mcfly &> /dev/null; then
@@ -40,3 +36,4 @@ if [ -d "$ENCRYPTED_DIR" ]; then
         echo ""
     fi
 fi
+{{- end }}
