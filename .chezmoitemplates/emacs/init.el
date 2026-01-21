@@ -7,7 +7,7 @@
 (package-initialize)
 
 ;; Install dependencies if missing
-(dolist (pkg '(markdown-mode transient meow vertico))
+(dolist (pkg '(markdown-mode transient meow vertico pi-coding-agent))
   (unless (package-installed-p pkg)
     (unless package-archive-contents (package-refresh-contents))
     (package-install pkg)))
@@ -115,11 +115,8 @@
 (meow-setup)
 (meow-global-mode 1)
 
-;; Load pi-coding-agent
-(add-to-list 'load-path "~/.emacs.d/site-lisp/pi-coding-agent")
+;; pi-coding-agent - installed via MELPA above
 (require 'pi-coding-agent)
-
-;; Shortcut: M-x pi to start
 (defalias 'pi 'pi-coding-agent)
 
 ;; Clean startup

@@ -3,6 +3,9 @@ AppData
 Documents
 ./ps_shell_hints
 {{ end }}
+{{ if eq .chezmoi.os "windows" }}
+.emacs.d
+{{ end }}
 {{ if ne .chezmoi.os "linux" }}
 ./.bashrc_debian
 ./.bashrc
