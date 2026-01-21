@@ -1,0 +1,18 @@
+# Byte-compiled files
+*.elc
+
+# Auto-save files
+*~
+\#*\#
+
+# Backup files
+*.orig
+
+# Package archives
+*.tar
+
+# Test dependencies (Ollama models, pi CLI)
+.cache/
+
+# Local scratch directory
+tmp/
