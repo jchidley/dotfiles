@@ -1,3 +1,6 @@
+---
+description: Emacs and pi-coding-agent quick reference
+---
 # Emacs Quick Reference
 
 ## Windows
