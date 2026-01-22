@@ -7,7 +7,7 @@
 (package-initialize)
 
 ;; Install dependencies if missing
-(dolist (pkg '(markdown-mode transient meow vertico orderless pi-coding-agent))
+(dolist (pkg '(markdown-mode transient meow vertico orderless marginalia pi-coding-agent))
   (unless (package-installed-p pkg)
     (unless package-archive-contents (package-refresh-contents))
     (package-install pkg)))
@@ -21,6 +21,10 @@
 (setq completion-styles '(orderless basic)
       completion-category-defaults nil
       completion-category-overrides '((file (styles partial-completion))))
+
+;; Marginalia - rich annotations in completion
+(require 'marginalia)
+(marginalia-mode 1)
 
 ;; Dark theme - wombat (built-in)
 (setq frame-background-mode 'dark)
