@@ -7,7 +7,8 @@
 (package-initialize)
 
 ;; Install dependencies if missing
-(dolist (pkg '(markdown-mode transient meow vertico orderless marginalia pi-coding-agent))
+(dolist (pkg '(markdown-mode transient meow vertico orderless marginalia
+               which-key embark embark-consult consult pi-coding-agent))
   (unless (package-installed-p pkg)
     (unless package-archive-contents (package-refresh-contents))
     (package-install pkg)))
@@ -25,6 +26,24 @@
 ;; Marginalia - rich annotations in completion
 (require 'marginalia)
 (marginalia-mode 1)
+
+;; Which-key - show available keybindings
+(require 'which-key)
+(which-key-mode 1)
+(setq which-key-idle-delay 0.5)  ; Show after 0.5s
+
+;; Embark - context actions (right-click-like menus)
+(require 'embark)
+(global-set-key (kbd "C-.") 'embark-act)
+(global-set-key (kbd "C-;") 'embark-dwim)
+
+;; Consult - enhanced search and navigation
+(require 'consult)
+(global-set-key (kbd "C-s") 'consult-line)           ; Better buffer search
+(global-set-key (kbd "C-x b") 'consult-buffer)        ; Better buffer switching
+(global-set-key (kbd "M-g g") 'consult-goto-line)    ; Better goto-line
+(global-set-key (kbd "M-y") 'consult-yank-pop)       ; Better yank-pop
+(global-set-key (kbd "C-x p g") 'consult-ripgrep)    ; Project-wide search
 
 ;; Dark theme - wombat (built-in)
 (setq frame-background-mode 'dark)
