@@ -7,7 +7,7 @@
 (package-initialize)
 
 ;; Install dependencies if missing
-(dolist (pkg '(markdown-mode transient meow vertico pi-coding-agent))
+(dolist (pkg '(markdown-mode transient meow vertico orderless pi-coding-agent))
   (unless (package-installed-p pkg)
     (unless package-archive-contents (package-refresh-contents))
     (package-install pkg)))
@@ -15,6 +15,12 @@
 ;; Vertico - vertical completion UI
 (require 'vertico)
 (vertico-mode 1)
+
+;; Orderless - flexible matching (space-separated patterns)
+(require 'orderless)
+(setq completion-styles '(orderless basic)
+      completion-category-defaults nil
+      completion-category-overrides '((file (styles partial-completion))))
 
 ;; Dark theme - wombat (built-in)
 (setq frame-background-mode 'dark)
