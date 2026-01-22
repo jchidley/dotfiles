@@ -158,6 +158,23 @@
 (require 'pi-coding-agent)
 (defalias 'pi 'pi-coding-agent)
 
+;; Quick reference displayer
+(defun show-emacs-pi-reference ()
+  "Display Emacs + pi-coding-agent quick reference."
+  (interactive)
+  (let ((ref-file (expand-file-name "~/.pi/agent/commands/emacs.md")))
+    (if (file-exists-p ref-file)
+        (with-current-buffer (get-buffer-create "*Emacs+Pi Reference*")
+          (erase-buffer)
+          (insert-file-contents ref-file)
+          (markdown-mode)
+          (view-mode 1)  ; Read-only
+          (goto-char (point-min))
+          (display-buffer (current-buffer)))
+      (message "Reference file not found: %s" ref-file))))
+
+(global-set-key (kbd "C-h e") 'show-emacs-pi-reference)
+
 ;; Clean startup
 (setq inhibit-startup-screen t)
 
