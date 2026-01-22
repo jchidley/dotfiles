@@ -40,11 +40,13 @@
 
 ;; Consult - enhanced search and navigation
 (require 'consult)
-(global-set-key (kbd "C-s") 'consult-line)           ; Better buffer search
+;; Don't override C-s globally (Meow uses it), add to leader instead
 (global-set-key (kbd "C-x b") 'consult-buffer)        ; Better buffer switching
 (global-set-key (kbd "M-g g") 'consult-goto-line)    ; Better goto-line
 (global-set-key (kbd "M-y") 'consult-yank-pop)       ; Better yank-pop
 (global-set-key (kbd "C-x p g") 'consult-ripgrep)    ; Project-wide search
+;; In insert mode, C-s works for search
+(define-key key-translation-map (kbd "C-s") (kbd "C-s"))
 
 ;; Dark theme - wombat (built-in)
 (setq frame-background-mode 'dark)
@@ -65,6 +67,11 @@
    '("?" . meow-cheatsheet)
    '("." . embark-act)
    '("," . embark-dwim)
+   ;; Consult commands
+   '("s" . consult-line)
+   '("f" . consult-find)
+   '("g" . consult-ripgrep)
+   '("r" . consult-recent-file)
    ;; Windows integration (works in WSL and native Windows)
    '("w i" . win-paste-image)
    '("w p" . win-paste-text)
