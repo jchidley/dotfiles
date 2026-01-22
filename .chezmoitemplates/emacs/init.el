@@ -34,8 +34,9 @@
 
 ;; Embark - context actions (right-click-like menus)
 (require 'embark)
-(global-set-key (kbd "C-.") 'embark-act)
-(global-set-key (kbd "C-;") 'embark-dwim)
+;; Use M-. which works in all terminals and doesn't conflict with Meow
+(global-set-key (kbd "M-.") 'embark-act)
+(global-set-key (kbd "M-,") 'embark-dwim)
 
 ;; Consult - enhanced search and navigation
 (require 'consult)
@@ -62,6 +63,8 @@
    '("o" . other-window)
    '("b" . switch-to-buffer)
    '("?" . meow-cheatsheet)
+   '("." . embark-act)
+   '("," . embark-dwim)
    ;; Windows integration (works in WSL and native Windows)
    '("w i" . win-paste-image)
    '("w p" . win-paste-text)
