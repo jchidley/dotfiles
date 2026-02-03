@@ -36,6 +36,10 @@
 (require 'recentf)
 (recentf-mode 1)
 (setq recentf-max-saved-items 100)
+(add-hook 'kill-emacs-hook 'recentf-save-list)
+
+;; Start with bootstrap doc instead of scratch
+(setq initial-buffer-choice "~/.emacs-bootstrap.md")
 
 ;; Embark - context actions (right-click-like menus)
 (require 'embark)
@@ -51,6 +55,7 @@
 (global-set-key (kbd "M-y") 'consult-yank-pop)       ; Better yank-pop
 (global-set-key (kbd "C-x p g") 'consult-ripgrep)    ; Project-wide search
 (global-set-key (kbd "C-c f") 'consult-fd)           ; Find files with fd
+(global-set-key (kbd "C-c o") 'other-window)          ; Switch window
 ;; In insert mode, C-s works for search
 (define-key key-translation-map (kbd "C-s") (kbd "C-s"))
 
@@ -301,3 +306,4 @@ Returns cons (CHAT-BUFFER . INPUT-BUFFER) or nil if not found."
      (*is-windows*
       (call-process "explorer.exe" nil nil nil (convert-standard-filename dir))))
     (message "Opening Explorer at %s" dir)))
+
