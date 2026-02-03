@@ -91,6 +91,8 @@ eval "$(direnv hook bash)"
 alias lg='lazygit'
 alias xselc='xsel -b -i'
 alias xselp='xsel -b -o'
+alias clauded='claude --dangerously-skip-permissions'
+alias codexd='codex -s danger-full-access'
 
 # Add npm global bin to PATH if it exists
 [ -d "$HOME/.npm-global/bin" ] && export PATH=$HOME/.npm-global/bin:$PATH
@@ -215,3 +217,18 @@ alias glm="ANTHROPIC_AUTH_TOKEN=super-secret-api-key ANTHROPIC_BASE_URL=\"https:
 command -v starship &>/dev/null && eval "$(starship init bash)"
 
 # End chezmoi template - "dot_bashrc.tmpl"
+
+# >>> juliaup initialize >>>
+
+# !! Contents within this block are managed by juliaup !!
+
+case ":$PATH:" in
+    *:/home/jack/.juliaup/bin:*)
+        ;;
+
+    *)
+        export PATH=/home/jack/.juliaup/bin${PATH:+:${PATH}}
+        ;;
+esac
+
+# <<< juliaup initialize <<<
