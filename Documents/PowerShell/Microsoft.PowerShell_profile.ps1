@@ -74,6 +74,23 @@ if (Test-Path $akScript) {
     . $akScript
 }
 
+# Android Studio / SDK
+$env:ANDROID_SDK_ROOT = "$env:LOCALAPPDATA\Android\Sdk"
+$env:ANDROID_HOME = $env:ANDROID_SDK_ROOT
+$env:JAVA_HOME = "C:\Program Files\Android\Android Studio\jbr"
+
+$androidPaths = @(
+    "$env:ANDROID_SDK_ROOT\platform-tools",
+    "$env:ANDROID_SDK_ROOT\cmdline-tools\latest\bin",
+    "$env:ANDROID_SDK_ROOT\emulator"
+)
+
+foreach ($p in $androidPaths) {
+    if (-not (($env:Path -split ';') -contains $p)) {
+        $env:Path += ";$p"
+    }
+}
+
 cd $env:TEMP
 
 # needs to be last, just in case you Ctrl-C to abort it
