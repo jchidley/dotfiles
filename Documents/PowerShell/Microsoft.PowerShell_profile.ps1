@@ -75,21 +75,9 @@ if (Test-Path $akScript) {
 }
 
 # Android Studio / SDK
-$env:ANDROID_SDK_ROOT = "$env:LOCALAPPDATA\Android\Sdk"
-$env:ANDROID_HOME = $env:ANDROID_SDK_ROOT
-$env:JAVA_HOME = "C:\Program Files\Android\Android Studio\jbr"
-
-$androidPaths = @(
-    "$env:ANDROID_SDK_ROOT\platform-tools",
-    "$env:ANDROID_SDK_ROOT\cmdline-tools\latest\bin",
-    "$env:ANDROID_SDK_ROOT\emulator"
-)
-
-foreach ($p in $androidPaths) {
-    if (-not (($env:Path -split ';') -contains $p)) {
-        $env:Path += ";$p"
-    }
-}
+$env:ANDROID_HOME = "$env:LOCALAPPDATA\Android\Sdk"
+$env:JAVA_HOME = "C:\Program Files\Android\Android Studio1\jbr"
+$env:PATH += ";$env:ANDROID_HOME\platform-tools;$env:ANDROID_HOME\cmdline-tools\latest\bin;$env:ANDROID_HOME\emulator"
 
 cd $env:TEMP
 
