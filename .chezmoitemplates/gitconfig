@@ -5,6 +5,9 @@
 	editor = nvim
 	autocrlf = input
 	pager = delta
+{{- if eq .chezmoi.os "windows" }}
+	sshCommand = C:/Windows/System32/OpenSSH/ssh.exe
+{{- end }}
 [interactive]
 	diffFilter = delta
 [delta]
@@ -14,8 +17,7 @@
 	syntax-theme = gruvbox-dark
 [merge]
 	conflictStyle = zdiff3
-{{- if eq .chezmoi.os "windows" }} 
-	sshCommand = C:/Windows/System32/OpenSSH/ssh.exe
+{{- if eq .chezmoi.os "windows" }}
 [credential "helperselector"]
 	selected = manager
 {{- else if eq .chezmoi.osRelease.id "debian" }}
