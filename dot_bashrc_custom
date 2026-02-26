@@ -8,6 +8,11 @@ export EDITOR="hx"
 # bat theme
 export BAT_THEME="gruvbox-dark"
 
+# WSL2: use win-open as BROWSER so OAuth callbacks work (xdg-open doesn't)
+if [ -f "$HOME/.pi/agent/skills/windows-env/win-open" ]; then
+  export BROWSER="$HOME/.pi/agent/skills/windows-env/win-open"
+fi
+
 [ -t 1 ] && [ -f "$HOME/bash_shell_hints" ] && cat "$HOME/bash_shell_hints"
 # echo zoxide path cd'd to 
 export _ZO_ECHO=1
