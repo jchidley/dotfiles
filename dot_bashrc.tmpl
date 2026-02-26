@@ -1,220 +1,40 @@
 # Start chezmoi template - "dot_bashrc.tmpl"
-{{- if eq .chezmoi.os "windows" -}}
+
+# PATH helpers (avoid duplicates)
+path_prepend() {
+  [ -d "$1" ] || return 0
+  case ":$PATH:" in
+    *":$1:"*) ;;
+    *) PATH="$1${PATH:+:$PATH}" ;;
+  esac
+}
+
+path_append() {
+  [ -d "$1" ] || return 0
+  case ":$PATH:" in
+    *":$1:"*) ;;
+    *) PATH="${PATH:+$PATH:}$1" ;;
+  esac
+}
+
+{{ if eq .chezmoi.os "windows" }}
 
 # windows
 # ripgrep profile
 export RIPGREP_CONFIG_PATH="$USERPROFILE/.ripgreprc"
 alias rg='rg --path-separator=//'
 
-{{- else if eq .chezmoi.osRelease.id "debian" -}}
+# keep user-local tools available on Windows shells too
+path_prepend "$HOME/.local/bin"
+
+{{ else if eq .chezmoi.osRelease.id "debian" }}
 
 # debian
 
-{{- include "dot_bashrc_debian" -}}
-{{- end -}}
+{{ include "dot_bashrc_debian" }}
+{{ end }}
 
-. "$HOME/.cargo/env"
-
-# Prefer vi-style keybindings in Bash
-set -o vi
-
-export SUDO_EDITOR=$(which nvim || which vim || which vi)
-export VISUAL=$(which nvim || which vim || which vi)
-export EDITOR="$VISUAL"
-
-# bat theme
-export BAT_THEME="gruvbox-dark"
-
-cat ~/bash_shell_hints
-# echo zoxide path cd'd to 
-export _ZO_ECHO=1
-
-export PATH=$HOME/bin:$HOME/.local/bin:$HOME/.amp/bin:/usr/local/go/bin:$PATH
-# see https://github.com/neovim/neovim/blob/master/INSTALL.md#install-from-package
-export PATH="$PATH:/opt/nvim-linux-x86_64/bin"
-
-# API Keys Manager (ak) - GPG-based secret management
-export PATH="$HOME/tools/api-keys/bin:$PATH"
-[[ -f "$HOME/tools/api-keys/bin/ak-functions.sh" ]] && source "$HOME/tools/api-keys/bin/ak-functions.sh"
-
-# GPG agent (for ak/GPG encryption, 20h cache)
-export GPG_TTY=$(tty)
-gpgconf --launch gpg-agent 2>/dev/null
-
-# SSH agent (separate from gpg-agent - gpg-agent has issues with OpenSSH key format)
-# Reuse a single ssh-agent across shells
-if [ -z "$SSH_AUTH_SOCK" ] || [ ! -S "$SSH_AUTH_SOCK" ]; then
-  SSH_AGENT_SOCK="/run/user/$UID/ssh-agent.sock"
-  if [ -S "$SSH_AGENT_SOCK" ]; then
-    export SSH_AUTH_SOCK="$SSH_AGENT_SOCK"
-  else
-    eval "$(ssh-agent -a "$SSH_AGENT_SOCK" 2>/dev/null)" >/dev/null
-  fi
-fi
-
-# Add SSH key if agent has no identities
-if ! ssh-add -l >/dev/null 2>&1; then
-  [ -t 0 ] && [ -f "$HOME/.ssh/id_ed25519" ] && ssh-add -t 72000 "$HOME/.ssh/id_ed25519"
-fi
-
-# Pico SDK paths - only export if directories exist
-[ -d "$HOME/pico/pico-sdk" ] && export PICO_SDK_PATH=$HOME/pico/pico-sdk
-[ -d "$HOME/pico/pico-examples" ] && export PICO_EXAMPLES_PATH=$HOME/pico/pico-examples
-[ -d "$HOME/pico/pico-extras" ] && export PICO_EXTRAS_PATH=$HOME/pico/pico-extras
-[ -d "$HOME/pico/pico-playground" ] && export PICO_PLAYGROUND_PATH=$HOME/pico/pico-playground
-
-
-# https://github.com/ajeetdsouza/zoxide?tab=readme-ov-file#configuration
-eval "$(zoxide init bash)"
-
-# mcfly
-export MCFLY_RESULTS=60
-eval "$(mcfly init bash)"
-
-# direnv
-eval "$(direnv hook bash)"
-
-
-# API Keys - GPG-based management (see ~/tools/api-keys/LLM.md)
-# 
-# Quick usage:
-#   ak list              # Show all services with secret status
-#   ak get <service>     # Decrypt secret to stdout
-#   ak set <service>     # Store secret (prompts for value)
-#   ak export            # Print "export VAR='value'" for eval
-#   load-api-keys        # Alias for: eval "$(ak export)"
-#
-# GPG agent caches passphrase (~20h TTL, see ~/.gnupg/gpg-agent.conf)
-# Lock immediately: gpgconf --kill gpg-agent
-
-# Aliases
-alias lg='lazygit'
-alias xselc='xsel -b -i'
-alias xselp='xsel -b -o'
-alias clauded='claude --dangerously-skip-permissions'
-alias codexd='codex -s danger-full-access'
-
-# Add npm global bin to PATH if it exists
-[ -d "$HOME/.npm-global/bin" ] && export PATH=$HOME/.npm-global/bin:$PATH
-
-# tmux session launcher - each session gets its own socket (all peers at host level)
-# See ~/tools/pi-automation-patterns/TMUX_CONVENTIONS.md
-t() {
-    local id="$(date +%s%N | sha256sum | head -c 6)"
-    local socket_dir="${TMPDIR:-/tmp}/tmux-sockets"
-    mkdir -p "$socket_dir"
-    local socket="$socket_dir/$id.sock"
-    
-    # TMUX= ensures host-level creation (never nested)
-    TMUX= tmux -S "$socket" new-session -s "$id"
-    
-    echo "Session: $id"
-    echo "Socket: $socket"
-}
-
-tclean() {
-    local socket_dir="${TMPDIR:-/tmp}/tmux-sockets"
-    for sock in "$socket_dir"/*.sock; do
-        [[ -S "$sock" ]] || continue
-        local session=$(basename "$sock" .sock)
-        local attached=$(tmux -S "$sock" list-sessions -F '#{session_attached}' 2>/dev/null)
-        if [[ "$attached" != "1" ]]; then
-            tmux -S "$sock" kill-server 2>/dev/null || true
-            rm -f "$sock"
-            echo "Removed: $session"
-        fi
-    done
-}
-
-# Claude Code
-export ENABLE_LSP_TOOL=1  # temporary: enable experimental LSP tool
-
-# Claude Code (Podman) helpers
-export CLAUDE_PODMAN_IMAGE="${CLAUDE_PODMAN_IMAGE:-claude-code:latest}"
-export CLAUDE_PODMAN_VOLUME="${CLAUDE_PODMAN_VOLUME:-claude_cli_data}"
-
-_claude_podman_base() {
-  local claude_args
-  claude_args=$(printf '%q ' "$@")
-  podman run --rm -it \
-    --userns=keep-id \
-    --user "$(id -u)":"$(id -g)" \
-    -e HOME=/home/node \
-    -v "${CLAUDE_PODMAN_VOLUME}:/home/node" \
-    "$CLAUDE_PODMAN_IMAGE" \
-    bash -lc "claude ${claude_args}"
-}
-
-claude_here() {
-  local claude_args
-  claude_args=$(printf '%q ' "$@")
-  podman run --rm -it \
-    --userns=keep-id \
-    --user "$(id -u)":"$(id -g)" \
-    -e HOME=/home/node \
-    -v "${CLAUDE_PODMAN_VOLUME}:/home/node" \
-    -v "$(pwd)":/home/node/project:rw \
-    -w /home/node/project \
-    "$CLAUDE_PODMAN_IMAGE" \
-    bash -lc "claude ${claude_args}"
-}
-alias claude-here=claude_here
-
-claude_dir() {
-  local target_dir="."
-  if [[ $# -gt 0 && "$1" != -* ]]; then
-    target_dir="$1"
-    shift
-  fi
-  local claude_args
-  claude_args=$(printf '%q ' "$@")
-  local resolved
-  resolved=$(realpath "$target_dir")
-  podman run --rm -it \
-    --userns=keep-id \
-    --user "$(id -u)":"$(id -g)" \
-    -e HOME=/home/node \
-    -v "${CLAUDE_PODMAN_VOLUME}:/home/node" \
-    -v "${resolved}:/home/node/project:rw" \
-    -w /home/node/project \
-    "$CLAUDE_PODMAN_IMAGE" \
-    bash -lc "claude ${claude_args}"
-}
-alias claude-dir=claude_dir
-
-claude_ask() {
-  _claude_podman_base "$@"
-}
-alias claude-ask=claude_ask
-
-
-# Connect IQ SDK
-export CONNECTIQ_SDK_HOME="$HOME/.Garmin/ConnectIQ/Sdks/connectiq-sdk-lin-8.1.1-2025-03-27-66dae750f"
-export PATH="$CONNECTIQ_SDK_HOME/bin:$PATH"
-
-# fnm (resolve path relative to current user)
-if [ -n "$XDG_DATA_HOME" ] && [ -d "$XDG_DATA_HOME/fnm" ]; then
-  FNM_PATH="$XDG_DATA_HOME/fnm"
-elif [ -d "$HOME/.local/share/fnm" ]; then
-  FNM_PATH="$HOME/.local/share/fnm"
-elif [ -d "$HOME/.fnm" ]; then
-  FNM_PATH="$HOME/.fnm"
-else
-  FNM_PATH="$HOME/.local/share/fnm"
-fi
-if [ -d "$FNM_PATH" ]; then
-  export PATH="$FNM_PATH:$PATH"
-  eval "$(fnm env)"
-fi
-
-# uv shell completions
-eval "$(uv generate-shell-completion bash)"
-eval "$(uvx --generate-shell-completion bash)"
-
-alias glm="ANTHROPIC_AUTH_TOKEN=super-secret-api-key ANTHROPIC_BASE_URL=\"https://api.z.ai/api/anthropic\" claude"
-
-# starship prompt (must be last - overrides PS1)
-command -v starship &>/dev/null && eval "$(starship init bash)"
+{{ include "dot_bashrc_custom" }}
 
 # End chezmoi template - "dot_bashrc.tmpl"
 

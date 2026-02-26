@@ -1,18 +1,22 @@
-# Shell Hints
-# -----------
-# Search:     rg, fd (regex/glob)
-# History:    history -a, history, !<num>, Ctrl-R (McFly)
-# Dotfiles:   ~/.local/share/chezmoi
+# Quick hints
 
-# Secrets
-bw_unlock              # Unlock Bitwarden + load API keys
-bw get password "surface laptop ssh - Silver"
+# Search/history
+rg <pattern> <path>              # fast search
+fd <name>                        # fast find
+history -a, history, !<num>      # flush/save, show, rerun by number
+Ctrl-R                           # McFly history search
 
-# WSL/Windows
-wt.exe -w last new-tab -p "Debian" \; split-pane -V -p "Debian"
-set-title "Title"
-wslpath "C:\Users\jackc\Downloads"  # → /mnt/c/Users/jackc/Downloads
+# Secrets (GPG/ak)
+ak list                          # show configured services + status
+ak get <service>                 # decrypt one secret
+eval "$(ak export)"             # load all API keys into current shell
 
-# Tools
-uv / uvx               # Python (curl -LsSf https://astral.sh/uv/install.sh | sh)
-llm / aichat           # LLM CLI tools
+# WSL/Windows helpers
+clipcopy                         # alias -> win-clipboard set
+clippaste                        # alias -> win-clipboard get
+wslpath "C:\Users\jackc\Downloads"  # Windows path -> WSL path
+
+# tmux helpers
+tmux ls                          # list tmux sessions
+t                                # new isolated socketed session
+tclean                           # cleanup unattached sessions
