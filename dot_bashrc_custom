@@ -24,8 +24,8 @@ path_prepend "$HOME/tools/api-keys/bin"
 [[ -f "$HOME/tools/api-keys/bin/ak-functions.sh" ]] && source "$HOME/tools/api-keys/bin/ak-functions.sh"
 
 # GPG agent (for ak/GPG encryption, 20h cache)
-export GPG_TTY=$(tty)
-gpgconf --launch gpg-agent 2>/dev/null
+[ -t 0 ] && export GPG_TTY="$(tty)"
+[ -t 0 ] && gpgconf --launch gpg-agent 2>/dev/null
 
 # SSH agent (separate from gpg-agent - gpg-agent has issues with OpenSSH key format)
 # Reuse a single ssh-agent across shells
@@ -44,10 +44,10 @@ if command -v ssh-add >/dev/null 2>&1 && ! ssh-add -l >/dev/null 2>&1; then
 fi
 
 # Pico SDK paths - only export if directories exist
-[ -d "$HOME/pico/pico-sdk" ] && export PICO_SDK_PATH=$HOME/pico/pico-sdk
-[ -d "$HOME/pico/pico-examples" ] && export PICO_EXAMPLES_PATH=$HOME/pico/pico-examples
-[ -d "$HOME/pico/pico-extras" ] && export PICO_EXTRAS_PATH=$HOME/pico/pico-extras
-[ -d "$HOME/pico/pico-playground" ] && export PICO_PLAYGROUND_PATH=$HOME/pico/pico-playground
+[ -d "$HOME/pico/pico-sdk" ] && export PICO_SDK_PATH="$HOME/pico/pico-sdk"
+[ -d "$HOME/pico/pico-examples" ] && export PICO_EXAMPLES_PATH="$HOME/pico/pico-examples"
+[ -d "$HOME/pico/pico-extras" ] && export PICO_EXTRAS_PATH="$HOME/pico/pico-extras"
+[ -d "$HOME/pico/pico-playground" ] && export PICO_PLAYGROUND_PATH="$HOME/pico/pico-playground"
 
 
 # https://github.com/ajeetdsouza/zoxide?tab=readme-ov-file#configuration
@@ -58,7 +58,7 @@ export MCFLY_RESULTS=60
 [ -t 1 ] && command -v mcfly >/dev/null 2>&1 && eval "$(mcfly init bash)"
 
 # direnv
-[ -t 1 ] && command -v direnv >/dev/null 2>&1 && eval "$(direnv hook bash)"
+command -v direnv >/dev/null 2>&1 && eval "$(direnv hook bash)"
 
 
 # API Keys - GPG-based management (see ~/tools/api-keys/LLM.md)
@@ -112,9 +112,6 @@ tclean() {
         fi
     done
 }
-
-# Claude Code
-export ENABLE_LSP_TOOL=1  # temporary: enable experimental LSP tool
 
 # Claude Code (Podman) helpers
 export CLAUDE_PODMAN_IMAGE="${CLAUDE_PODMAN_IMAGE:-claude-code:latest}"
@@ -180,17 +177,21 @@ export CONNECTIQ_SDK_HOME="$HOME/.Garmin/ConnectIQ/Sdks/connectiq-sdk-lin-8.1.1-
 path_prepend "$CONNECTIQ_SDK_HOME/bin"
 
 # fnm (resolve path relative to current user)
-if [ -n "$XDG_DATA_HOME" ] && [ -d "$XDG_DATA_HOME/fnm" ]; then
+if [ -n "$XDG_DATA_HOME" ] && [ -x "$XDG_DATA_HOME/fnm/fnm" ]; then
   FNM_PATH="$XDG_DATA_HOME/fnm"
-elif [ -d "$HOME/.local/share/fnm" ]; then
+elif [ -x "$HOME/.local/share/fnm/fnm" ]; then
   FNM_PATH="$HOME/.local/share/fnm"
-elif [ -d "$HOME/.fnm" ]; then
+elif [ -x "$HOME/.fnm/fnm" ]; then
   FNM_PATH="$HOME/.fnm"
 else
-  FNM_PATH="$HOME/.local/share/fnm"
+  FNM_PATH=""
 fi
-if [ -t 1 ] && [ -d "$FNM_PATH" ] && command -v fnm >/dev/null 2>&1; then
-  eval "$(fnm env)"
+if [ -n "$FNM_PATH" ]; then
+  case ":$PATH:" in
+    *":$FNM_PATH:"*) ;;
+    *) export PATH="$FNM_PATH:$PATH" ;;
+  esac
+  eval "$("$FNM_PATH/fnm" env --shell bash)"
 fi
 
 # uv shell completions

@@ -43,11 +43,11 @@ path_prepend "$HOME/.local/bin"
 # !! Contents within this block are managed by juliaup !!
 
 case ":$PATH:" in
-    *:/home/jack/.juliaup/bin:*)
+    *:$HOME/.juliaup/bin:*)
         ;;
 
     *)
-        export PATH=/home/jack/.juliaup/bin${PATH:+:${PATH}}
+        export PATH=$HOME/.juliaup/bin${PATH:+:${PATH}}
         ;;
 esac
 
