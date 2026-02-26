@@ -5,6 +5,11 @@
 AK_DIR="${HOME}/tools/api-keys"
 AK_BIN="${AK_DIR}/bin/ak"
 
+# Set AK_DIRENV_VERBOSE=1 to log each loaded variable via direnv log_status
+ak_log_loaded() {
+    [[ "${AK_DIRENV_VERBOSE:-0}" == "1" ]] && log_status "Loaded $1"
+}
+
 # Get a secret using ak (GPG-based)
 # Usage: ak_get <name>
 ak_get() {
@@ -34,7 +39,7 @@ load_api_keys() {
 
         if value=$(ak_get "$secret_name"); then
             export "$env_var=$value"
-            log_status "Loaded $env_var"
+            ak_log_loaded "$env_var"
         fi
     done
 }
@@ -60,7 +65,7 @@ use_ak() {
                 env_var=$(grep "^env_var:" "${AK_DIR}/services/${name}.yaml" 2>/dev/null | sed 's/env_var:[[:space:]]*//')
                 [[ -z "$env_var" ]] && env_var="${name^^}_API_KEY"
                 export "$env_var=$value"
-                log_status "Loaded $env_var"
+                ak_log_loaded "$env_var"
             fi
         done
     fi
