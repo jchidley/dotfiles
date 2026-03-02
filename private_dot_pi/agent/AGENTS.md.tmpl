@@ -1,0 +1,33 @@
+# Global Agent Context
+
+## Environment: WSL2
+
+This machine runs Linux inside WSL2 on Windows. Agents see Linux but the host is Windows.
+
+**Key behavioural rules:**
+- **`xdg-open` does not work.** Use the `windows-env` skill's `win-open` command instead.
+- **Cross-OS filesystem is extremely slow.** Never run builds, `git clone`, or `npm install` against `/mnt/c/`. Keep Linux work in `~/` (ext4). Only copy files to `/mnt/c/` for handing off to Windows tools.
+- **`inotify` doesn't work on `/mnt/c/`.** File watchers break across the OS boundary.
+- **USB devices need Windows-side attach.** Serial devices aren't visible until `usbipd attach` is run from PowerShell.
+- **Memory is capped** (check `free -h`). Don't spawn unbounded parallel processes.
+- **Windows executables work from WSL.** `cmd.exe`, `powershell.exe`, `explorer.exe` are callable directly.
+- **Localhost works cross-OS** (mirrored networking). No port forwarding needed.
+
+Load the `windows-env` skill when you need to open URLs/files, use clipboard, send notifications, or detect the Windows username.
+
+## API Keys (GPG-encrypted)
+
+All secrets are GPG-encrypted locally in `~/tools/api-keys/secrets/*.gpg`. `gpg-agent` caches the passphrase.
+
+```bash
+ak get brave                          # Single key to stdout
+eval "$(ak export)"                   # All keys into env vars
+load-api-keys                         # Alias (source ak-functions.sh first)
+ak list                               # Show configured services
+ak set <service>                      # Store/update a secret
+ak rotate <service>                   # Show rotation info + open URL
+```
+
+**Never store keys in plaintext dotfiles.** Use `ak` at runtime.
+
+{{ includeTemplate "agent-screenshot-intent.md.tmpl" }}

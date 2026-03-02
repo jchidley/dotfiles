@@ -1,0 +1,10 @@
+## Screenshot intent mapping (WSL2/Windows)
+
+When the user says things like "look at the snip", "look at the shot", "look at the screenshot", or "look at the snap":
+
+1. Treat this as a request to inspect the current Windows screenshot clipboard image.
+2. In WSL, run `~/.pi/agent/skills/windows-env/win-clipboard snip`.
+3. Use the returned `/tmp/pi-clipboard-*.png` path as the image to inspect.
+4. If no image is in clipboard, ask the user to take a new snip (`Win+Shift+S`) and retry.
+
+Prefer `snip` as the canonical command. `shot` and `screenshot` are aliases.
