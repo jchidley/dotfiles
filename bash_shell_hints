@@ -14,6 +14,9 @@ eval "$(ak export)"             # load all API keys into current shell
 # WSL/Windows helpers
 clipcopy                         # alias -> win-clipboard set
 clippaste                        # alias -> win-clipboard get
+snip                             # alias -> win-clipboard snip (save screenshot clipboard to /tmp)
+shot                             # alias -> win-clipboard shot
+screenshot                       # alias -> win-clipboard screenshot
 wslpath "C:\Users\jackc\Downloads"  # Windows path -> WSL path
 
 # tmux helpers

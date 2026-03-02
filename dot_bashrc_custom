@@ -86,6 +86,11 @@ alias codexd='codex -s danger-full-access'
 alias clipcopy='win-clipboard set'
 alias clippaste='win-clipboard get'
 
+# Windows screenshot helpers (clipboard image -> /tmp path)
+alias snip='win-clipboard snip'
+alias shot='win-clipboard shot'
+alias screenshot='win-clipboard screenshot'
+
 # Add npm global bin to PATH if it exists
 path_prepend "$HOME/.npm-global/bin"
 
