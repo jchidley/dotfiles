@@ -15,7 +15,6 @@ Documents
 
 # Repository documentation (not config files)
 ./README.md
-./CLAUDE.md
 ./HANDOFF.md
 ./CLAUDE_COMMANDS_LOG.md
 PROJECT_WISDOM.md
