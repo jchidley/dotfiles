@@ -14,7 +14,7 @@ EXCLUDE_REPOS="${EXCLUDE_REPOS:-core,chibicc-riscv,alpine_images,PythonCookbook,
 echo "==> Updating system"
 sudo apt update
 sudo apt upgrade -y
-sudo apt install -y git curl unzip jq openssh-client ca-certificates gnupg2 dirmngr pinentry-curses direnv
+sudo apt install -y git curl unzip jq openssh-client ca-certificates gnupg2 dirmngr pinentry-curses direnv zoxide fzf hx tmux
 
 echo "==> Ensuring SSH key exists"
 if [[ ! -f "${HOME}/.ssh/id_ed25519" ]]; then
@@ -133,6 +133,15 @@ fi
 
 echo "==> Installing chezmoi and applying dotfiles"
 sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply "${GITHUB_USER}"
+
+echo "==> Installing mcfly (if needed)"
+if ! command -v mcfly >/dev/null 2>&1; then
+  if [[ -f "${WORKDIR}/mcfly/ci/install.sh" ]]; then
+    sh "${WORKDIR}/mcfly/ci/install.sh" --git cantino/mcfly --to "${HOME}/.local/bin"
+  else
+    curl -LSfs https://raw.githubusercontent.com/cantino/mcfly/master/ci/install.sh | sh -s -- --git cantino/mcfly --to "${HOME}/.local/bin"
+  fi
+fi
 
 echo "==> Installing fnm (if needed)"
 if ! command -v fnm >/dev/null 2>&1; then

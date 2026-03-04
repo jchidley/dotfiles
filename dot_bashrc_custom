@@ -1,9 +1,15 @@
 [ -f "$HOME/.cargo/env" ] && . "$HOME/.cargo/env"
 
-# Use Helix as editor
-export SUDO_EDITOR="hx"
-export VISUAL="hx"
-export EDITOR="hx"
+# Preferred editor (Helix if installed, fallback to nano)
+if command -v hx >/dev/null 2>&1; then
+  export SUDO_EDITOR="hx"
+  export VISUAL="hx"
+  export EDITOR="hx"
+else
+  export SUDO_EDITOR="nano"
+  export VISUAL="nano"
+  export EDITOR="nano"
+fi
 
 # bat theme
 export BAT_THEME="gruvbox-dark"
@@ -21,6 +27,7 @@ path_prepend "$HOME/bin"
 path_prepend "$HOME/.local/bin"
 path_prepend "$HOME/.amp/bin"
 path_prepend "/usr/local/go/bin"
+path_prepend "$HOME/.pi/agent/skills/windows-env"
 # see https://github.com/neovim/neovim/blob/master/INSTALL.md#install-from-package
 path_append "/opt/nvim-linux-x86_64/bin"
 
