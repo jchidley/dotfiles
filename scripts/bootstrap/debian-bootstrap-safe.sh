@@ -16,6 +16,18 @@ sudo apt update
 sudo apt upgrade -y
 sudo apt install -y git curl unzip jq openssh-client ca-certificates gnupg2 dirmngr pinentry-curses direnv zoxide fzf hx tmux
 
+echo "==> Configuring gpg-agent cache TTL (20h)"
+mkdir -p "${HOME}/.gnupg"
+chmod 700 "${HOME}/.gnupg"
+cat > "${HOME}/.gnupg/gpg-agent.conf" <<'EOF'
+default-cache-ttl 72000
+max-cache-ttl 72000
+pinentry-program /usr/bin/pinentry-curses
+EOF
+chmod 600 "${HOME}/.gnupg/gpg-agent.conf"
+gpgconf --kill gpg-agent || true
+gpgconf --launch gpg-agent || true
+
 echo "==> Ensuring SSH key exists"
 if [[ ! -f "${HOME}/.ssh/id_ed25519" ]]; then
   ssh-keygen -t ed25519 -C "${GITHUB_USER}" -f "${HOME}/.ssh/id_ed25519" -N ""
