@@ -4,11 +4,27 @@ Cross-platform dotfiles managed with [chezmoi](https://www.chezmoi.io/) for cons
 
 ## Quick Start
 
-### New Machine Setup
+### New Debian Machine (minimal bootstrap)
+
+Run this on a fresh Debian install:
 
 ```bash
-# Install chezmoi and apply dotfiles
-sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply https://github.com/your-username/dotfiles.git
+sudo apt update && sudo apt install -y curl git
+sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply jchidley
+```
+
+This installs chezmoi and applies all managed dotfiles.
+
+### Full Debian Bootstrap (packages/repos/node tooling)
+
+After dotfiles are applied, run one of:
+
+```bash
+# Minimal startup repos only (dotfiles, ak, agent-skills, tools)
+BOOTSTRAP_MODE=core ~/github/dotfiles/scripts/bootstrap/debian-bootstrap-safe.sh
+
+# Full repo sync (all except blacklist)
+BOOTSTRAP_MODE=full ~/github/dotfiles/scripts/bootstrap/debian-bootstrap-safe.sh
 ```
 
 ### Update Existing Installation
