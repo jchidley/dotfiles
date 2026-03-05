@@ -17,16 +17,21 @@ Load the `windows-env` skill when you need to open URLs/files, use clipboard, se
 
 ## API Keys (GPG-encrypted)
 
-All secrets are GPG-encrypted locally in `~/tools/api-keys/secrets/*.gpg`. `gpg-agent` caches the passphrase (20h TTL).
+All secrets are GPG-encrypted in WSL Debian (`~/tools/api-keys/secrets/*.gpg`). `gpg-agent` caches the passphrase (20h TTL).
+
+The `windows-env` skill provides cross-platform wrapper scripts that handle MSYS2/WSL/Linux automatically:
 
 ```bash
-ak get brave                          # Single key to stdout
-eval "$(ak export)"                   # All keys into env vars
-load-api-keys                         # Alias (source ak-functions.sh first)
-ak list                               # Show configured services
-ak set <service>                      # Store/update a secret
-ak rotate <service>                   # Show rotation info + open URL
+# These work from any shell environment — no manual quoting needed
+{windows-env}/ak-get brave                    # Single key to stdout
+export BRAVE_API_KEY=$({windows-env}/ak-get brave)  # Into a variable
+eval "$({windows-env}/ak-export)"             # All keys into env
+{windows-env}/ak-get --list                   # Show configured services
 ```
+
+Where `{windows-env}` is the windows-env skill directory. Load that skill to resolve the path.
+
+If keys return empty, check `wsl -l -v` — Debian must be the default distro. Fix: `wsl --set-default Debian`.
 
 **Never store keys in plaintext dotfiles.** Use `ak` at runtime.
 
