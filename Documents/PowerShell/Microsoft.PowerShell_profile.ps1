@@ -57,5 +57,9 @@ Invoke-CachedInit 'zoxide'         { zoxide init powershell }
 Invoke-CachedInit 'uv-completion'  { uv generate-shell-completion powershell }
 Invoke-CachedInit 'uvx-completion' { uvx --generate-shell-completion powershell }
 
+# pi: skip version check, always pass --no-themes
+$env:PI_SKIP_VERSION_CHECK = "1"
+function pi { & pi.CMD --no-themes @args }
+
 # Start in temp dir
 Set-Location $env:TEMP
