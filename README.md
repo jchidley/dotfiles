@@ -155,7 +155,6 @@ git push
 - [uv](https://github.com/astral-sh/uv) (Python)
 - [zoxide](https://github.com/ajeetdsouza/zoxide)
 - [ripgrep](https://github.com/BurntSushi/ripgrep)
-- [fzf](https://github.com/junegunn/fzf)
 
 ## Customization
 

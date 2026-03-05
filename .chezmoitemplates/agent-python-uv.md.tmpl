@@ -1,0 +1,6 @@
+## Python execution policy
+
+- **Do not use `python` or `python3` directly.** Use `uv`-managed Python only.
+- Run inline scripts with `uv run python ...` (for example: `uv run python - <<'PY'`).
+- Run Python CLI tools with `uvx <tool>`.
+- If a Python runtime is missing, install/manage it through `uv` (not system package managers).
