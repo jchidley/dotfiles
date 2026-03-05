@@ -19,25 +19,22 @@ function Add-PathOnce([string]$Dir) {
 Add-PathOnce "$env:USERPROFILE\scoop\apps\git\current\usr\bin"
 Add-PathOnce "$env:USERPROFILE\scoop\apps\git\current\mingw64\bin"
 
-# Custom tools
-Add-PathOnce "$env:USERPROFILE\tools"
-
 # Python: use uv/uvx instead of pip
 Write-Host "uv: run, init, add, pip install | uvx <tool>" -ForegroundColor Cyan
 
 # API Keys Manager
 Add-PathOnce "$env:USERPROFILE\tools\api-keys\bin"
-& {
-    $s = "$env:USERPROFILE\tools\api-keys\bin\ak.ps1"
-    if (Test-Path $s) { . $s }
-}
+$s = "$env:USERPROFILE\tools\api-keys\bin\ak.ps1"
+if (Test-Path $s) { . $s }
 
-# Android Studio / SDK
-$env:ANDROID_HOME = "$env:LOCALAPPDATA\Android\Sdk"
-$env:JAVA_HOME = "C:\Program Files\Android\Android Studio1\jbr"
-Add-PathOnce "$env:ANDROID_HOME\platform-tools"
-Add-PathOnce "$env:ANDROID_HOME\cmdline-tools\latest\bin"
-Add-PathOnce "$env:ANDROID_HOME\emulator"
+# Android Studio / SDK (only if installed)
+if (Test-Path "$env:LOCALAPPDATA\Android\Sdk") {
+    $env:ANDROID_HOME = "$env:LOCALAPPDATA\Android\Sdk"
+    $env:JAVA_HOME = "C:\Program Files\Android\Android Studio1\jbr"
+    Add-PathOnce "$env:ANDROID_HOME\platform-tools"
+    Add-PathOnce "$env:ANDROID_HOME\cmdline-tools\latest\bin"
+    Add-PathOnce "$env:ANDROID_HOME\emulator"
+}
 
 # Ripgrep config
 $env:RIPGREP_CONFIG_PATH = "$env:USERPROFILE\.ripgreprc"
