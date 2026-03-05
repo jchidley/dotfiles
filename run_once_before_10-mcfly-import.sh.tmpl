@@ -31,8 +31,8 @@ if [ -d "$ENCRYPTED_DIR" ]; then
         echo "Found encrypted McFly exports in chezmoi"
         echo ""
         echo "To manage your McFly history:"
-        echo "  Import:  cd ~/.local/share/chezmoi && ./scripts/mcfly-import.sh"
-        echo "  Export:  cd ~/.local/share/chezmoi && ./scripts/mcfly-export.sh"
+        echo "  Import:  cd {{ .chezmoi.sourceDir }} && ./scripts/mcfly-import.sh"
+        echo "  Export:  cd {{ .chezmoi.sourceDir }} && ./scripts/mcfly-export.sh"
         echo ""
     fi
 fi

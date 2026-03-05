@@ -14,7 +14,7 @@ EXCLUDE_REPOS="${EXCLUDE_REPOS:-core,chibicc-riscv,alpine_images,PythonCookbook,
 echo "==> Updating system"
 sudo apt update
 sudo apt upgrade -y
-sudo apt install -y git curl unzip jq openssh-client ca-certificates gnupg2 dirmngr pinentry-curses direnv zoxide fzf hx tmux
+sudo apt install -y git curl unzip jq sqlite3 openssh-client ca-certificates gnupg2 dirmngr pinentry-curses direnv zoxide fzf hx tmux
 
 echo "==> Configuring gpg-agent cache TTL (20h)"
 mkdir -p "${HOME}/.gnupg"
@@ -171,5 +171,10 @@ fnm use lts-latest
 
 echo "==> Installing global npm package(s)"
 npm install -g @mariozechner/pi-coding-agent
+
+echo "==> Installing Bitwarden CLI (optional, for McFly password retrieval)"
+if ! command -v bw >/dev/null 2>&1; then
+  npm install -g @bitwarden/cli || echo "  - Failed to install @bitwarden/cli; McFly scripts will prompt for password"
+fi
 
 echo "✅ Bootstrap complete."
