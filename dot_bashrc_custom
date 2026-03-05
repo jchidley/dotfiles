@@ -41,12 +41,21 @@ path_prepend "$HOME/tools/api-keys/bin"
 
 # SSH agent (separate from gpg-agent - gpg-agent has issues with OpenSSH key format)
 # Reuse a single ssh-agent across shells
+# WSL note: /run/user/$UID may not exist, so fall back to ~/.ssh.
 if [ -z "$SSH_AUTH_SOCK" ] || [ ! -S "$SSH_AUTH_SOCK" ]; then
-  SSH_AGENT_SOCK="/run/user/$UID/ssh-agent.sock"
+  SSH_AGENT_DIR="${XDG_RUNTIME_DIR:-$HOME/.ssh}"
+  [ -d "$SSH_AGENT_DIR" ] || mkdir -p "$SSH_AGENT_DIR"
+  SSH_AGENT_SOCK="$SSH_AGENT_DIR/ssh-agent.sock"
+
   if [ -S "$SSH_AGENT_SOCK" ]; then
     export SSH_AUTH_SOCK="$SSH_AGENT_SOCK"
   else
-    eval "$(ssh-agent -a "$SSH_AGENT_SOCK" 2>/dev/null)" >/dev/null
+    if SSH_AGENT_OUT="$(ssh-agent -a "$SSH_AGENT_SOCK" 2>/dev/null)"; then
+      eval "$SSH_AGENT_OUT" >/dev/null
+    else
+      # Fallback for environments where fixed socket binding fails
+      eval "$(ssh-agent -s)" >/dev/null
+    fi
   fi
 fi
 
