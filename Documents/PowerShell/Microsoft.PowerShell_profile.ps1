@@ -15,6 +15,10 @@ function Add-PathOnce([string]$Dir) {
     }
 }
 
+# Git Bash unix tools (needed by pi's bash tool when launched from PowerShell)
+Add-PathOnce "$env:USERPROFILE\scoop\apps\git\current\usr\bin"
+Add-PathOnce "$env:USERPROFILE\scoop\apps\git\current\mingw64\bin"
+
 # Custom tools
 Add-PathOnce "$env:USERPROFILE\tools"
 
