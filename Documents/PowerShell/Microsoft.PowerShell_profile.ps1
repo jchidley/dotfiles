@@ -22,10 +22,21 @@ Add-PathOnce "$env:USERPROFILE\scoop\apps\git\current\mingw64\bin"
 # Python: use uv/uvx instead of pip
 Write-Host "uv: run, init, add, pip install | uvx <tool>" -ForegroundColor Cyan
 
-# API Keys Manager
+# API Keys Manager (lazy-loaded)
 Add-PathOnce "$env:USERPROFILE\tools\api-keys\bin"
-$s = "$env:USERPROFILE\tools\api-keys\bin\ak.ps1"
-if (Test-Path $s) { . $s }
+$akScript = "$env:USERPROFILE\tools\api-keys\bin\ak.ps1"
+function Initialize-Ak {
+    if (Get-Alias ak-get -ErrorAction SilentlyContinue) { return }
+    if (-not (Test-Path $akScript)) {
+        throw "ak.ps1 not found: $akScript"
+    }
+    . $akScript
+}
+function ak-get { Initialize-Ak; Get-AkSecret @args }
+function ak-set { Initialize-Ak; Set-AkSecret @args }
+function ak-rm { Initialize-Ak; Remove-AkSecret @args }
+function ak-list { Initialize-Ak; Get-AkList @args }
+function load-api-keys { Initialize-Ak; Load-ApiKeys @args }
 
 # Android Studio / SDK (only if installed)
 if (Test-Path "$env:LOCALAPPDATA\Android\Sdk") {
@@ -55,8 +66,9 @@ function Invoke-CachedInit([string]$Name, [scriptblock]$Generator) {
 
 Invoke-CachedInit 'starship'       { &starship init powershell --print-full-init }
 Invoke-CachedInit 'zoxide'         { zoxide init powershell }
-Invoke-CachedInit 'uv-completion'  { uv generate-shell-completion powershell }
-Invoke-CachedInit 'uvx-completion' { uvx --generate-shell-completion powershell }
+# Disabled: only needed for PowerShell tab completion, not for uv/uvx availability.
+# Invoke-CachedInit 'uv-completion'  { uv generate-shell-completion powershell }
+# Invoke-CachedInit 'uvx-completion' { uvx --generate-shell-completion powershell }
 
 # pi: skip version check, always pass --no-themes
 $env:PI_SKIP_VERSION_CHECK = "1"
