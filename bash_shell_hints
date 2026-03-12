@@ -10,6 +10,8 @@ Ctrl-R                           # McFly history search
 ak list                          # show configured services + status
 ak get <service>                 # decrypt one secret
 eval "$(ak export)"             # load all API keys into current shell
+export OPENROUTER_API_KEY="$(ak get openrouter)"  # load just OpenRouter
+export DEEPINFRA_API_KEY="$(ak get deepinfra)"    # load just DeepInfra
 gpgconf --kill gpg-agent          # lock GPG cache immediately (default TTL: 20h)
 ssh-add -l                        # list SSH identities (default TTL: 20h)
 

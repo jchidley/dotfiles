@@ -23,6 +23,13 @@ Add-PathOnce "$env:USERPROFILE\scoop\apps\git\current\mingw64\bin"
 Write-Host "uv: run, init, add, pip install | uvx <tool>" -ForegroundColor Cyan
 
 # API Keys Manager (lazy-loaded)
+# Examples:
+#   ak-list
+#   ak-get openrouter
+#   ak-get deepinfra
+#   $env:OPENROUTER_API_KEY = ak-get openrouter
+#   $env:DEEPINFRA_API_KEY = ak-get deepinfra
+#   load-api-keys
 Add-PathOnce "$env:USERPROFILE\tools\api-keys\bin"
 $akScript = "$env:USERPROFILE\tools\api-keys\bin\ak.ps1"
 function Initialize-Ak {

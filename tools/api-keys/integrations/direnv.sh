@@ -30,6 +30,8 @@ load_api_keys() {
         ["moonshot"]="MOONSHOT_API_KEY"
         ["octopus"]="OCTOPUS_API_KEY"
         ["openai"]="OPENAI_API_KEY"
+        ["openrouter"]="OPENROUTER_API_KEY"
+        ["deepinfra"]="DEEPINFRA_API_KEY"
         ["spider"]="SPIDER_API_KEY"
     )
 

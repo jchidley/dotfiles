@@ -127,7 +127,7 @@ if [[ -d "${WORKDIR}/ak" ]]; then
 
   echo "==> Creating ~/.envrc with minimum keys"
   cat > "${HOME}/.envrc" <<'EOF'
-use_ak github brave groq
+use_ak github brave groq openrouter deepinfra
 EOF
 
   echo "==> Allowing direnv in ~"

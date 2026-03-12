@@ -25,6 +25,8 @@ The `windows-env` skill provides cross-platform wrapper scripts that handle MSYS
 # These work from any shell environment — no manual quoting needed
 {windows-env}/ak-get brave                    # Single key to stdout
 export BRAVE_API_KEY=$({windows-env}/ak-get brave)  # Into a variable
+export OPENROUTER_API_KEY=$({windows-env}/ak-get openrouter)
+export DEEPINFRA_API_KEY=$({windows-env}/ak-get deepinfra)
 eval "$({windows-env}/ak-export)"             # All keys into env
 {windows-env}/ak-get --list                   # Show configured services
 ```

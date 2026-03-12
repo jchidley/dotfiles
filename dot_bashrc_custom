@@ -90,6 +90,8 @@ command -v direnv >/dev/null 2>&1 && eval "$(direnv hook bash)"
 #   ak set <service>     # Store secret (prompts for value)
 #   ak export            # Print "export VAR='value'" for eval
 #   load-api-keys        # Alias for: eval "$(ak export)"
+#   export OPENROUTER_API_KEY="$(ak get openrouter)"   # One-off shell export
+#   export DEEPINFRA_API_KEY="$(ak get deepinfra)"     # One-off shell export
 #
 # GPG agent caches passphrase (~20h TTL, see ~/.gnupg/gpg-agent.conf)
 # Lock immediately: gpgconf --kill gpg-agent

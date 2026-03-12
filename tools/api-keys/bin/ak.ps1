@@ -80,6 +80,20 @@ function global:Remove-AkSecret {
     }
 }
 
+function global:Get-AkEnvVar {
+    param([string]$Service)
+
+    $serviceFile = Join-Path $SERVICES_DIR "$Service.yaml"
+    if (Test-Path $serviceFile) {
+        $line = Get-Content $serviceFile | Select-String '^env_var:\s*' | Select-Object -First 1
+        if ($line) {
+            return (($line.Line -replace '^env_var:\s*', '') -replace '^"|"$', '').Trim()
+        }
+    }
+
+    return (($Service -replace '-','_').ToUpper() + "_API_KEY")
+}
+
 function global:Get-AkList {
     Write-Host "Configured services:"
 
@@ -93,7 +107,8 @@ function global:Get-AkList {
         $target = "$CRED_PREFIX$name"
         $hasSecret = $null -ne [CredManager]::Read($target)
         $mark = if ($hasSecret) { "[x]" } else { "[ ]" }
-        Write-Host "  $mark $name"
+        $envVar = Get-AkEnvVar $name
+        Write-Host "  $mark $name -> $envVar"
     }
 }
 
@@ -109,7 +124,7 @@ function global:Load-ApiKeys {
         $value = [CredManager]::Read($target)
 
         if ($null -ne $value) {
-            $envVar = ($name -replace '-','_').ToUpper() + "_API_KEY"
+            $envVar = Get-AkEnvVar $name
             Set-Item -Path "env:$envVar" -Value $value
             Write-Host "[OK] Loaded $envVar" -ForegroundColor Green
         }
