@@ -65,10 +65,28 @@ Write-Host "get-content ~/ps_shell_hints"
 
 function Invoke-CachedInit([string]$Name, [scriptblock]$Generator) {
     $file = "$cacheDir\$Name.ps1"
-    if (-not (Test-Path $file)) {
-        & $Generator | Out-String | Set-Content $file
+
+    $needsRegen = $true
+    if (Test-Path $file) {
+        try {
+            $item = Get-Item $file -ErrorAction Stop
+            # Treat tiny files as broken/empty cache and regenerate
+            $needsRegen = ($item.Length -lt 20)
+        } catch {
+            $needsRegen = $true
+        }
     }
-    . $file
+
+    if ($needsRegen) {
+        $content = & $Generator | Out-String
+        if (-not [string]::IsNullOrWhiteSpace($content)) {
+            Set-Content -Path $file -Value $content
+        }
+    }
+
+    if (Test-Path $file) {
+        . $file
+    }
 }
 
 Invoke-CachedInit 'starship'       { &starship init powershell --print-full-init }
