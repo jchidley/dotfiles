@@ -37,19 +37,55 @@ fi
 eval "$(ssh-agent -s)"
 ssh-add "${HOME}/.ssh/id_ed25519" >/dev/null 2>&1 || true
 
-echo
-echo "=== Add this public key to GitHub → Settings → SSH keys ==="
-cat "${HOME}/.ssh/id_ed25519.pub"
-echo "==========================================================="
-read -rp "Press Enter once key is added to GitHub..."
+echo "==> Testing existing GitHub SSH auth"
+ssh_test_output="$(ssh -o BatchMode=yes -o StrictHostKeyChecking=accept-new -T git@github.com 2>&1 || true)"
+if grep -qi "successfully authenticated" <<<"${ssh_test_output}"; then
+  echo "  - Existing SSH key already works with GitHub"
+  echo "${ssh_test_output}"
+else
+  echo
+  echo "=== Add this public key to GitHub → Settings → SSH keys ==="
+  cat "${HOME}/.ssh/id_ed25519.pub"
+  echo "==========================================================="
+  read -rp "Press Enter once key is added to GitHub..."
 
-echo "==> Testing GitHub SSH auth"
-ssh -o StrictHostKeyChecking=accept-new -T git@github.com || true
+  echo "==> Testing GitHub SSH auth"
+  ssh -o StrictHostKeyChecking=accept-new -T git@github.com || true
+fi
 
 echo "==> Reading GitHub token (for API only)"
 if [[ -z "${GITHUB_TOKEN:-}" ]]; then
+  if command -v ak >/dev/null 2>&1; then
+    GITHUB_TOKEN="$(ak get github 2>/dev/null || true)"
+    if [[ -n "${GITHUB_TOKEN}" ]]; then
+      echo "  - Using token from ak"
+    fi
+  elif [[ -x "${HOME}/tools/api-keys/bin/ak" ]]; then
+    GITHUB_TOKEN="$("${HOME}/tools/api-keys/bin/ak" get github 2>/dev/null || true)"
+    if [[ -n "${GITHUB_TOKEN}" ]]; then
+      echo "  - Using token from ~/tools/api-keys/bin/ak"
+    fi
+  fi
+fi
+
+if [[ -z "${GITHUB_TOKEN:-}" ]] && command -v gh >/dev/null 2>&1; then
+  GITHUB_TOKEN="$(gh auth token 2>/dev/null || true)"
+  if [[ -n "${GITHUB_TOKEN}" ]]; then
+    echo "  - Using token from gh auth"
+  fi
+fi
+
+if [[ -z "${GITHUB_TOKEN:-}" ]]; then
   read -rsp "Enter GitHub token (repo read access): " GITHUB_TOKEN
   echo
+fi
+
+if ! curl -fsSL \
+  -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+  -H "Accept: application/vnd.github+json" \
+  "https://api.github.com/user" >/dev/null; then
+  echo "GitHub token is invalid or missing required scopes (need repo read access)." >&2
+  exit 1
 fi
 
 mkdir -p "${WORKDIR}"
@@ -120,7 +156,9 @@ fi
 echo "==> Syncing ak scripts into ~/tools/api-keys"
 if [[ -d "${WORKDIR}/ak" ]]; then
   mkdir -p "${HOME}/tools/api-keys"
-  cp -a "${WORKDIR}/ak/." "${HOME}/tools/api-keys/"
+  # Keep runtime copy non-git: remove copied repo metadata if present, then sync files excluding .git
+  rm -rf "${HOME}/tools/api-keys/.git"
+  (cd "${WORKDIR}/ak" && tar --exclude=.git -cf - .) | (cd "${HOME}/tools/api-keys" && tar -xpf -)
 
   mkdir -p "${HOME}/.config/direnv/lib"
   ln -sf "${HOME}/tools/api-keys/integrations/direnv.sh" "${HOME}/.config/direnv/lib/ak.sh"
@@ -143,8 +181,28 @@ else
   echo "  - ${WORKDIR}/agent-skills/install.sh not found; skipping"
 fi
 
-echo "==> Installing chezmoi and applying dotfiles"
-sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply "${GITHUB_USER}"
+echo "==> Installing chezmoi"
+sh -c "$(curl -fsLS get.chezmoi.io)"
+
+CHEZMOI_BIN="$(command -v chezmoi || true)"
+if [[ -z "${CHEZMOI_BIN}" && -x "${HOME}/.local/bin/chezmoi" ]]; then
+  CHEZMOI_BIN="${HOME}/.local/bin/chezmoi"
+fi
+
+if [[ -n "${CHEZMOI_BIN}" ]]; then
+  APPLY_CHEZMOI="${APPLY_CHEZMOI:-}"
+  if [[ -z "${APPLY_CHEZMOI}" && -t 0 ]]; then
+    read -rp "Apply chezmoi dotfiles now? [y/N]: " APPLY_CHEZMOI
+  fi
+
+  if [[ "${APPLY_CHEZMOI,,}" =~ ^(y|yes)$ ]]; then
+    "${CHEZMOI_BIN}" init --apply "${GITHUB_USER}"
+  else
+    echo "  - Skipping chezmoi apply (run later with: chezmoi init --apply ${GITHUB_USER})"
+  fi
+else
+  echo "  - chezmoi binary not found after install; skipping apply"
+fi
 
 echo "==> Installing mcfly (if needed)"
 if ! command -v mcfly >/dev/null 2>&1; then
@@ -175,6 +233,19 @@ npm install -g @mariozechner/pi-coding-agent
 echo "==> Installing Bitwarden CLI (optional, for McFly password retrieval)"
 if ! command -v bw >/dev/null 2>&1; then
   npm install -g @bitwarden/cli || echo "  - Failed to install @bitwarden/cli; McFly scripts will prompt for password"
+fi
+
+if [[ -x "${HOME}/tools/api-keys/bin/ak" ]]; then
+  AK_INIT_NOW="${AK_INIT_NOW:-}"
+  if [[ -z "${AK_INIT_NOW}" && -t 0 ]]; then
+    read -rp "Run 'ak init' now? [y/N]: " AK_INIT_NOW
+  fi
+
+  if [[ "${AK_INIT_NOW,,}" =~ ^(y|yes)$ ]]; then
+    "${HOME}/tools/api-keys/bin/ak" init || echo "  - ak init did not complete; run later with: ak init"
+  else
+    echo "  - Skipping ak init (run later with: ak init)"
+  fi
 fi
 
 echo "✅ Bootstrap complete."
