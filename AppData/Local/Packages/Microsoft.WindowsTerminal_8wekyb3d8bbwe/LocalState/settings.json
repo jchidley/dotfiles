@@ -85,14 +85,16 @@
                 "guid": "{58ad8b0c-3ef8-5f4d-bc6f-13e4c00f2530}",
                 "hidden": false,
                 "icon": "%LOCALAPPDATA%\\wsl\\{82e039d5-3dfd-497a-a115-dae06cfe05d6}\\shortcut.ico",
-                "name": "Debian"
+                "name": "Debian",
+                "startingDirectory": "~"
             },
             {
                 "commandline": "wsl.exe -d archlinux",
                 "guid": "{A06AD568-9EAE-4B45-98E1-D7B6A5309EEC}",
                 "hidden": false,
                 "icon": "%LOCALAPPDATA%\\wsl\\{38e056d5-955a-4929-b05f-74c8d3c8e8fb}\\shortcut.ico",
-                "name": "Arch Linux"
+                "name": "Arch Linux",
+                "startingDirectory": "~"
             }
         ]
     },

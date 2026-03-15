@@ -1,3 +1,8 @@
+# Enable useful globbing behavior
+# - globstar: "**" matches files in subdirectories
+# - nullglob: patterns that don't match expand to nothing
+shopt -s globstar nullglob
+
 [ -f "$HOME/.cargo/env" ] && . "$HOME/.cargo/env"
 
 # Preferred editor (Helix if installed, fallback to nano)
@@ -38,6 +43,9 @@ path_prepend "$HOME/tools/api-keys/bin"
 # GPG agent (for ak/GPG encryption, 20h cache)
 [ -t 0 ] && export GPG_TTY="$(tty)"
 [ -t 0 ] && gpgconf --launch gpg-agent 2>/dev/null
+
+# Auto-export all stored API keys into environment (gpg-agent caches passphrase ~20h)
+[ -t 0 ] && command -v ak >/dev/null 2>&1 && load_api_keys 2>/dev/null
 
 # SSH agent (separate from gpg-agent - gpg-agent has issues with OpenSSH key format)
 # Reuse a single ssh-agent across shells
@@ -228,3 +236,8 @@ fi
 
 # starship prompt (must be last - overrides PS1)
 [ -t 1 ] && command -v starship &>/dev/null && eval "$(starship init bash)"
+
+# Start in scratch dir
+scratch="$HOME/tmp"
+[[ -d "$scratch" ]] || mkdir -p "$scratch"
+cd "$scratch"

@@ -99,5 +99,7 @@ Invoke-CachedInit 'zoxide'         { zoxide init powershell }
 $env:PI_SKIP_VERSION_CHECK = "1"
 function pi { & pi.CMD --no-themes @args }
 
-# Start in temp dir
-Set-Location $env:TEMP
+# Start in scratch dir
+$scratchDir = "$env:USERPROFILE\tmp"
+if (-not (Test-Path $scratchDir)) { $null = New-Item -ItemType Directory -Path $scratchDir -Force }
+Set-Location $scratchDir

@@ -40,3 +40,29 @@ If keys return empty, check `wsl -l -v` — Debian must be the default distro. F
 {{ includeTemplate "agent-python-uv.md.tmpl" }}
 
 {{ includeTemplate "agent-screenshot-intent.md.tmpl" }}
+
+## Autonomous Completion
+You must complete tasks fully without expecting human feedback or handoff.
+Do not present partial results hoping for steering — finish the job.
+
+## Multimedia Files  
+You do NOT have eyes or ears. When you generate or encounter image/audio/video 
+files, use programmatic tools (e.g., read tool for images, ffprobe for media) 
+to inspect them. Never ask the user to "look at" a generated file.
+
+## Before Declaring Done
+Re-read the original request. Then verify:
+1. Does the solution meet every stated requirement? (list each, with evidence)
+2. Is the solution robust to changing values, sizes, paths, or configs — not 
+   just hardcoded for the current case?
+3. Self-check from three perspectives:
+   - Test engineer: Would this pass automated tests?
+   - QA engineer: Are there edge cases or regressions?
+   - Requesting user: Does this actually solve what they asked for?
+
+If any check fails, fix it before reporting completion.
+
+## Replanning
+When a step fails or produces unexpected results, stop and reassess.
+State your revised plan before continuing — don't keep hammering the 
+original approach.
