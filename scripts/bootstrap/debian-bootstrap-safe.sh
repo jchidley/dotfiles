@@ -14,7 +14,7 @@ EXCLUDE_REPOS="${EXCLUDE_REPOS:-core,chibicc-riscv,alpine_images,PythonCookbook,
 echo "==> Updating system"
 sudo apt update
 sudo apt upgrade -y
-sudo apt install -y git curl unzip jq sqlite3 openssh-client ca-certificates gnupg2 dirmngr pinentry-curses direnv zoxide hx tmux
+sudo apt install -y git curl unzip jq sqlite3 openssh-client ca-certificates gnupg2 dirmngr pinentry-curses direnv zoxide hx tmux bat
 
 echo "==> Configuring gpg-agent cache TTL (20h)"
 mkdir -p "${HOME}/.gnupg"
