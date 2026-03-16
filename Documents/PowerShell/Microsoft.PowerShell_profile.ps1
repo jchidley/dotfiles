@@ -5,7 +5,7 @@
 
 # --- Cache dir for shell init scripts ---
 # Regenerate all caches: Remove-Item "$env:LOCALAPPDATA\pwsh-cache\*"
-$cacheDir = "$env:LOCALAPPDATA\pwsh-cache"
+$cacheDir = "$env:LOCALAPPDATA\pwsh-cache\$($PSVersionTable.PSVersion.Major)"
 if (-not (Test-Path $cacheDir)) { $null = New-Item -ItemType Directory -Path $cacheDir -Force }
 
 # --- PATH helpers ---
