@@ -1,0 +1,62 @@
+{{- if eq .chezmoi.os "linux" -}}
+#!/bin/bash
+# Ensure .wslconfig has dnsTunneling=true and /etc/wsl.conf is correct.
+# Only runs inside WSL.
+
+set -euo pipefail
+
+if [ ! -f /proc/sys/fs/binfmt_misc/WSLInterop ] 2>/dev/null; then
+    echo "Not running in WSL, skipping."
+    exit 0
+fi
+
+WIN_USER=$(powershell.exe -NoProfile -Command '[Environment]::UserName' 2>/dev/null | tr -d '\r')
+WIN_HOME="/mnt/c/Users/${WIN_USER}"
+
+if [ ! -d "$WIN_HOME" ]; then
+    echo "Windows home not found at $WIN_HOME, skipping."
+    exit 0
+fi
+
+# --- .wslconfig (Windows side) ---
+# Ensure dnsTunneling=true exists under [experimental], don't clobber other settings
+WSLCONFIG="${WIN_HOME}/.wslconfig"
+
+if [ ! -f "$WSLCONFIG" ]; then
+    cat > "$WSLCONFIG" << 'EOF'
+[experimental]
+dnsTunneling=true
+EOF
+    echo "Created $WSLCONFIG with dnsTunneling=true"
+elif grep -q '^dnsTunneling\s*=' "$WSLCONFIG"; then
+    # Key exists — ensure it's set to true
+    sed -i 's/^dnsTunneling\s*=.*/dnsTunneling=true/' "$WSLCONFIG"
+    echo "Updated dnsTunneling=true in $WSLCONFIG"
+elif grep -q '^\[experimental\]' "$WSLCONFIG"; then
+    # [experimental] section exists but no dnsTunneling line — add it
+    sed -i '/^\[experimental\]/a dnsTunneling=true' "$WSLCONFIG"
+    echo "Added dnsTunneling=true to [experimental] in $WSLCONFIG"
+else
+    # No [experimental] section — append it
+    printf '\n[experimental]\ndnsTunneling=true\n' >> "$WSLCONFIG"
+    echo "Appended [experimental] + dnsTunneling=true to $WSLCONFIG"
+fi
+
+# --- /etc/wsl.conf (Linux side) ---
+# Ensure interop is enabled; let WSL auto-generate resolv.conf (dnsTunneling handles DNS)
+DESIRED=$(cat << 'EOF'
+[interop]
+enabled=true
+appendWindowsPath=true
+EOF
+)
+
+if [ "$(cat /etc/wsl.conf 2>/dev/null)" != "$DESIRED" ]; then
+    echo "$DESIRED" | sudo tee /etc/wsl.conf > /dev/null
+    echo "Updated /etc/wsl.conf"
+else
+    echo "/etc/wsl.conf already correct"
+fi
+
+echo "Done. Run 'wsl --shutdown' from PowerShell for changes to take effect."
+{{- end }}
