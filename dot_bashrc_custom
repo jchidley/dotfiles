@@ -67,9 +67,12 @@ if [ -z "$SSH_AUTH_SOCK" ] || [ ! -S "$SSH_AUTH_SOCK" ]; then
   fi
 fi
 
-# Add SSH key if agent has no identities
+# Add SSH key if agent has no identities (passphrase from ak/GPG store)
 if command -v ssh-add >/dev/null 2>&1 && ! ssh-add -l >/dev/null 2>&1; then
-  [ -t 0 ] && [ -f "$HOME/.ssh/id_ed25519" ] && ssh-add -t 72000 "$HOME/.ssh/id_ed25519"
+  if [ -t 0 ] && [ -f "$HOME/.ssh/id_ed25519" ] && [ -x "$HOME/tools/api-keys/bin/ak-ssh-askpass" ]; then
+    SSH_ASKPASS="$HOME/tools/api-keys/bin/ak-ssh-askpass" SSH_ASKPASS_REQUIRE=force \
+      ssh-add -t 72000 "$HOME/.ssh/id_ed25519" 2>/dev/null
+  fi
 fi
 
 # Pico SDK paths - only export if directories exist
