@@ -44,28 +44,32 @@ path_prepend "$HOME/tools/api-keys/bin"
 [ -t 0 ] && export GPG_TTY="$(tty)"
 [ -t 0 ] && gpgconf --launch gpg-agent 2>/dev/null
 
-# Auto-export all stored API keys into environment (gpg-agent caches passphrase ~20h)
-[ -t 0 ] && command -v ak >/dev/null 2>&1 && load_api_keys 2>/dev/null
+# API keys are loaded via direnv (~/.envrc → use_ak). No load_api_keys here.
 
 # SSH agent (separate from gpg-agent - gpg-agent has issues with OpenSSH key format)
-# Reuse a single ssh-agent across shells
-# WSL note: /run/user/$UID may not exist, so fall back to ~/.ssh.
-if [ -z "$SSH_AUTH_SOCK" ] || [ ! -S "$SSH_AUTH_SOCK" ]; then
-  SSH_AGENT_DIR="${XDG_RUNTIME_DIR:-$HOME/.ssh}"
-  [ -d "$SSH_AGENT_DIR" ] || mkdir -p "$SSH_AGENT_DIR"
-  SSH_AGENT_SOCK="$SSH_AGENT_DIR/ssh-agent.sock"
+# Reuse a single ssh-agent across shells. Never spawn a throwaway agent.
+# Priority: 1) existing SSH_AUTH_SOCK  2) WSL-provided socket  3) our fixed socket  4) start one
+_ssh_sock_ok() { [ -S "${1:-}" ] && SSH_AUTH_SOCK="$1" ssh-add -l >/dev/null 2>&1; }
 
-  if [ -S "$SSH_AGENT_SOCK" ]; then
-    export SSH_AUTH_SOCK="$SSH_AGENT_SOCK"
+if ! _ssh_sock_ok "$SSH_AUTH_SOCK"; then
+  # Try WSL2's built-in agent
+  if _ssh_sock_ok "/mnt/wslg/runtime-dir/ssh-agent.sock"; then
+    export SSH_AUTH_SOCK="/mnt/wslg/runtime-dir/ssh-agent.sock"
   else
-    if SSH_AGENT_OUT="$(ssh-agent -a "$SSH_AGENT_SOCK" 2>/dev/null)"; then
-      eval "$SSH_AGENT_OUT" >/dev/null
+    # Try our own fixed socket
+    SSH_AGENT_DIR="${XDG_RUNTIME_DIR:-$HOME/.ssh}"
+    SSH_AGENT_SOCK="$SSH_AGENT_DIR/ssh-agent.sock"
+    if _ssh_sock_ok "$SSH_AGENT_SOCK"; then
+      export SSH_AUTH_SOCK="$SSH_AGENT_SOCK"
     else
-      # Fallback for environments where fixed socket binding fails
-      eval "$(ssh-agent -s)" >/dev/null
+      # No live agent anywhere — start exactly one on a fixed socket
+      [ -d "$SSH_AGENT_DIR" ] || mkdir -p "$SSH_AGENT_DIR"
+      rm -f "$SSH_AGENT_SOCK"
+      eval "$(ssh-agent -a "$SSH_AGENT_SOCK")" >/dev/null
     fi
   fi
 fi
+unset -f _ssh_sock_ok
 
 # Add SSH key if agent has no identities (passphrase from ak/GPG store)
 if command -v ssh-add >/dev/null 2>&1 && ! ssh-add -l >/dev/null 2>&1; then
