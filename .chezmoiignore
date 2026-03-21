@@ -5,6 +5,11 @@ Documents
 {{ end }}
 {{ if eq .chezmoi.os "windows" }}
 .emacs.d
+# Windows reserved device names (cause "unsupported file type" errors)
+nul
+con
+aux
+prn
 {{ end }}
 {{ if ne .chezmoi.os "linux" }}
 ./.bashrc_debian
