@@ -30,6 +30,10 @@ export _ZO_ECHO=1
 
 path_prepend "$HOME/bin"
 path_prepend "$HOME/.local/bin"
+case ":$PATH:" in
+  *":$HOME/.local/share/mise/shims:"*) ;;
+  *) export PATH="$HOME/.local/share/mise/shims${PATH:+:$PATH}" ;;
+esac
 path_prepend "$HOME/.amp/bin"
 path_prepend "/usr/local/go/bin"
 path_prepend "$HOME/.pi/agent/skills/windows-env"
