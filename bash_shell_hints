@@ -12,6 +12,7 @@ ak get <service>                 # decrypt one secret
 eval "$(ak export)"             # load all API keys into current shell
 export OPENROUTER_API_KEY="$(ak get openrouter)"  # load just OpenRouter
 export DEEPINFRA_API_KEY="$(ak get deepinfra)"    # load just DeepInfra
+export DEEPSEEK_API_KEY="$(ak get deepseek)"      # load just DeepSeek
 gpgconf --kill gpg-agent          # lock GPG cache immediately (default TTL: 20h)
 ssh-add -l                        # list SSH identities (default TTL: 20h)
 
