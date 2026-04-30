@@ -3,6 +3,9 @@
 $env:USERPROFILE/.local/share/chezmoi
 Documents\PowerShell\Microsoft.PowerShell_profile.ps1 # in $env:USERPROFILE/.local/share/chezmoi
 gci env: #environment variables
+sync-wsl-api-keys deepseek # update Windows Credential Manager copy from Debian ak, then load DEEPSEEK_API_KEY
+sync-wsl-api-keys # update all Windows Credential Manager ak copies from Debian source of truth
+ak-list / load-api-keys # list/load Windows Credential Manager ak store; profile autoloads these at startup
 #---
 bw login jack@chidley.org --method 0
 bw unlock

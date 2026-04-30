@@ -23,11 +23,22 @@ if (-not ([System.Management.Automation.PSTypeName]'CredManager').Type) {
         & $CREDMANAGER_BUILD | Out-Null
     }
 
-    if (-not (Test-Path $CREDMANAGER_DLL)) {
-        throw "CredManager.dll not found: $CREDMANAGER_DLL"
+    if (Test-Path $CREDMANAGER_DLL) {
+        try {
+            Add-Type -Path $CREDMANAGER_DLL -ErrorAction Stop
+        } catch {
+            if (-not (Test-Path $CREDMANAGER_SOURCE)) {
+                throw
+            }
+            $source = Get-Content $CREDMANAGER_SOURCE -Raw
+            Add-Type -TypeDefinition $source -Language CSharp -ErrorAction Stop
+        }
+    } elseif (Test-Path $CREDMANAGER_SOURCE) {
+        $source = Get-Content $CREDMANAGER_SOURCE -Raw
+        Add-Type -TypeDefinition $source -Language CSharp -ErrorAction Stop
+    } else {
+        throw "CredManager helper not found: $CREDMANAGER_DLL or $CREDMANAGER_SOURCE"
     }
-
-    Add-Type -Path $CREDMANAGER_DLL
 }
 
 function global:Get-AkSecret {

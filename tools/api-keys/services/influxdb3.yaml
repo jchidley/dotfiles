@@ -1,0 +1,3 @@
+name: influxdb3
+env_var: INFLUXDB3_API_KEY
+description: Synced from Debian ak
