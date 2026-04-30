@@ -1,0 +1,7 @@
+# chezmoi run-on-change hook: apply curated Windows Terminal preferences/profiles.
+$script = Join-Path $env:USERPROFILE 'scripts\configure-windows-terminal.ps1'
+if (Test-Path $script) {
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script
+} else {
+    Write-Warning "Windows Terminal configuration script not found: $script"
+}
