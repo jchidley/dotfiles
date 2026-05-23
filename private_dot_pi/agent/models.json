@@ -1,0 +1,78 @@
+{
+  "providers": {
+    "deepinfra": {
+      "baseUrl": "https://api.deepinfra.com/v1/openai",
+      "api": "openai-completions",
+      "apiKey": "DEEPINFRA_API_KEY",
+      "models": [
+        {
+          "id": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B",
+          "name": "Nemotron 3 Super 120B (DeepInfra)",
+          "reasoning": true,
+          "input": [
+            "text",
+            "image"
+          ],
+          "contextWindow": 262144,
+          "maxTokens": 16384,
+          "cost": {
+            "input": 0.1,
+            "output": 0.5,
+            "cacheRead": 0.04,
+            "cacheWrite": 0
+          },
+          "compat": {
+            "supportsDeveloperRole": false,
+            "supportsStore": false,
+            "supportsReasoningEffort": true,
+            "maxTokensField": "max_tokens"
+          },
+          "thinkingLevelMap": {
+            "minimal": "none",
+            "low": "low",
+            "medium": "medium",
+            "high": "high",
+            "xhigh": "high"
+          }
+        }
+      ]
+    },
+    "openrouter": {
+      "baseUrl": "https://openrouter.ai/api/v1",
+      "api": "openai-completions",
+      "apiKey": "OPENROUTER_API_KEY",
+      "models": [
+        {
+          "id": "nvidia/nemotron-3-super-120b-a12b:free",
+          "name": "Nemotron 3 Super 120B (Free)",
+          "reasoning": true,
+          "input": [
+            "text",
+            "image"
+          ],
+          "contextWindow": 262144,
+          "maxTokens": 16384,
+          "cost": {
+            "input": 0,
+            "output": 0,
+            "cacheRead": 0,
+            "cacheWrite": 0
+          },
+          "compat": {
+            "supportsDeveloperRole": false,
+            "supportsStore": false,
+            "supportsReasoningEffort": true,
+            "maxTokensField": "max_tokens"
+          },
+          "thinkingLevelMap": {
+            "minimal": "none",
+            "low": "low",
+            "medium": "medium",
+            "high": "high",
+            "xhigh": "high"
+          }
+        }
+      ]
+    }
+  }
+}
