@@ -3,7 +3,7 @@
     "deepinfra": {
       "baseUrl": "https://api.deepinfra.com/v1/openai",
       "api": "openai-completions",
-      "apiKey": "DEEPINFRA_API_KEY",
+      "apiKey": "$DEEPINFRA_API_KEY",
       "models": [
         {
           "id": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B",
@@ -40,7 +40,7 @@
     "openrouter": {
       "baseUrl": "https://openrouter.ai/api/v1",
       "api": "openai-completions",
-      "apiKey": "OPENROUTER_API_KEY",
+      "apiKey": "$OPENROUTER_API_KEY",
       "models": [
         {
           "id": "nvidia/nemotron-3-super-120b-a12b:free",
