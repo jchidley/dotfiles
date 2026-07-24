@@ -1,13 +1,24 @@
 {
   "lastChangelogVersion": "0.80.5",
   "defaultProvider": "openai-codex",
-  "defaultModel": "gpt-5.6-terra",
-  "defaultThinkingLevel": "medium",
+  "defaultModel": "gpt-5.6-sol",
+  "defaultThinkingLevel": "low",
   "compaction": {
     "enabled": false
   },
   "theme": "dark",
   "transport": "websocket",
   "httpIdleTimeoutMs": 0,
-  "websocketConnectTimeoutMs": 60000
+  "websocketConnectTimeoutMs": 60000,
+  "enabledModels": [
+    "openai-codex/gpt-5.6-sol",
+    "together/zai-org/GLM-5.2",
+    "deepinfra/zai-org/GLM-5.2",
+    "openai-codex/gpt-5.6-terra",
+    "together/nvidia/nemotron-3-ultra-550b-a55b",
+    "deepinfra/nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B",
+    "mistral/mistral-medium-3.5",
+    "openai-codex/gpt-5.6-luna",
+    "mistral/mistral-small-2603"
+  ]
 }
