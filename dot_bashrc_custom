@@ -116,6 +116,12 @@ command -v direnv >/dev/null 2>&1 && eval "$(direnv hook bash)"
 # GPG agent caches passphrase (~20h TTL, see ~/.gnupg/gpg-agent.conf)
 # Lock immediately: gpgconf --kill gpg-agent
 
+# Load all configured API keys into each interactive WSL shell.
+# Metadata controls the exported variable name; secrets remain GPG-encrypted.
+if [[ $- == *i* ]] && command -v ak >/dev/null 2>&1; then
+    eval "$(ak export)"
+fi
+
 # Aliases
 alias clauded='claude --dangerously-skip-permissions'
 alias codexd='codex -s danger-full-access'
