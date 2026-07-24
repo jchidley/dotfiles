@@ -65,6 +65,49 @@
           }
         }
       ]
+    },
+    "openrouter-baseten": {
+      "baseUrl": "https://openrouter.ai/api/v1",
+      "api": "openai-completions",
+      "apiKey": "$OPENROUTER_API_KEY",
+      "models": [
+        {
+          "id": "nvidia/nemotron-3-ultra-550b-a55b",
+          "name": "Nemotron 3 Ultra (Baseten via OpenRouter, paid/pinned)",
+          "reasoning": true,
+          "input": [
+            "text"
+          ],
+          "contextWindow": 202800,
+          "maxTokens": 32768,
+          "cost": {
+            "input": 0.6,
+            "output": 2.4,
+            "cacheRead": 0,
+            "cacheWrite": 0
+          },
+          "compat": {
+            "supportsDeveloperRole": false,
+            "supportsStore": false,
+            "supportsReasoningEffort": true,
+            "maxTokensField": "max_tokens",
+            "thinkingFormat": "openrouter",
+            "openRouterRouting": {
+              "only": [
+                "baseten"
+              ],
+              "allow_fallbacks": false
+            }
+          },
+          "thinkingLevelMap": {
+            "minimal": "minimal",
+            "low": "low",
+            "medium": "medium",
+            "high": "high",
+            "xhigh": "high"
+          }
+        }
+      ]
     }
   }
 }
