@@ -1,10 +1,8 @@
+{{- if eq .chezmoi.os "windows" -}}
 # chezmoi run-on-change hook: apply the repository-only helper directly.
-{{- if eq .chezmoi.os "linux" }}
-$script = {{ output "wslpath" "-w" (joinPath .chezmoi.sourceDir "scripts/configure-windows-terminal.ps1") | trim | quote }}
-{{- else }}
 $script = {{ joinPath .chezmoi.sourceDir "scripts/configure-windows-terminal.ps1" | quote }}
-{{- end }}
 if (-not (Test-Path $script)) {
     throw "Windows Terminal configuration helper not found: $script"
 }
 & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script
+{{- end -}}

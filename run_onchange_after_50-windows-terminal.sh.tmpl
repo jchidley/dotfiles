@@ -1,0 +1,9 @@
+{{- if eq .chezmoi.os "linux" -}}
+#!/bin/bash
+set -euo pipefail
+
+helper={{ joinPath .chezmoi.sourceDir "scripts/configure-windows-terminal.ps1" | quote }}
+[[ -f "$helper" ]] || { echo "Windows Terminal configuration helper not found: $helper" >&2; exit 1; }
+helper_windows="$(wslpath -w "$helper")"
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$helper_windows"
+{{- end -}}
