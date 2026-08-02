@@ -15,17 +15,19 @@ sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply jchidley
 
 This installs chezmoi and applies all managed dotfiles.
 
-### Full Debian Bootstrap (packages/repos/node tooling)
+### Debian workspace bootstrap
 
-After dotfiles are applied, run one of:
+After chezmoi is initialized, run the repository-only bootstrap from the authoritative source checkout:
 
 ```bash
-# Minimal startup repos only (dotfiles, ak, agent-skills, tools)
-BOOTSTRAP_MODE=core ~/github/dotfiles/scripts/bootstrap/debian-bootstrap-safe.sh
+# Foundation repositories declared in workspace-repos.tsv
+BOOTSTRAP_MODE=core ~/.local/share/chezmoi/scripts/bootstrap/debian-bootstrap-safe.sh
 
-# Full repo sync (all except blacklist)
-BOOTSTRAP_MODE=full ~/github/dotfiles/scripts/bootstrap/debian-bootstrap-safe.sh
+# Every explicitly declared group for the selected profile
+BOOTSTRAP_MODE=full ~/.local/share/chezmoi/scripts/bootstrap/debian-bootstrap-safe.sh
 ```
+
+`full` never means every repository returned by the GitHub API.
 
 ### Update Existing Installation
 

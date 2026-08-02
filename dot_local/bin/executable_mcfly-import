@@ -17,16 +17,16 @@ get_chezmoi_dir() {
 
 get_password() {
     local pw=""
-    if command -v bw >/dev/null 2>&1; then
-        pw="$(bw get password "bashrc-pgp" 2>/dev/null || true)"
+    if command -v ak >/dev/null 2>&1; then
+        pw="$(ak get mcfly-backup 2>/dev/null || true)"
     fi
 
     if [ -z "$pw" ]; then
-        read -r -s -p "Password: " pw
-        echo
+        read -r -s -p "McFly backup passphrase (store later with 'ak set mcfly-backup'): " pw
+        echo >&2
     fi
 
-    echo "$pw"
+    printf '%s' "$pw"
 }
 
 entry_count() {
@@ -40,9 +40,9 @@ entry_count() {
     echo "${count:-0}"
 }
 
-MCFLY_DB="$HOME/.local/share/mcfly/history.db"
+MCFLY_DB="${MCFLY_DB:-$HOME/.local/share/mcfly/history.db}"
 CHEZMOI_DIR="$(get_chezmoi_dir)"
-ENCRYPTED_DIR="$CHEZMOI_DIR/mcfly_backups"
+ENCRYPTED_DIR="${MCFLY_BACKUP_DIR:-$CHEZMOI_DIR/mcfly_backups}"
 CURRENT_MACHINE="$(hostname)_$(cat /etc/machine-id 2>/dev/null | head -c 8 || echo "unknown")"
 
 command -v mcfly >/dev/null 2>&1 || { echo "✗ McFly not installed"; exit 1; }
@@ -61,7 +61,8 @@ import() {
     count="$(entry_count)"
     if [ "$count" -eq 0 ]; then
         mkdir -p "$(dirname "$MCFLY_DB")"
-        gpg --batch --yes --passphrase "$password" --decrypt "$file" > "$MCFLY_DB" 2>/dev/null &&
+        printf '%s' "$password" | gpg --batch --yes --pinentry-mode loopback --passphrase-fd 0 \
+            --decrypt "$file" > "$MCFLY_DB" 2>/dev/null &&
             echo "✓ Imported from $machine (fast)" && return 0 || {
             echo "✗ Decrypt failed"
             return 1
@@ -75,10 +76,13 @@ import() {
         return 1
     }
 
-    local temp_db="/tmp/mcfly_$(date +%s).db"
+    local temp_db
+    temp_db="$(mktemp "${TMPDIR:-/tmp}/mcfly-import.XXXXXX.db")"
+    chmod 600 "$temp_db"
     cp "$MCFLY_DB" "$MCFLY_DB.backup.$(date +%Y%m%d_%H%M%S)"
 
-    if gpg --batch --yes --passphrase "$password" --decrypt "$file" > "$temp_db" 2>/dev/null; then
+    if printf '%s' "$password" | gpg --batch --yes --pinentry-mode loopback --passphrase-fd 0 \
+        --decrypt "$file" > "$temp_db" 2>/dev/null; then
         local before after
         before="$(entry_count)"
         echo "Merging from $machine (before: $before items)..."
@@ -99,6 +103,7 @@ import() {
         echo "✓ Added $((after - before)) entries from $machine"
         rm -f "$temp_db"
     else
+        rm -f "$temp_db"
         echo "✗ Decrypt failed"
         return 1
     fi

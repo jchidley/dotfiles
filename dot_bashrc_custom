@@ -40,9 +40,8 @@ path_prepend "$HOME/.pi/agent/skills/windows-env"
 # see https://github.com/neovim/neovim/blob/master/INSTALL.md#install-from-package
 path_append "/opt/nvim-linux-x86_64/bin"
 
-# API Keys Manager (ak) - GPG-based secret management
-path_prepend "$HOME/tools/api-keys/bin"
-[[ -f "$HOME/tools/api-keys/bin/ak-functions.sh" ]] && source "$HOME/tools/api-keys/bin/ak-functions.sh"
+# API Keys Manager (ak) - command is installed in ~/.local/bin.
+[[ -f "$HOME/github/ak/bin/ak-functions.sh" ]] && source "$HOME/github/ak/bin/ak-functions.sh"
 
 # GPG agent (for ak/GPG encryption, 20h cache)
 [ -t 0 ] && export GPG_TTY="$(tty)"
@@ -77,8 +76,8 @@ unset -f _ssh_sock_ok
 
 # Add SSH key if agent has no identities (passphrase from ak/GPG store)
 if command -v ssh-add >/dev/null 2>&1 && ! ssh-add -l >/dev/null 2>&1; then
-  if [ -t 0 ] && [ -f "$HOME/.ssh/id_ed25519" ] && [ -x "$HOME/tools/api-keys/bin/ak-ssh-askpass" ]; then
-    SSH_ASKPASS="$HOME/tools/api-keys/bin/ak-ssh-askpass" SSH_ASKPASS_REQUIRE=force \
+  if [ -t 0 ] && [ -f "$HOME/.ssh/id_ed25519" ] && [ -x "$HOME/.local/bin/ak-ssh-askpass" ]; then
+    SSH_ASKPASS="$HOME/.local/bin/ak-ssh-askpass" SSH_ASKPASS_REQUIRE=force \
       ssh-add -t 72000 "$HOME/.ssh/id_ed25519" 2>/dev/null
   fi
 fi
@@ -101,7 +100,7 @@ export MCFLY_RESULTS=60
 command -v direnv >/dev/null 2>&1 && eval "$(direnv hook bash)"
 
 
-# API Keys - GPG-based management (see ~/tools/api-keys/LLM.md)
+# API Keys - GPG-based management (see ~/github/ak/LLM.md)
 # 
 # Quick usage:
 #   ak list              # Show all services with secret status

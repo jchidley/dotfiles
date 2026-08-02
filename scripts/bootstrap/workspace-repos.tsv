@@ -1,0 +1,9 @@
+# group	kind	repository	destination	profiles
+foundation	chezmoi	jchidley/dotfiles	~/.local/share/chezmoi	all
+foundation	git	jchidley/ak	~/github/ak	all
+foundation	git	jchidley/agent-skills	~/github/agent-skills	all
+foundation	git	jchidley/tools	~/tools	all
+active	git	jchidley/mkdocs-material-test	~/github/mkdocs-material-test	dev
+references	git	1st1/lat.md	~/github/lat.md	dev
+references	git	jchidley/mcfly	~/github/mcfly	dev
+# Add machine- or task-specific repositories to the optional group explicitly.

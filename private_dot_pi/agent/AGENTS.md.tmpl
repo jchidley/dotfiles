@@ -13,11 +13,21 @@ This machine runs Linux inside WSL2 on Windows. Agents see Linux but the host is
 - **Windows executables work from WSL.** `cmd.exe`, `powershell.exe`, `explorer.exe` are callable directly.
 - **Localhost works cross-OS** (mirrored networking). No port forwarding needed.
 
+## Starlink LAN / boat hostnames
+
+The boat LAN uses Starlink as the provider/router. Starlink DNS/DHCP can return IPv6-first or otherwise unreliable answers for bare hostnames from WSL. For the boat hosts:
+
+- Do not conclude a Pi is down just because `ssh pi5nvme` or another bare hostname hangs from WSL.
+- Retry human/agent SSH using `.local` mDNS and then the known IPv4 address/alias if needed, with short timeouts, e.g. `ssh pi5nvme.local`, `ssh 192.168.1.135`, or the WSL SSH aliases `ssh pi5nvme-ip` / `ssh picanm-ip`.
+- Treat direct IPv4 success after bare-hostname failure as a Starlink/WSL name-resolution issue, not a service outage.
+- For Pi-to-Pi services, prefer `.local` mDNS names when already proven from the source device, e.g. `picanm` raw forwarding uses `pi5nvme.local:20200` because bare `pi5nvme` can resolve IPv6-first while the receiver is IPv4-only.
+- If `.local` stops working between Pis, check `avahi-daemon`, `libnss-mdns`, `/etc/nsswitch.conf` `hosts:` ordering, firewall/multicast isolation, and Starlink/client-isolation settings before changing application services.
+
 Load the `windows-env` skill when you need to open URLs/files, use clipboard, send notifications, or detect the Windows username.
 
 ## API Keys (GPG-encrypted)
 
-All secrets are GPG-encrypted in WSL Debian (`~/tools/api-keys/secrets/*.gpg`). `gpg-agent` caches the passphrase (20h TTL).
+All secrets are GPG-encrypted in WSL Debian (`~/github/ak/secrets/*.gpg`). `gpg-agent` caches the passphrase (20h TTL).
 
 {{ if eq .chezmoi.os "windows" -}}
 On Windows (Git Bash/MSYS2), use the `windows-env` skill wrappers to reach the GPG store in WSL Debian:

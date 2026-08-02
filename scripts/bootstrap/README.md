@@ -1,37 +1,31 @@
-# Debian Bootstrap Scripts
+# Debian bootstrap
 
-Saved bootstrap variants for rebuilding from scratch.
+`debian-bootstrap-safe.sh` rebuilds the declared WSL workspace. It is repository-only code: chezmoi does not render it into `~/scripts`.
 
-## Scripts
+## Repository selection
 
-1. `debian-bootstrap-legacy.sh`
-   - Your original workflow, preserved as-is for reference.
+`workspace-repos.tsv` is the executable inventory. Each row assigns one explicit repository to a group, destination, and profile. Bootstrap never queries GitHub for every repository.
 
-2. `debian-bootstrap-safe.sh`
-   - Improved, rerunnable, safer auth handling, paginated repo cloning.
+- `foundation`: dotfiles, `ak`, agent skills, and maintained tools
+- `active`: actively maintained first-party projects
+- `references`: deliberate upstream or fork checkouts
+- `optional`: machine- or task-specific repositories
 
-## Suggested order
-
-- Use `debian-bootstrap-safe.sh` as the default.
-- Keep `debian-bootstrap-legacy.sh` only as a fallback/reference.
+`BOOTSTRAP_MODE=core` selects `foundation`. `BOOTSTRAP_MODE=full` selects all declared groups for the selected profile; it does **not** mean every GitHub repository.
 
 ## Run
 
+From the authoritative chezmoi source checkout:
+
 ```bash
-cd ~/github/dotfiles/scripts/bootstrap
-
-# Minimal startup set (whitelist only)
-BOOTSTRAP_MODE=core ./debian-bootstrap-safe.sh
-
-# Full sync (all repos except blacklist)
-BOOTSTRAP_MODE=full ./debian-bootstrap-safe.sh
+cd ~/.local/share/chezmoi/scripts/bootstrap
+BOOTSTRAP_MODE=core BOOTSTRAP_PROFILE=dev ./debian-bootstrap-safe.sh
 ```
 
-## Repo selection modes
+Inspect behavior without system, network, or filesystem changes:
 
-- `BOOTSTRAP_MODE=core`
-  - Clones whitelist only (`WHITELIST_REPOS`)
-  - Default whitelist: `dotfiles,ak,agent-skills,tools`
+```bash
+BOOTSTRAP_DRY_RUN=1 SKIP_SYSTEM_PACKAGES=1 ./debian-bootstrap-safe.sh
+```
 
-- `BOOTSTRAP_MODE=full`
-  - Clones all repos except `EXCLUDE_REPOS`
+Set `APPLY_CHEZMOI=1` only after reviewing `chezmoi diff`. The legacy one-pass bootstrap is historical evidence under `docs/archive/bootstrap/` and is not an operational fallback.

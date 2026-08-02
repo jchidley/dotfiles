@@ -17,25 +17,25 @@ get_chezmoi_dir() {
 
 get_password() {
     local pw=""
-    if command -v bw >/dev/null 2>&1; then
-        pw="$(bw get password "bashrc-pgp" 2>/dev/null || true)"
+    if command -v ak >/dev/null 2>&1; then
+        pw="$(ak get mcfly-backup 2>/dev/null || true)"
     fi
 
     if [ -z "$pw" ]; then
-        echo "Enter encryption password:"
-        read -r -s pw
-        echo
+        read -r -s -p "McFly backup passphrase (store later with 'ak set mcfly-backup'): " pw
+        echo >&2
     fi
 
-    echo "$pw"
+    printf '%s' "$pw"
 }
 
-MCFLY_DB="$HOME/.local/share/mcfly/history.db"
+MCFLY_DB="${MCFLY_DB:-$HOME/.local/share/mcfly/history.db}"
 CHEZMOI_DIR="$(get_chezmoi_dir)"
 
 # Machine identifier - unique per instance
 MACHINE_TAG="$(hostname)_$(cat /etc/machine-id 2>/dev/null | head -c 8 || echo "unknown")"
-EXPORT_FILE="$CHEZMOI_DIR/mcfly_backups/encrypted_mcfly_${MACHINE_TAG}.db.gpg"
+EXPORT_DIR="${MCFLY_BACKUP_DIR:-$CHEZMOI_DIR/mcfly_backups}"
+EXPORT_FILE="$EXPORT_DIR/encrypted_mcfly_${MACHINE_TAG}.db.gpg"
 
 echo "Machine: $MACHINE_TAG"
 
@@ -48,14 +48,15 @@ command -v gpg >/dev/null 2>&1 || { echo "gpg is required"; exit 1; }
 mkdir -p "$(dirname "$EXPORT_FILE")"
 
 # Get password
-echo "Getting password from Bitwarden (bashrc-pgp)..."
+echo "Getting password from ak..."
 PASSWORD="$(get_password)"
 
-# Encrypt
+# Encrypt without exposing the passphrase in the process argument list.
 echo "Encrypting..."
-gpg --batch --yes --passphrase "$PASSWORD" \
+printf '%s' "$PASSWORD" | gpg --batch --yes --pinentry-mode loopback --passphrase-fd 0 \
     --cipher-algo AES256 --symmetric --armor \
     --output "$EXPORT_FILE" "$MCFLY_DB"
+unset PASSWORD
 
 echo "✓ Encrypted: $(basename "$EXPORT_FILE")"
 echo "  Commit this file to your repository"

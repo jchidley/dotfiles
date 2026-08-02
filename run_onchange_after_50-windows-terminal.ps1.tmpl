@@ -1,7 +1,10 @@
-# chezmoi run-on-change hook: apply curated Windows Terminal preferences/profiles.
-$script = Join-Path $env:USERPROFILE 'scripts\configure-windows-terminal.ps1'
-if (Test-Path $script) {
-    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script
-} else {
-    Write-Warning "Windows Terminal configuration script not found: $script"
+# chezmoi run-on-change hook: apply the repository-only helper directly.
+{{- if eq .chezmoi.os "linux" }}
+$script = {{ output "wslpath" "-w" (joinPath .chezmoi.sourceDir "scripts/configure-windows-terminal.ps1") | trim | quote }}
+{{- else }}
+$script = {{ joinPath .chezmoi.sourceDir "scripts/configure-windows-terminal.ps1" | quote }}
+{{- end }}
+if (-not (Test-Path $script)) {
+    throw "Windows Terminal configuration helper not found: $script"
 }
+& powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script
