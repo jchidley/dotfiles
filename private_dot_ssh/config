@@ -1,2 +1,17 @@
 Host *
   AddKeysToAgent 72000
+
+# Boat LAN direct IPv4 aliases. Starlink/WSL bare-hostname and .local
+# resolution can be unreliable; these aliases bypass DNS/mDNS for operator SSH.
+# Addresses are DHCP-provided by Starlink and may need updating if leases change.
+Host pi5nvme-ip
+  HostName 192.168.1.136
+  User jack
+  ConnectTimeout 5
+  IdentityFile ~/.ssh/id_ed25519_pi_agent
+  IdentitiesOnly yes
+
+Host picanm-ip
+  HostName 192.168.1.235
+  User jack
+  ConnectTimeout 5
