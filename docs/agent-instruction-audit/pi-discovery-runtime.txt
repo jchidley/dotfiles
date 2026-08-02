@@ -1,0 +1,100 @@
+## cwd=/home/jack
+[Context]
+  .pi/agent/AGENTS.md, CLAUDE.md
+
+[Skills]
+  android-adb, balls-mode, brave-search, browser-tools, code-overhaul,
+code-truth, docs-rationalisation, full-licence-study, github-api, human-docs,
+lat-adoption, lat-md, llm-docs, magistrate-sittings, mutation-testing,
+nemotron-super, pico-firmware, property-testing, qspice,
+qspice-external-component, spider-cli, test-audit, tmux, transcribe,
+transcript-extract, web-search, windows-env, youtube-transcript
+
+[Prompts]
+  /refactor, /research, /task-brief
+
+[Extensions]
+  answer.ts, control.ts, files.ts, lat, review.ts, session-breakdown.ts,
+tmux-pi, transcript.ts, uv, z2m
+
+
+## cwd=/home/jack/github/agent-skills
+[Context]
+  ~/.pi/agent/AGENTS.md, ~/CLAUDE.md, AGENTS.md
+
+[Skills]
+  android-adb, balls-mode, brave-search, browser-tools, code-overhaul,
+code-truth, docs-rationalisation, full-licence-study, github-api, human-docs,
+lat-adoption, lat-md, llm-docs, magistrate-sittings, mutation-testing,
+nemotron-super, pico-firmware, property-testing, qspice,
+qspice-external-component, spider-cli, test-audit, tmux, transcribe,
+transcript-extract, web-search, windows-env, youtube-transcript
+
+[Prompts]
+  /refactor, /research, /task-brief
+
+[Extensions]
+  answer.ts, control.ts, files.ts, lat, review.ts, session-breakdown.ts,
+tmux-pi, transcript.ts, uv, z2m
+
+
+## cwd=/home/jack/github/mkdocs-material-test
+[Context]
+  ~/.pi/agent/AGENTS.md, ~/CLAUDE.md, AGENTS.md
+
+[Skills]
+  android-adb, balls-mode, brave-search, browser-tools, code-overhaul,
+code-truth, docs-rationalisation, full-licence-study, github-api, human-docs,
+lat-adoption, lat-md, llm-docs, magistrate-sittings, mutation-testing,
+nemotron-super, pico-firmware, property-testing, qspice,
+qspice-external-component, spider-cli, test-audit, tmux, transcribe,
+transcript-extract, web-search, windows-env, youtube-transcript
+
+[Prompts]
+  /refactor, /research, /task-brief
+
+[Extensions]
+  answer.ts, control.ts, files.ts, lat, review.ts, session-breakdown.ts,
+tmux-pi, transcript.ts, uv, z2m
+
+
+## cwd=/home/jack/projects/heatpump-analysis
+[Context]
+  ~/.pi/agent/AGENTS.md, ~/CLAUDE.md, AGENTS.md
+
+[Skills]
+  android-adb, balls-mode, brave-search, browser-tools, code-overhaul,
+code-truth, docs-rationalisation, full-licence-study, github-api, human-docs,
+lat-adoption, lat-md, llm-docs, magistrate-sittings, mutation-testing,
+nemotron-super, pico-firmware, property-testing, qspice,
+qspice-external-component, spider-cli, test-audit, tmux, transcribe,
+transcript-extract, web-search, windows-env, youtube-transcript
+
+[Prompts]
+  /refactor, /research, /task-brief
+
+[Extensions]
+  answer.ts, control.ts, files.ts, lat, review.ts, session-breakdown.ts,
+tmux-pi, transcript.ts, uv, z2m
+
+
+## cwd=/home/jack/github/life_cycle/controller_board
+[Context]
+  ~/.pi/agent/AGENTS.md, ~/CLAUDE.md, ~/github/life_cycle/CLAUDE.md, CLAUDE.md
+
+[Skills]
+  android-adb, balls-mode, brave-search, browser-tools, code-overhaul,
+code-truth, docs-rationalisation, full-licence-study, github-api, human-docs,
+lat-adoption, lat-md, llm-docs, magistrate-sittings, mutation-testing,
+nemotron-super, pico-firmware, property-testing, qspice,
+qspice-external-component, spider-cli, test-audit, tmux, transcribe,
+transcript-extract, web-search, windows-env, youtube-transcript
+
+[Prompts]
+  /refactor, /research, /task-brief
+
+[Extensions]
+  answer.ts, control.ts, files.ts, lat, review.ts, session-breakdown.ts,
+tmux-pi, transcript.ts, uv, z2m
+
+
