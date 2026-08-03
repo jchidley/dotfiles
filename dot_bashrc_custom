@@ -254,7 +254,10 @@ fi
 # starship prompt (must be last - overrides PS1)
 [ -t 1 ] && command -v starship &>/dev/null && eval "$(starship init bash)"
 
-# Start in scratch dir
+# Start top-level home shells in the scratch directory, but preserve a working
+# directory deliberately selected by tools such as `chezmoi cd`, tmux, or SSH.
 scratch="$HOME/tmp"
 [[ -d "$scratch" ]] || mkdir -p "$scratch"
-cd "$scratch"
+if [[ "$PWD" == "$HOME" ]]; then
+  cd "$scratch"
+fi
