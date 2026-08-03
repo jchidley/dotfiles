@@ -1,17 +1,10 @@
 # Global Agent Context
 
-## Environment: WSL2
+## Windows / WSL execution environment
 
-This machine runs Linux inside WSL2 on Windows. Agents see Linux but the host is Windows.
+The machine-wide `~/AGENTS.md` is the source of truth for environment detection, path ownership, and cross-shell command transport. It is loaded as parent context for work below the home directory.
 
-**Key behavioural rules:**
-- **`xdg-open` does not work.** Use the `windows-env` skill's `win-open` command instead.
-- **Cross-OS filesystem is extremely slow.** Never run builds, `git clone`, or `npm install` against `/mnt/c/`. Keep Linux work in `~/` (ext4). Only copy files to `/mnt/c/` for handing off to Windows tools.
-- **`inotify` doesn't work on `/mnt/c/`.** File watchers break across the OS boundary.
-- **USB devices need Windows-side attach.** Serial devices aren't visible until `usbipd attach` is run from PowerShell.
-- **Memory is capped** (check `free -h`). Don't spawn unbounded parallel processes.
-- **Windows executables work from WSL.** `cmd.exe`, `powershell.exe`, `explorer.exe` are callable directly.
-- **Localhost works cross-OS** (mirrored networking). No port forwarding needed.
+Fallback if that context is unavailable: run `~/.pi/agent/skills/windows-env/detect-env`, then load the `windows-env` skill before crossing Windows, MSYS, WSL, PowerShell, or SSH boundaries. `MSYS_NO_PATHCONV=1` controls path conversion only; it does not fix quoting.
 
 ## Starlink LAN / boat hostnames
 
@@ -22,8 +15,6 @@ The boat LAN uses Starlink as the provider/router. Starlink DNS/DHCP can return 
 - Treat direct IPv4 success after bare-hostname failure as a Starlink/WSL name-resolution issue, not a service outage.
 - For Pi-to-Pi services, prefer `.local` mDNS names when already proven from the source device, e.g. `picanm` raw forwarding uses `pi5nvme.local:20200` because bare `pi5nvme` can resolve IPv6-first while the receiver is IPv4-only.
 - If `.local` stops working between Pis, check `avahi-daemon`, `libnss-mdns`, `/etc/nsswitch.conf` `hosts:` ordering, firewall/multicast isolation, and Starlink/client-isolation settings before changing application services.
-
-Load the `windows-env` skill when you need to open URLs/files, use clipboard, send notifications, or detect the Windows username.
 
 ## API Keys (GPG-encrypted)
 
