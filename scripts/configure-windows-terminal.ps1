@@ -170,6 +170,15 @@ Ensure-Profile $settings @{
     hidden = $false
 }
 
+# Keep the dynamically discovered PowerShell 7 profile out of the Terminal UI.
+# Removing it is insufficient because Windows Terminal discovers it again.
+Ensure-Profile $settings @{
+    guid = '{574e775e-4f2a-5b96-ac1e-a2962a402336}'
+    name = 'PowerShell'
+    source = 'Windows.Terminal.PowershellCore'
+    hidden = $true
+}
+
 Ensure-Profile $settings @{
     guid = '{58ad8b0c-3ef8-5f4d-bc6f-13e4c00f2530}'
     name = 'Debian'
