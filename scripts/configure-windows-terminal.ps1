@@ -33,12 +33,15 @@ function Get-LxssIcon([string]$DistroName) {
     if (-not (Test-Path $lxssKey)) { return $null }
 
     $distro = Get-ChildItem $lxssKey | ForEach-Object { Get-ItemProperty $_.PSPath } |
-        Where-Object { $_.DistributionName -eq $DistroName } |
+        Where-Object { $_.DistributionName -eq $DistroName -and $_.BasePath } |
         Select-Object -First 1
 
-    if (-not $distro -or -not $distro.BasePath) { return $null }
-    $icon = Join-Path $distro.BasePath 'shortcut.ico'
-    if (Test-Path $icon) {
+    if (-not $distro) { return $null }
+    $icon = [System.IO.Path]::Combine([string]$distro.BasePath, 'shortcut.ico')
+    if ($icon.StartsWith('\\?\')) {
+        $icon = $icon.Substring(4)
+    }
+    if ([System.IO.File]::Exists($icon)) {
         return $icon -replace [regex]::Escape($env:LOCALAPPDATA), '%LOCALAPPDATA%'
     }
     return $null
@@ -173,6 +176,15 @@ Ensure-Profile $settings @{
     commandline = 'wsl.exe -d Debian'
     startingDirectory = '~'
     icon = Get-LxssIcon 'Debian'
+    hidden = $false
+}
+
+Ensure-Profile $settings @{
+    guid = '{20517053-d9f3-52e4-b051-e3ddd867b0a3}'
+    name = 'Debian-Recovered'
+    commandline = 'wsl.exe -d Debian-Recovered'
+    startingDirectory = '~'
+    icon = Get-LxssIcon 'Debian-Recovered'
     hidden = $false
 }
 
