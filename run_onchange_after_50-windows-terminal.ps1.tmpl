@@ -1,4 +1,5 @@
 {{- if eq .chezmoi.os "windows" -}}
+# Helper content fingerprint: {{ include "scripts/configure-windows-terminal.ps1" | sha256sum }}
 # chezmoi run-on-change hook: apply the repository-only helper directly.
 $script = {{ joinPath .chezmoi.sourceDir "scripts/configure-windows-terminal.ps1" | quote }}
 if (-not (Test-Path $script)) {

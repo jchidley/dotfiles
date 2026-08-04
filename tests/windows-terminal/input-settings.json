@@ -1,0 +1,73 @@
+{
+  "$schema": "https://aka.ms/terminal-profiles-schema",
+  "actions": [
+    {
+      "command": "copy",
+      "keys": "ctrl+shift+c"
+    }
+  ],
+  "disableAnimations": true,
+  "newTabMenu": [
+    {
+      "type": "remainingProfiles"
+    }
+  ],
+  "profiles": {
+    "defaults": {
+      "opacity": 73,
+      "font": {
+        "weight": "bold"
+      }
+    },
+    "list": [
+      {
+        "guid": "{61c54bbd-c2c6-5271-96e7-009a87ff44bf}",
+        "name": "Windows PowerShell",
+        "hidden": true
+      },
+      {
+        "guid": "{0caa0dad-35be-5f56-a8ff-afceeeaa6101}",
+        "name": "Command Prompt",
+        "commandline": "%SystemRoot%\\System32\\cmd.exe",
+        "hidden": false
+      },
+      {
+        "guid": "{574e775e-4f2a-5b96-ac1e-a2962a402336}",
+        "name": "PowerShell",
+        "source": "Windows.Terminal.PowershellCore",
+        "hidden": false
+      },
+      {
+        "guid": "{58ad8b0c-3ef8-5f4d-bc6f-13e4c00f2530}",
+        "name": "Debian",
+        "source": "Microsoft.WSL",
+        "hidden": true
+      },
+      {
+        "guid": "{a06ad568-9eae-4b45-98e1-d7b6a5309eec}",
+        "name": "Arch Linux",
+        "commandline": "wsl.exe -d archlinux",
+        "hidden": false
+      },
+      {
+        "guid": "{11111111-1111-1111-1111-111111111111}",
+        "name": "Unmanaged Custom Profile",
+        "commandline": "custom.exe",
+        "hidden": false,
+        "experimental.retroTerminalEffect": true
+      }
+    ]
+  },
+  "schemes": [
+    {
+      "name": "Keep Me",
+      "background": "#000000",
+      "foreground": "#FFFFFF"
+    },
+    {
+      "name": "Gruvbox Dark (Hard)",
+      "background": "#WRONG",
+      "foreground": "#WRONG"
+    }
+  ]
+}

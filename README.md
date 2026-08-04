@@ -123,7 +123,7 @@ git push
 
 ### Windows
 - PowerShell profile with custom prompt
-- Windows Terminal configuration
+- [Windows Terminal configuration](docs/windows-terminal.md)
 - winget package management
 - Python path detection and setup
 - SSH agent configuration

@@ -1,0 +1,33 @@
+{
+  "copyFormatting": "none",
+  "copyOnSelect": true,
+  "tabWidthMode": "equal",
+  "useAcrylicInTabRow": false,
+  "defaultProfile": "{20517053-d9f3-52e4-b051-e3ddd867b0a3}",
+  "debianOnlyDefaultProfile": "{58ad8b0c-3ef8-5f4d-bc6f-13e4c00f2530}",
+  "noWslDefaultProfile": "{61c54bbd-c2c6-5271-96e7-009a87ff44bf}",
+  "profileDefaults": {
+    "colorScheme": "Gruvbox Dark (Hard)",
+    "fontFace": "SauceCodePro Nerd Font",
+    "fontSize": 12,
+    "preservedOpacity": 73,
+    "preservedFontWeight": "bold"
+  },
+  "profiles": {
+    "windowsPowerShellHidden": false,
+    "powerShell7Hidden": true,
+    "debianHidden": false,
+    "debianRecoveredHidden": false,
+    "archHiddenWhenAbsent": true,
+    "alpineAbsentWhenNotInstalled": true
+  },
+  "preserved": {
+    "disableAnimations": true,
+    "actionsCount": 1,
+    "commandPrompt": true,
+    "customProfile": true,
+    "customRetroEffect": true,
+    "keepMeScheme": true
+  },
+  "gruvboxBackground": "#1D2021"
+}

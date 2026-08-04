@@ -1,5 +1,6 @@
 {{- if eq .chezmoi.os "linux" -}}
 #!/bin/bash
+# Helper content fingerprint: {{ include "scripts/configure-windows-terminal.ps1" | sha256sum }}
 set -euo pipefail
 
 helper={{ joinPath .chezmoi.sourceDir "scripts/configure-windows-terminal.ps1" | quote }}

@@ -1,13 +1,44 @@
 # Idempotently apply the Windows Terminal preferences that are worth managing.
 # Do not manage the live settings.json with chezmoi: Windows Terminal rewrites it.
 
+[CmdletBinding(SupportsShouldProcess = $true)]
+param(
+    [string]$SettingsPath = (Join-Path $env:LOCALAPPDATA 'Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json'),
+    [object[]]$Distributions
+)
+
 $ErrorActionPreference = 'Stop'
 
-$settingsPath = Join-Path $env:LOCALAPPDATA 'Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json'
-$settingsDir = Split-Path -Parent $settingsPath
-if (-not (Test-Path $settingsDir)) {
-    $null = New-Item -ItemType Directory -Path $settingsDir -Force
-}
+$windowsPowerShellGuid = '{61c54bbd-c2c6-5271-96e7-009a87ff44bf}'
+$powerShellCoreGuid = '{574e775e-4f2a-5b96-ac1e-a2962a402336}'
+
+# Profile policy is data, while profile mutation remains generic below.
+$wslProfileSpecs = @(
+    [pscustomobject]@{
+        Distro = 'Debian'
+        Name = 'Debian'
+        Guid = '{58ad8b0c-3ef8-5f4d-bc6f-13e4c00f2530}'
+        DefaultPriority = 2
+    },
+    [pscustomobject]@{
+        Distro = 'Debian-Recovered'
+        Name = 'Debian-Recovered'
+        Guid = '{20517053-d9f3-52e4-b051-e3ddd867b0a3}'
+        DefaultPriority = 1
+    },
+    [pscustomobject]@{
+        Distro = 'Alpine'
+        Name = 'Alpine Linux'
+        Guid = '{77526b00-08ae-4477-bddc-9587432a0901}'
+        DefaultPriority = 0
+    },
+    [pscustomobject]@{
+        Distro = 'archlinux'
+        Name = 'Arch Linux'
+        Guid = '{a06ad568-9eae-4b45-98e1-d7b6a5309eec}'
+        DefaultPriority = 0
+    }
+)
 
 function New-ObjectFromHashtable([hashtable]$Hash) {
     $obj = [pscustomobject]@{}
@@ -28,23 +59,34 @@ function Remove-JsonProperty($Object, [string]$Name) {
     }
 }
 
-function Get-LxssIcon([string]$DistroName) {
+function Get-LxssDistributions {
     $lxssKey = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Lxss'
-    if (-not (Test-Path $lxssKey)) { return $null }
+    if (-not (Test-Path $lxssKey)) { return @() }
 
-    $distro = Get-ChildItem $lxssKey | ForEach-Object { Get-ItemProperty $_.PSPath } |
-        Where-Object { $_.DistributionName -eq $DistroName -and $_.BasePath } |
-        Select-Object -First 1
+    return @(Get-ChildItem $lxssKey | ForEach-Object { Get-ItemProperty $_.PSPath } |
+        Where-Object { $_.DistributionName -and $_.BasePath } |
+        ForEach-Object {
+            [pscustomobject]@{
+                Name = [string]$_.DistributionName
+                BasePath = [string]$_.BasePath
+            }
+        })
+}
 
-    if (-not $distro) { return $null }
-    $icon = [System.IO.Path]::Combine([string]$distro.BasePath, 'shortcut.ico')
+function Find-Distribution([object[]]$Available, [string]$Name) {
+    return $Available | Where-Object { $_.Name -eq $Name -and $_.BasePath } | Select-Object -First 1
+}
+
+function Get-DistroIcon($Distro) {
+    if (-not $Distro -or -not $Distro.BasePath) { return $null }
+
+    $icon = [System.IO.Path]::Combine([string]$Distro.BasePath, 'shortcut.ico')
     if ($icon.StartsWith('\\?\')) {
         $icon = $icon.Substring(4)
     }
-    if ([System.IO.File]::Exists($icon)) {
-        return $icon -replace [regex]::Escape($env:LOCALAPPDATA), '%LOCALAPPDATA%'
-    }
-    return $null
+    if (-not [System.IO.File]::Exists($icon)) { return $null }
+
+    return $icon -replace [regex]::Escape($env:LOCALAPPDATA), '%LOCALAPPDATA%'
 }
 
 function Get-ProfileList($Settings) {
@@ -82,18 +124,31 @@ function Ensure-Profile($Settings, [hashtable]$Desired) {
     }
 
     foreach ($key in $Desired.Keys) {
-        if ($null -ne $Desired[$key]) {
+        if ($null -eq $Desired[$key]) {
+            Remove-JsonProperty $profile $key
+        } else {
             Set-JsonProperty $profile $key $Desired[$key]
         }
     }
 
-    # WSL profiles are intentionally static. Dynamic `source` profiles are owned
-    # by Windows Terminal and get noisy under chezmoi.
-    if ($Desired.commandline -like 'wsl.exe*') {
+    # Static WSL profiles avoid dynamic-source churn when settings.json is
+    # rewritten. Other dynamic profiles retain their source property.
+    if ($Desired.ContainsKey('commandline') -and $Desired.commandline -like 'wsl.exe*') {
         Remove-JsonProperty $profile 'source'
     }
 
     Set-ProfileList $Settings $list
+}
+
+function Set-ExistingProfileHidden($Settings, [string]$Guid, [bool]$Hidden) {
+    $list = Get-ProfileList $Settings
+    foreach ($profile in $list) {
+        if ($profile.guid -eq $Guid) {
+            Set-JsonProperty $profile 'hidden' $Hidden
+            Set-ProfileList $Settings $list
+            return
+        }
+    }
 }
 
 function Ensure-Scheme($Settings, [hashtable]$Desired) {
@@ -111,8 +166,41 @@ function Ensure-Scheme($Settings, [hashtable]$Desired) {
     Set-JsonProperty $Settings 'schemes' @($schemes.ToArray())
 }
 
-if (Test-Path $settingsPath) {
-    $settings = Get-Content $settingsPath -Raw | ConvertFrom-Json
+function Write-JsonAtomically([string]$Path, [string]$Content) {
+    $directory = Split-Path -Parent $Path
+    if (-not (Test-Path $directory)) {
+        $null = New-Item -ItemType Directory -Path $directory -Force
+    }
+
+    $suffix = [guid]::NewGuid().ToString('N')
+    $tempPath = Join-Path $directory ((Split-Path -Leaf $Path) + ".${suffix}.tmp")
+    $backupPath = Join-Path $directory ((Split-Path -Leaf $Path) + ".${suffix}.bak")
+    $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+
+    try {
+        [System.IO.File]::WriteAllText($tempPath, $Content, $utf8NoBom)
+        $null = Get-Content -LiteralPath $tempPath -Raw | ConvertFrom-Json
+
+        if ([System.IO.File]::Exists($Path)) {
+            [System.IO.File]::Replace($tempPath, $Path, $backupPath, $true)
+            Remove-Item -LiteralPath $backupPath -Force -ErrorAction SilentlyContinue
+        } else {
+            [System.IO.File]::Move($tempPath, $Path)
+        }
+    } finally {
+        Remove-Item -LiteralPath $tempPath -Force -ErrorAction SilentlyContinue
+        Remove-Item -LiteralPath $backupPath -Force -ErrorAction SilentlyContinue
+    }
+}
+
+if ($PSBoundParameters.ContainsKey('Distributions')) {
+    $availableDistributions = @($Distributions)
+} else {
+    $availableDistributions = @(Get-LxssDistributions)
+}
+
+if (Test-Path -LiteralPath $SettingsPath) {
+    $settings = Get-Content -LiteralPath $SettingsPath -Raw | ConvertFrom-Json
 } else {
     $settings = [pscustomobject]@{
         '$schema' = 'https://aka.ms/terminal-profiles-schema'
@@ -124,20 +212,21 @@ if (Test-Path $settingsPath) {
 # Preferences worth managing. Everything else remains Windows Terminal-owned.
 Set-JsonProperty $settings 'copyFormatting' 'none'
 Set-JsonProperty $settings 'copyOnSelect' $true
-Set-JsonProperty $settings 'defaultProfile' '{61c54bbd-c2c6-5271-96e7-009a87ff44bf}'
 Set-JsonProperty $settings 'tabWidthMode' 'equal'
 Set-JsonProperty $settings 'useAcrylicInTabRow' $false
 
 if (-not $settings.PSObject.Properties['profiles']) {
     Set-JsonProperty $settings 'profiles' ([pscustomobject]@{})
 }
-Set-JsonProperty $settings.profiles 'defaults' ([pscustomobject]@{
-    colorScheme = 'Gruvbox Dark (Hard)'
-    font = [pscustomobject]@{
-        face = 'SauceCodePro Nerd Font'
-        size = 12
-    }
-})
+if (-not $settings.profiles.PSObject.Properties['defaults'] -or $null -eq $settings.profiles.defaults) {
+    Set-JsonProperty $settings.profiles 'defaults' ([pscustomobject]@{})
+}
+Set-JsonProperty $settings.profiles.defaults 'colorScheme' 'Gruvbox Dark (Hard)'
+if (-not $settings.profiles.defaults.PSObject.Properties['font'] -or $null -eq $settings.profiles.defaults.font) {
+    Set-JsonProperty $settings.profiles.defaults 'font' ([pscustomobject]@{})
+}
+Set-JsonProperty $settings.profiles.defaults.font 'face' 'SauceCodePro Nerd Font'
+Set-JsonProperty $settings.profiles.defaults.font 'size' 12
 
 Ensure-Scheme $settings @{
     name = 'Gruvbox Dark (Hard)'
@@ -164,62 +253,57 @@ Ensure-Scheme $settings @{
 }
 
 Ensure-Profile $settings @{
-    guid = '{61c54bbd-c2c6-5271-96e7-009a87ff44bf}'
+    guid = $windowsPowerShellGuid
     name = 'Windows PowerShell'
     commandline = '%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe'
     hidden = $false
 }
 
 # Keep the dynamically discovered PowerShell 7 profile out of the Terminal UI.
-# Removing it is insufficient because Windows Terminal discovers it again.
 Ensure-Profile $settings @{
-    guid = '{574e775e-4f2a-5b96-ac1e-a2962a402336}'
+    guid = $powerShellCoreGuid
     name = 'PowerShell'
     source = 'Windows.Terminal.PowershellCore'
     hidden = $true
 }
 
-Ensure-Profile $settings @{
-    guid = '{58ad8b0c-3ef8-5f4d-bc6f-13e4c00f2530}'
-    name = 'Debian'
-    commandline = 'wsl.exe -d Debian'
-    startingDirectory = '~'
-    icon = Get-LxssIcon 'Debian'
-    hidden = $false
+foreach ($spec in $wslProfileSpecs) {
+    $distro = Find-Distribution $availableDistributions $spec.Distro
+    if ($distro) {
+        Ensure-Profile $settings @{
+            guid = $spec.Guid
+            name = $spec.Name
+            commandline = "wsl.exe -d $($spec.Distro)"
+            startingDirectory = '~'
+            icon = Get-DistroIcon $distro
+            hidden = $false
+        }
+    } else {
+        # Hide a stale managed profile, but do not create one for an absent distro.
+        Set-ExistingProfileHidden $settings $spec.Guid $true
+    }
 }
 
-Ensure-Profile $settings @{
-    guid = '{20517053-d9f3-52e4-b051-e3ddd867b0a3}'
-    name = 'Debian-Recovered'
-    commandline = 'wsl.exe -d Debian-Recovered'
-    startingDirectory = '~'
-    icon = Get-LxssIcon 'Debian-Recovered'
-    hidden = $false
+$defaultProfile = $windowsPowerShellGuid
+foreach ($spec in $wslProfileSpecs | Where-Object { $_.DefaultPriority -gt 0 } | Sort-Object DefaultPriority) {
+    if (Find-Distribution $availableDistributions $spec.Distro) {
+        $defaultProfile = $spec.Guid
+        break
+    }
 }
-
-Ensure-Profile $settings @{
-    guid = '{77526b00-08ae-4477-bddc-9587432a0901}'
-    name = 'Alpine Linux'
-    commandline = 'wsl.exe -d Alpine'
-    startingDirectory = '~'
-    icon = Get-LxssIcon 'Alpine'
-    hidden = $false
-}
-
-Ensure-Profile $settings @{
-    guid = '{a06ad568-9eae-4b45-98e1-d7b6a5309eec}'
-    name = 'Arch Linux'
-    commandline = 'wsl.exe -d archlinux'
-    startingDirectory = '~'
-    icon = Get-LxssIcon 'archlinux'
-    hidden = $false
-}
+Set-JsonProperty $settings 'defaultProfile' $defaultProfile
 
 $newJson = $settings | ConvertTo-Json -Depth 100
-$currentJson = if (Test-Path $settingsPath) { Get-Content $settingsPath -Raw } else { '' }
-if ($currentJson.Trim() -ne $newJson.Trim()) {
-    Set-Content -Path $settingsPath -Value $newJson -Encoding UTF8
-    Write-Host "Updated Windows Terminal settings: $settingsPath"
+$null = $newJson | ConvertFrom-Json
+$currentJson = if (Test-Path -LiteralPath $SettingsPath) {
+    Get-Content -LiteralPath $SettingsPath -Raw
 } else {
-    Write-Host "Windows Terminal settings already up to date"
+    ''
+}
+
+if ($currentJson.Trim() -eq $newJson.Trim()) {
+    Write-Host 'Windows Terminal settings already up to date'
+} elseif ($PSCmdlet.ShouldProcess($SettingsPath, 'Update Windows Terminal settings')) {
+    Write-JsonAtomically $SettingsPath $newJson
+    Write-Host "Updated Windows Terminal settings: $SettingsPath"
 }
