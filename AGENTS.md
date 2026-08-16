@@ -15,20 +15,6 @@ Before shell work, run:
 Load the `windows-env` skill whenever a command crosses Windows, MSYS, WSL,
 PowerShell, or SSH boundaries, or when path ownership is unclear.
 
-## Brush and Pi
-
-Brush may be the interactive shell or Pi's configured `shellPath`, but that does
-not prove which shell executes a particular tool. Pi extensions can shadow the
-built-in bash tool. When shell semantics matter, inspect `$0` and `$PWD` for that
-execution surface rather than relying only on inherited `MSYSTEM` or `SHELL`.
-
-- In native Windows Brush, use relative paths or `C:/...`; do not use `/c/...`.
-- Do not use process substitution (`<(...)` or `>(...)`) in Windows Brush.
-- Do not mix Brush redirects or builtins using `/tmp` with MSYS utilities: they
-  resolve `/tmp` in different filesystems. Use a quoted Windows-native temp path.
-- Pi's read/edit/write tools remain Windows-native regardless of the command shell.
-- If the command tool reports `/usr/bin/bash`, follow Git Bash/MSYS rules instead.
-
 ## Cross-environment command rules
 
 | Need | Required helper |
