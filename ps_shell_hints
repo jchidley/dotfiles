@@ -4,6 +4,7 @@ $env:USERPROFILE/.local/share/chezmoi
 Documents\PowerShell\Microsoft.PowerShell_profile.ps1 # in $env:USERPROFILE/.local/share/chezmoi
 gci env: #environment variables
 Get-Content $env:USERPROFILE/.config/ak/vault.conf # authoritative named WSL distro for GPG-backed ak
+Get-Content $env:USERPROFILE/.envrc # reviewed service allowlist imported into WSL direnv and PowerShell
 ak-list # list the configured named distro's ak services
 ak-get <service> # explicit on-demand GPG access; no default-distro or Credential Manager fallback
 # Bitwarden is human-managed and must not be automated by agents.

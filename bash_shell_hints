@@ -9,8 +9,9 @@ Ctrl-R                           # McFly history search
 # Secrets (GPG/ak)
 ak list                          # show configured services + status
 ak get <service>                 # decrypt one secret
-eval "$(ak export)"             # load all API keys into current shell
-export OPENROUTER_API_KEY="$(ak get openrouter)"  # load just OpenRouter
+cat ~/.envrc                     # reviewed service allowlist for WSL direnv + Windows PowerShell
+direnv reload                    # refresh allowlisted WSL exports after vault/profile changes
+export OPENROUTER_API_KEY="$(ak get openrouter)"  # one-off service outside/replacing profile state
 export DEEPINFRA_API_KEY="$(ak get deepinfra)"    # load just DeepInfra
 export DEEPSEEK_API_KEY="$(ak get deepseek)"      # load just DeepSeek
 gpgconf --kill gpg-agent          # lock GPG cache immediately (default TTL: 20h)
