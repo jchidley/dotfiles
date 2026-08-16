@@ -179,9 +179,6 @@ Invoke-CachedInit 'zoxide'         { zoxide init powershell }
 # Invoke-CachedInit 'uv-completion'  { uv generate-shell-completion powershell }
 # Invoke-CachedInit 'uvx-completion' { uvx --generate-shell-completion powershell }
 
-# pi: always pass --no-themes
-function pi { & pi.CMD --no-themes @args }
-
 # Start in scratch dir
 $scratchDir = "$env:USERPROFILE\tmp"
 if (-not (Test-Path $scratchDir)) { $null = New-Item -ItemType Directory -Path $scratchDir -Force }
