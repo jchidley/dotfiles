@@ -6,14 +6,15 @@ Use concise `AGENTS.md` files as the only active startup instructions. `CLAUDE.m
 
 This Windows machine runs agents in both native Windows/MSYS Git Bash and WSL2.
 Do not infer the shell from the host OS, prompt, current path, or agent name.
-Before shell work, run:
+When shell identity or path ownership matters, or before crossing Windows,
+MSYS, WSL, PowerShell, or SSH boundaries, run:
 
 ```bash
 ~/.pi/agent/skills/windows-env/detect-env
 ```
 
-Load the `windows-env` skill whenever a command crosses Windows, MSYS, WSL,
-PowerShell, or SSH boundaries, or when path ownership is unclear.
+Load the `windows-env` skill for those boundary operations. Ordinary commands
+that stay within the current shell do not require it.
 
 ## Cross-environment command rules
 

@@ -4,7 +4,6 @@ Documents
 ./ps_shell_hints
 {{ end }}
 {{ if eq .chezmoi.os "windows" }}
-.emacs.d
 # Windows reserved device names (cause "unsupported file type" errors)
 nul
 con
