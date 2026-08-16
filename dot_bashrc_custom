@@ -49,8 +49,8 @@ unset SSH_KEY_PASSPHRASE
 [ -t 0 ] && export GPG_TTY="$(tty)"
 [ -t 0 ] && gpgconf --launch gpg-agent 2>/dev/null
 
-# API keys are retrieved explicitly for one approved service when required;
-# shell profiles and direnv must not bulk-load the vault.
+# direnv loads only the reviewed service allowlist in ~/.envrc. A bare
+# no-argument bulk load is rejected, and export:false credentials stay out.
 
 # OpenSSH keys remain in OpenSSH's agent, while ak decrypts their passphrase
 # through the same 20h gpg-agent cache used by API secrets. Start/reuse the
