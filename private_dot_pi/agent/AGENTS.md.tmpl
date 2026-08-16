@@ -28,7 +28,7 @@ On Windows (Git Bash/MSYS2), use the `windows-env` wrappers. They route only to 
 {windows-env}/ak-get --list
 ```
 
-The managed `~/.envrc` is the reviewed export profile: WSL direnv and Windows PowerShell import only its explicit service allowlist. Do not use no-argument bulk loading or add `export: false` credentials. Where `{windows-env}` appears, load that skill to resolve its directory.
+Where `{windows-env}` appears, load that skill to resolve its directory.
 {{ else -}}
 Inside the configured authoritative distro, `ak` is available directly:
 
@@ -37,6 +37,8 @@ ak get brave
 ak list
 ```
 {{ end -}}
+
+The managed `~/.envrc` is the reviewed export profile: WSL direnv and Windows PowerShell import only its explicit service allowlist. Do not use no-argument bulk loading or add `export: false` credentials.
 
 **Never store keys in plaintext dotfiles.** Use `ak` only when explicitly required.
 
