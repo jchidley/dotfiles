@@ -20,5 +20,7 @@
     "mistral/mistral-medium-3.5",
     "openai-codex/gpt-5.6-luna",
     "mistral/mistral-small-2603"
-  ]
+  ],
+  "outputPad": 1,
+  "shellPath": "C:/Users/jackc/scoop/persist/Rustup/.cargo/bin/brush.exe"
 }

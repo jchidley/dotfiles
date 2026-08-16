@@ -16,40 +16,29 @@ The boat LAN uses Starlink as the provider/router. Starlink DNS/DHCP can return 
 - For Pi-to-Pi services, prefer `.local` mDNS names when already proven from the source device, e.g. `picanm` raw forwarding uses `pi5nvme.local:20200` because bare `pi5nvme` can resolve IPv6-first while the receiver is IPv4-only.
 - If `.local` stops working between Pis, check `avahi-daemon`, `libnss-mdns`, `/etc/nsswitch.conf` `hosts:` ordering, firewall/multicast isolation, and Starlink/client-isolation settings before changing application services.
 
-## API Keys (GPG-encrypted)
+## API Keys (`ak`)
 
-All secrets are GPG-encrypted in WSL Debian (`~/github/ak/secrets/*.gpg`). `gpg-agent` caches the passphrase (20h TTL).
+The approved low-risk secrets are GPG-encrypted in the explicitly named WSL distro configured by `~/.config/ak/vault.conf`. The current authoritative distro is `Debian-Recovered`; the distro name may change through chezmoi configuration. Never use the default WSL distro implicitly, search other distros, fall back to Windows Credential Manager, or automate Bitwarden access.
 
 {{ if eq .chezmoi.os "windows" -}}
-On Windows (Git Bash/MSYS2), use the `windows-env` skill wrappers to reach the GPG store in WSL Debian:
+On Windows (Git Bash/MSYS2), use the `windows-env` wrappers. They route only to the configured named distro and fail closed when it is unavailable:
 
 ```bash
-# These work from any shell environment — no manual quoting needed
-{windows-env}/ak-get brave                    # Single key to stdout
-export BRAVE_API_KEY=$({windows-env}/ak-get brave)  # Into a variable
-export OPENROUTER_API_KEY=$({windows-env}/ak-get openrouter)
-export DEEPINFRA_API_KEY=$({windows-env}/ak-get deepinfra)
-eval "$({windows-env}/ak-export)"             # All keys into env
-{windows-env}/ak-get --list                   # Show configured services
+{windows-env}/ak-get brave
+{windows-env}/ak-get --list
 ```
 
-Where `{windows-env}` is the windows-env skill directory. Load that skill to resolve the path.
-
-If keys return empty, check `wsl -l -v` — Debian must be the default distro. Fix: `wsl --set-default Debian`.
+Do not bulk-load keys automatically from shell profiles or `.envrc`. Where `{windows-env}` appears, load that skill to resolve its directory.
 {{ else -}}
-`ak` is in PATH and works directly — no wrappers needed:
+Inside the configured authoritative distro, `ak` is available directly:
 
 ```bash
-ak get brave                                  # Single key to stdout
-export BRAVE_API_KEY=$(ak get brave)           # Into a variable
-export OPENROUTER_API_KEY=$(ak get openrouter)
-export DEEPINFRA_API_KEY=$(ak get deepinfra)
-eval "$(ak export)"                            # All keys into env
-ak list                                        # Show configured services
+ak get brave
+ak list
 ```
 {{ end -}}
 
-**Never store keys in plaintext dotfiles.** Use `ak` at runtime.
+**Never store keys in plaintext dotfiles.** Use `ak` only when explicitly required.
 
 {{ includeTemplate "agent-python-uv.md.tmpl" }}
 
