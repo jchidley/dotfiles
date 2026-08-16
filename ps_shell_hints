@@ -3,10 +3,10 @@
 $env:USERPROFILE/.local/share/chezmoi
 Documents\PowerShell\Microsoft.PowerShell_profile.ps1 # in $env:USERPROFILE/.local/share/chezmoi
 gci env: #environment variables
-sync-wsl-api-keys deepseek # update Windows Credential Manager copy from Debian ak, then load DEEPSEEK_API_KEY
-sync-wsl-api-keys # update all Windows Credential Manager ak copies from Debian source of truth
-ak-list / load-api-keys # list/load Windows Credential Manager ak store; profile autoloads these at startup
-# Credentials: use ak-get <service>; durable secrets are not retrieved directly from Bitwarden.
+Get-Content $env:USERPROFILE/.config/ak/vault.conf # authoritative named WSL distro for GPG-backed ak
+ak-list # list the configured named distro's ak services
+ak-get <service> # explicit on-demand GPG access; no default-distro or Credential Manager fallback
+# Bitwarden is human-managed and must not be automated by agents.
 wt -w last sp -V -p "Debian" `; mf left `; sp -H
 wt -w last sp -V `; new-tab -p "Debian" `; split-pane -V -p "Debian"
 wt -w last new-tab -p "Debian"
