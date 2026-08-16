@@ -40,46 +40,24 @@ path_prepend "$HOME/.pi/agent/skills/windows-env"
 # see https://github.com/neovim/neovim/blob/master/INSTALL.md#install-from-package
 path_append "/opt/nvim-linux-x86_64/bin"
 
-# API Keys Manager (ak) - command is installed in ~/.local/bin.
-[[ -f "$HOME/github/ak/bin/ak-functions.sh" ]] && source "$HOME/github/ak/bin/ak-functions.sh"
+# API Keys Manager (ak) is installed in ~/.local/bin. Do not source its legacy
+# bulk-loading functions or place decrypted secrets in shell startup state.
+# SSH passphrases are askpass-only credentials, never shell environment data.
+unset SSH_KEY_PASSPHRASE
 
 # GPG agent (for ak/GPG encryption, 20h cache)
 [ -t 0 ] && export GPG_TTY="$(tty)"
 [ -t 0 ] && gpgconf --launch gpg-agent 2>/dev/null
 
-# API keys are loaded via direnv (~/.envrc → use_ak). No load_api_keys here.
+# API keys are retrieved explicitly for one approved service when required;
+# shell profiles and direnv must not bulk-load the vault.
 
-# SSH agent (separate from gpg-agent - gpg-agent has issues with OpenSSH key format)
-# Reuse a single ssh-agent across shells. Never spawn a throwaway agent.
-# Priority: 1) existing SSH_AUTH_SOCK  2) WSL-provided socket  3) our fixed socket  4) start one
-_ssh_sock_ok() { [ -S "${1:-}" ] && SSH_AUTH_SOCK="$1" ssh-add -l >/dev/null 2>&1; }
-
-if ! _ssh_sock_ok "$SSH_AUTH_SOCK"; then
-  # Try WSL2's built-in agent
-  if _ssh_sock_ok "/mnt/wslg/runtime-dir/ssh-agent.sock"; then
-    export SSH_AUTH_SOCK="/mnt/wslg/runtime-dir/ssh-agent.sock"
-  else
-    # Try our own fixed socket
-    SSH_AGENT_DIR="${XDG_RUNTIME_DIR:-$HOME/.ssh}"
-    SSH_AGENT_SOCK="$SSH_AGENT_DIR/ssh-agent.sock"
-    if _ssh_sock_ok "$SSH_AGENT_SOCK"; then
-      export SSH_AUTH_SOCK="$SSH_AGENT_SOCK"
-    else
-      # No live agent anywhere — start exactly one on a fixed socket
-      [ -d "$SSH_AGENT_DIR" ] || mkdir -p "$SSH_AGENT_DIR"
-      rm -f "$SSH_AGENT_SOCK"
-      eval "$(ssh-agent -a "$SSH_AGENT_SOCK")" >/dev/null
-    fi
-  fi
-fi
-unset -f _ssh_sock_ok
-
-# Add SSH key if agent has no identities (passphrase from ak/GPG store)
-if command -v ssh-add >/dev/null 2>&1 && ! ssh-add -l >/dev/null 2>&1; then
-  if [ -t 0 ] && [ -f "$HOME/.ssh/id_ed25519" ] && [ -x "$HOME/.local/bin/ak-ssh-askpass" ]; then
-    SSH_ASKPASS="$HOME/.local/bin/ak-ssh-askpass" SSH_ASKPASS_REQUIRE=force \
-      ssh-add -t 72000 "$HOME/.ssh/id_ed25519" 2>/dev/null
-  fi
+# OpenSSH keys remain in OpenSSH's agent, while ak decrypts their passphrase
+# through the same 20h gpg-agent cache used by API secrets. Start/reuse the
+# agent now; the askpass helper performs the explicit `ak get ssh-key` below.
+if [[ -r "$HOME/.local/lib/credential-agent.sh" ]]; then
+  source "$HOME/.local/lib/credential-agent.sh"
+  credential_agent_start
 fi
 
 # Pico SDK paths - only export if directories exist
@@ -101,24 +79,22 @@ command -v direnv >/dev/null 2>&1 && eval "$(direnv hook bash)"
 
 
 # API Keys - GPG-based management (see ~/github/ak/LLM.md)
-# 
-# Quick usage:
-#   ak list              # Show all services with secret status
-#   ak get <service>     # Decrypt secret to stdout
-#   ak set <service>     # Store secret (prompts for value)
-#   ak export            # Print "export VAR='value'" for eval
-#   load-api-keys        # Alias for: eval "$(ak export)"
-#   export OPENROUTER_API_KEY="$(ak get openrouter)"   # One-off shell export
-#   export DEEPINFRA_API_KEY="$(ak get deepinfra)"     # One-off shell export
-#   export DEEPSEEK_API_KEY="$(ak get deepseek)"       # One-off shell export
 #
-# GPG agent caches passphrase (~20h TTL, see ~/.gnupg/gpg-agent.conf)
+# Quick usage:
+#   ak list              # Show service metadata without decrypting values
+#   ak get <service>     # Explicitly decrypt one required service
+#   ak set <service>     # Store a secret (prompts for value)
+#   export OPENROUTER_API_KEY="$(ak get openrouter)"   # One-off shell export
+#
+# Never run `ak export` from shell startup or direnv. Services marked
+# `export: false`, including ssh-key, cannot be exported at all.
+# GPG agent caches the passphrase (~20h TTL, see ~/.gnupg/gpg-agent.conf).
 # Lock immediately: gpgconf --kill gpg-agent
 
-# Load all configured API keys into each interactive WSL shell.
-# Metadata controls the exported variable name; secrets remain GPG-encrypted.
-if [[ $- == *i* ]] && command -v ak >/dev/null 2>&1; then
-    eval "$(ak export)"
+# Askpass explicitly retrieves only ssh-key; the passphrase never enters this
+# shell's environment, and ssh-agent enforces the matching 20h key lifetime.
+if [[ $- == *i* ]] && declare -F credential_agent_load_ssh_key >/dev/null; then
+    credential_agent_load_ssh_key || true
 fi
 
 # Aliases

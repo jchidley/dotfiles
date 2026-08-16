@@ -1,5 +1,6 @@
 Host *
-  AddKeysToAgent 72000
+  # Match the 20h GPG/ak credential-cache policy.
+  AddKeysToAgent 20h
 
 # Boat LAN direct IPv4 aliases. Starlink/WSL bare-hostname and .local
 # resolution can be unreliable; these aliases bypass DNS/mDNS for operator SSH.

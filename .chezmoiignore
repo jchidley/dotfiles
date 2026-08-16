@@ -21,6 +21,7 @@ prn
 # Repository-only programs and documentation (not rendered home state)
 scripts/
 docs/
+tests/
 ./README.md
 ./HANDOFF.md
 ./CLAUDE_COMMANDS_LOG.md
