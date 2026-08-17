@@ -66,6 +66,29 @@ install_fnm() {
   fi
 }
 
+install_pi() {
+  local package="@earendil-works/pi-coding-agent"
+
+  if [[ "$BOOTSTRAP_DRY_RUN" == 1 ]]; then
+    echo "DRY-RUN: install native WSL Pi package ($package) when absent"
+    return 0
+  fi
+
+  case "$(command -v node 2>/dev/null || true)" in
+    /mnt/c/*|"")
+      echo "Native fnm-managed Node.js is unavailable; refusing to install Pi with Windows npm." >&2
+      return 1
+      ;;
+  esac
+
+  if npm list -g --depth=0 "$package" >/dev/null 2>&1; then
+    echo "  - Pi already installed: $(pi --version)"
+  else
+    npm install -g "$package"
+    echo "  - installed Pi: $(pi --version)"
+  fi
+}
+
 case "${BOOTSTRAP_MODE,,}" in
   core) default_groups="foundation" ;;
   full) default_groups="foundation,active,references,optional" ;;
@@ -98,6 +121,7 @@ fi
 
 run mkdir -p "$HOME/github" "$HOME/tools" "$HOME/work" "$HOME/.local/bin"
 install_fnm
+install_pi
 
 echo "==> Repository manifest: profile=$BOOTSTRAP_PROFILE groups=$BOOTSTRAP_GROUPS"
 while IFS=$'\t' read -r group kind repository destination profiles extra; do
