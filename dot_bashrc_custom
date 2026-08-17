@@ -19,9 +19,20 @@ fi
 # bat theme
 export BAT_THEME="gruvbox-dark"
 
-# WSL2: use win-open as BROWSER so OAuth callbacks work (xdg-open doesn't)
-if [ -f "$HOME/.pi/agent/skills/windows-env/win-open" ]; then
-  export BROWSER="$HOME/.pi/agent/skills/windows-env/win-open"
+# Resolve helpers from the platform's source checkout. Pi discovers the same
+# resources through its package manifest; no duplicate skill link is required.
+_windows_env_dir=""
+for _candidate in "$HOME/github/agent-skills/skills/windows-env" "$HOME/git/agent-skills/skills/windows-env"; do
+  if [[ -f "$_candidate/SKILL.md" ]]; then
+    _windows_env_dir="$_candidate"
+    break
+  fi
+done
+unset _candidate
+
+# WSL2: use win-open as BROWSER so OAuth callbacks work (xdg-open doesn't).
+if [[ -x "$_windows_env_dir/win-open" ]]; then
+  export BROWSER="$_windows_env_dir/win-open"
 fi
 
 [ -t 1 ] && [ -f "$HOME/bash_shell_hints" ] && cat "$HOME/bash_shell_hints"
@@ -36,7 +47,8 @@ case ":$PATH:" in
 esac
 path_prepend "$HOME/.amp/bin"
 path_prepend "/usr/local/go/bin"
-path_prepend "$HOME/.pi/agent/skills/windows-env"
+# windows-env helpers are loaded by skill or called through explicit aliases;
+# do not expose generic helper names globally merely for Pi discovery.
 # see https://github.com/neovim/neovim/blob/master/INSTALL.md#install-from-package
 path_append "/opt/nvim-linux-x86_64/bin"
 
@@ -78,7 +90,7 @@ export MCFLY_RESULTS=60
 command -v direnv >/dev/null 2>&1 && eval "$(direnv hook bash)"
 
 
-# API Keys - GPG-based management (see ~/github/ak/LLM.md)
+# API Keys - GPG-based management (see the platform's ~/github/ak or ~/git/ak checkout)
 #
 # Quick usage:
 #   ak list              # Show service metadata without decrypting values
@@ -101,14 +113,16 @@ fi
 alias clauded='claude --dangerously-skip-permissions'
 alias codexd='codex -s danger-full-access'
 
-# Windows/WSL clipboard helpers (windows-env skill)
-alias clipcopy='win-clipboard set'
-alias clippaste='win-clipboard get'
-
-# Windows screenshot helpers (clipboard image -> /tmp path)
-alias snip='win-clipboard snip'
-alias shot='win-clipboard shot'
-alias screenshot='win-clipboard screenshot'
+# Programmatic Windows clipboard helpers. Pi's interactive paste/copy is native;
+# these aliases are for shell automation and implicit screenshot requests.
+if [[ -x "$_windows_env_dir/win-clipboard" ]]; then
+  alias clipcopy="$_windows_env_dir/win-clipboard set"
+  alias clippaste="$_windows_env_dir/win-clipboard get"
+  alias snip="$_windows_env_dir/win-clipboard snip"
+  alias shot="$_windows_env_dir/win-clipboard shot"
+  alias screenshot="$_windows_env_dir/win-clipboard screenshot"
+fi
+unset _windows_env_dir
 
 # Add npm global bin to PATH if it exists
 path_prepend "$HOME/.npm-global/bin"

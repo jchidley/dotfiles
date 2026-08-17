@@ -1,5 +1,5 @@
 {
-  "lastChangelogVersion": "0.83.0",
+  "lastChangelogVersion": "0.84.2",
   "defaultProvider": "openai-codex",
   "defaultModel": "gpt-5.6-sol",
   "defaultThinkingLevel": "medium",
@@ -10,6 +10,9 @@
   "transport": "websocket",
   "httpIdleTimeoutMs": 0,
   "websocketConnectTimeoutMs": 60000,
+  "packages": [
+    "{{ if eq .chezmoi.os "windows" }}../../git/agent-skills{{ else }}../../github/agent-skills{{ end }}"
+  ],
   "enabledModels": [
     "openai-codex/gpt-5.6-sol",
     "together/zai-org/GLM-5.2",
