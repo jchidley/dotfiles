@@ -85,15 +85,15 @@ profile_selected() {
 
 expand_destination() {
   case "$1" in
-    '~') printf '%s\n' "$HOME" ;;
-    '~/'*) printf '%s/%s\n' "$HOME" "${1:2}" ;;
+    \~) printf '%s\n' "$HOME" ;;
+    \~/*) printf '%s/%s\n' "$HOME" "${1:2}" ;;
     *) printf '%s\n' "$1" ;;
   esac
 }
 
 if [[ "$SKIP_SYSTEM_PACKAGES" != 1 ]]; then
   run sudo apt update
-  run sudo apt install -y ca-certificates curl direnv dirmngr git gnupg2 jq openssh-client pinentry-curses sqlite3 tmux unzip zoxide
+  run sudo apt install -y ca-certificates curl direnv dirmngr git gnupg2 jq openssh-client pinentry-curses shellcheck sqlite3 tmux unzip zoxide
 fi
 
 run mkdir -p "$HOME/github" "$HOME/tools" "$HOME/work" "$HOME/.local/bin"
