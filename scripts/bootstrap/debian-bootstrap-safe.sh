@@ -66,6 +66,37 @@ install_fnm() {
   fi
 }
 
+install_mcfly() {
+  local version=v0.9.4 asset url tmp_dir
+
+  if [[ -x "$HOME/.local/bin/mcfly" ]]; then
+    echo "  - McFly already installed: $("$HOME/.local/bin/mcfly" --version)"
+    return 0
+  fi
+
+  case "$(uname -m)" in
+    x86_64|amd64) asset="mcfly-$version-x86_64-unknown-linux-musl.tar.gz" ;;
+    aarch64|arm64) asset="mcfly-$version-aarch64-unknown-linux-musl.tar.gz" ;;
+    *) echo "Unsupported architecture for McFly: $(uname -m)" >&2; return 1 ;;
+  esac
+  url="https://github.com/cantino/mcfly/releases/download/$version/$asset"
+
+  if [[ "$BOOTSTRAP_DRY_RUN" == 1 ]]; then
+    echo "DRY-RUN: install McFly $version ($asset) at $HOME/.local/bin/mcfly"
+    return 0
+  fi
+
+  (
+    tmp_dir=$(mktemp -d)
+    trap 'rm -rf "$tmp_dir"' EXIT
+    curl -fL --retry 3 --connect-timeout 10 --max-time 120 "$url" -o "$tmp_dir/mcfly.tar.gz"
+    tar -xzf "$tmp_dir/mcfly.tar.gz" -C "$tmp_dir"
+    install -d -m 755 "$HOME/.local/bin"
+    install -m 755 "$tmp_dir/mcfly" "$HOME/.local/bin/mcfly"
+  )
+  echo "  - installed McFly: $("$HOME/.local/bin/mcfly" --version)"
+}
+
 install_pi() {
   local package="@earendil-works/pi-coding-agent"
 
@@ -121,6 +152,7 @@ fi
 
 run mkdir -p "$HOME/github" "$HOME/tools" "$HOME/work" "$HOME/.local/bin"
 install_fnm
+install_mcfly
 install_pi
 
 echo "==> Repository manifest: profile=$BOOTSTRAP_PROFILE groups=$BOOTSTRAP_GROUPS"

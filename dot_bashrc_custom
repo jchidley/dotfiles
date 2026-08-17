@@ -82,12 +82,38 @@ fi
 # https://github.com/ajeetdsouza/zoxide?tab=readme-ov-file#configuration
 [ -t 1 ] && command -v zoxide >/dev/null 2>&1 && eval "$(zoxide init bash)"
 
-# mcfly
-export MCFLY_RESULTS=60
-[ -t 1 ] && command -v mcfly >/dev/null 2>&1 && eval "$(mcfly init bash)"
-
 # direnv
 command -v direnv >/dev/null 2>&1 && eval "$(direnv hook bash)"
+
+# McFly records every completed command in SQLite and appends it promptly to
+# the ordinary HISTFILE. Its database can contain secrets typed as commands.
+_mcfly_data_dir="${XDG_DATA_HOME:-$HOME/.local/share}/mcfly"
+mkdir -p -m 700 "$_mcfly_data_dir"
+chmod 700 "$_mcfly_data_dir"
+[ ! -f "$_mcfly_data_dir/history.db" ] || chmod 600 "$_mcfly_data_dir/history.db"
+unset _mcfly_data_dir
+
+# Fall back to an equivalent per-prompt file flush when McFly is unavailable,
+# so a crashed shell loses at most its current command.
+export MCFLY_RESULTS=60
+if [ -t 1 ] && command -v mcfly >/dev/null 2>&1; then
+  eval "$(mcfly init bash)"
+  # McFly defaults an empty HISTCONTROL to ignorespace; restore full capture.
+  HISTCONTROL=
+  HISTIGNORE=
+else
+  _history_sync() {
+    local previous_status=$?
+    history -a
+    history -n
+    return "$previous_status"
+  }
+  if [[ $(declare -p PROMPT_COMMAND 2>/dev/null) == "declare -a"* ]]; then
+    PROMPT_COMMAND+=("_history_sync")
+  elif [[ ";${PROMPT_COMMAND:-};" != *";_history_sync;"* ]]; then
+    PROMPT_COMMAND="${PROMPT_COMMAND:+$PROMPT_COMMAND;}_history_sync"
+  fi
+fi
 
 
 # API Keys - GPG-based management (see the platform's ~/github/ak or ~/git/ak checkout)
