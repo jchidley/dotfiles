@@ -23,7 +23,9 @@ $wslProfileSpecs = @(
     [pscustomobject]@{
         Distro = 'Debian-Recovered'
         Name = 'Debian-Recovered'
-        Guid = '{20517053-d9f3-52e4-b051-e3ddd867b0a3}'
+        # Adopt Windows Terminal's deterministic Microsoft.WSL profile identity.
+        Guid = '{7e3ad175-91fc-536c-b346-f9d77cce7280}'
+        LegacyGuids = @('{20517053-d9f3-52e4-b051-e3ddd867b0a3}')
         DefaultPriority = 1
     },
     [pscustomobject]@{
@@ -137,6 +139,16 @@ function Ensure-Profile($Settings, [hashtable]$Desired) {
         Remove-JsonProperty $profile 'source'
     }
 
+    Set-ProfileList $Settings $list
+}
+
+function Remove-Profile($Settings, [string]$Guid) {
+    $list = Get-ProfileList $Settings
+    for ($index = $list.Count - 1; $index -ge 0; $index--) {
+        if ($list[$index].guid -eq $Guid) {
+            $list.RemoveAt($index)
+        }
+    }
     Set-ProfileList $Settings $list
 }
 
@@ -268,6 +280,12 @@ Ensure-Profile $settings @{
 }
 
 foreach ($spec in $wslProfileSpecs) {
+    # Remove profiles created under superseded managed identities before adopting
+    # the corresponding Windows Terminal-generated profile GUID.
+    foreach ($legacyGuid in @($spec.LegacyGuids)) {
+        Remove-Profile $settings $legacyGuid
+    }
+
     $distro = Find-Distribution $availableDistributions $spec.Distro
     if ($distro) {
         Ensure-Profile $settings @{

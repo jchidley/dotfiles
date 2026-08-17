@@ -56,7 +56,7 @@ try {
     $windowsPowerShell = Get-Profile $settings '{61c54bbd-c2c6-5271-96e7-009a87ff44bf}'
     $powerShell7 = Get-Profile $settings '{574e775e-4f2a-5b96-ac1e-a2962a402336}'
     $debian = Get-Profile $settings '{58ad8b0c-3ef8-5f4d-bc6f-13e4c00f2530}'
-    $recovered = Get-Profile $settings '{20517053-d9f3-52e4-b051-e3ddd867b0a3}'
+    $recovered = Get-Profile $settings '{7e3ad175-91fc-536c-b346-f9d77cce7280}'
     $arch = Get-Profile $settings '{a06ad568-9eae-4b45-98e1-d7b6a5309eec}'
     $alpine = Get-Profile $settings '{77526b00-08ae-4477-bddc-9587432a0901}'
 
@@ -64,6 +64,7 @@ try {
     Assert-Equal $powerShell7.hidden $expected.profiles.powerShell7Hidden 'PowerShell 7 visibility differs'
     Assert-Equal $debian.hidden $expected.profiles.debianHidden 'Debian visibility differs'
     Assert-Equal $recovered.hidden $expected.profiles.debianRecoveredHidden 'Debian-Recovered visibility differs'
+    Assert-Equal @($settings.profiles.list | Where-Object { $_.guid -eq '{20517053-d9f3-52e4-b051-e3ddd867b0a3}' }).Count 0 'legacy Debian-Recovered profile was not removed'
     Assert-Equal $arch.hidden $expected.profiles.archHiddenWhenAbsent 'stale Arch profile was not hidden'
     Assert-Equal (@($settings.profiles.list | Where-Object { $_.guid -eq '{77526b00-08ae-4477-bddc-9587432a0901}' }).Count -eq 0) $expected.profiles.alpineAbsentWhenNotInstalled 'absent Alpine profile was created'
     Assert-True (-not $debian.PSObject.Properties['source']) 'Debian profile remained dynamically sourced'

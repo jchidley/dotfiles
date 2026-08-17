@@ -11,6 +11,7 @@ Windows Terminal owns and rewrites its live `settings.json`, so chezmoi does not
 - Windows PowerShell 5.1 is visible.
 - The dynamically discovered PowerShell 7 profile is hidden.
 - Registered WSL distributions in the profile table receive static profiles and their registered `shortcut.ico`.
+- Managed profiles use Windows Terminal's generated GUIDs so dynamic WSL profiles are adopted rather than duplicated; superseded managed GUIDs are removed during migration.
 - Stale managed profiles are hidden; profiles are not created for absent distributions.
 - Default profile priority is Debian-Recovered, Debian, then Windows PowerShell.
 

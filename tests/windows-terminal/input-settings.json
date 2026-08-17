@@ -44,6 +44,18 @@
         "hidden": true
       },
       {
+        "guid": "{7e3ad175-91fc-536c-b346-f9d77cce7280}",
+        "name": "Debian-Recovered",
+        "source": "Microsoft.WSL",
+        "hidden": false
+      },
+      {
+        "guid": "{20517053-d9f3-52e4-b051-e3ddd867b0a3}",
+        "name": "Debian-Recovered",
+        "commandline": "wsl.exe -d Debian-Recovered",
+        "hidden": false
+      },
+      {
         "guid": "{a06ad568-9eae-4b45-98e1-d7b6a5309eec}",
         "name": "Arch Linux",
         "commandline": "wsl.exe -d archlinux",
