@@ -21,6 +21,51 @@ run() {
   fi
 }
 
+install_fnm() {
+  local fnm_dir fnm_bin asset tmp_dir default_version
+  fnm_dir="${XDG_DATA_HOME:-$HOME/.local/share}/fnm"
+  fnm_bin="$fnm_dir/fnm"
+
+  if [[ ! -x "$fnm_bin" ]]; then
+    case "$(uname -m)" in
+      x86_64|amd64) asset=fnm-linux.zip ;;
+      aarch64|arm64) asset=fnm-arm64.zip ;;
+      armv7l|armv6l) asset=fnm-arm32.zip ;;
+      *) echo "Unsupported architecture for fnm: $(uname -m)" >&2; return 1 ;;
+    esac
+
+    if [[ "$BOOTSTRAP_DRY_RUN" == 1 ]]; then
+      echo "DRY-RUN: install latest fnm release ($asset) at $fnm_bin"
+      echo "DRY-RUN: install and select the latest Node.js LTS if no default exists"
+      return 0
+    fi
+
+    (
+      tmp_dir=$(mktemp -d)
+      trap 'rm -rf "$tmp_dir"' EXIT
+      curl -fL --retry 3 --connect-timeout 10 --max-time 120 \
+        "https://github.com/Schniz/fnm/releases/latest/download/$asset" \
+        -o "$tmp_dir/fnm.zip"
+      unzip -q "$tmp_dir/fnm.zip" -d "$tmp_dir/unpacked"
+      install -d -m 755 "$fnm_dir"
+      install -m 755 "$tmp_dir/unpacked/fnm" "$fnm_bin"
+    )
+  else
+    echo "  - fnm already installed: $($fnm_bin --version)"
+  fi
+
+  [[ "$BOOTSTRAP_DRY_RUN" == 1 ]] && return 0
+  export PATH="$fnm_dir:$PATH"
+  eval "$("$fnm_bin" env --shell bash)"
+  default_version=$(fnm default 2>/dev/null || true)
+  if [[ -z "$default_version" ]]; then
+    fnm install --lts --use --progress never
+    fnm default "$(fnm current)"
+  else
+    fnm use "$default_version"
+  fi
+}
+
 case "${BOOTSTRAP_MODE,,}" in
   core) default_groups="foundation" ;;
   full) default_groups="foundation,active,references,optional" ;;
@@ -52,6 +97,7 @@ if [[ "$SKIP_SYSTEM_PACKAGES" != 1 ]]; then
 fi
 
 run mkdir -p "$HOME/github" "$HOME/tools" "$HOME/work" "$HOME/.local/bin"
+install_fnm
 
 echo "==> Repository manifest: profile=$BOOTSTRAP_PROFILE groups=$BOOTSTRAP_GROUPS"
 while IFS=$'\t' read -r group kind repository destination profiles extra; do
