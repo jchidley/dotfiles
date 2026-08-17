@@ -147,7 +147,7 @@ expand_destination() {
 
 if [[ "$SKIP_SYSTEM_PACKAGES" != 1 ]]; then
   run sudo apt update
-  run sudo apt install -y ca-certificates curl direnv dirmngr git gnupg2 jq openssh-client pinentry-curses shellcheck sqlite3 tmux unzip zoxide
+  run sudo apt install -y ca-certificates curl direnv dirmngr git gnupg2 jq openssh-client pinentry-curses restic shellcheck sqlite3 tmux unzip zoxide
 fi
 
 run mkdir -p "$HOME/github" "$HOME/tools" "$HOME/work" "$HOME/.local/bin"
