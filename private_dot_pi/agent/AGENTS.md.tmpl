@@ -1,50 +1,6 @@
-# Global Agent Context
+# Global agent behavior
 
-## Windows / WSL execution environment
-
-The machine-wide `~/AGENTS.md` is the source of truth for environment detection, path ownership, and cross-shell command transport. It is loaded as parent context for work below the home directory.
-
-Fallback if that context is unavailable: run `~/.pi/agent/skills/windows-env/detect-env`, then load the `windows-env` skill before crossing Windows, MSYS, WSL, PowerShell, or SSH boundaries. `MSYS_NO_PATHCONV=1` controls path conversion only; it does not fix quoting.
-
-## Starlink LAN / boat hostnames
-
-The boat LAN uses Starlink as the provider/router. Starlink DNS/DHCP can return IPv6-first or otherwise unreliable answers for bare hostnames from WSL. For the boat hosts:
-
-- Do not conclude a Pi is down just because `ssh pi5nvme` or another bare hostname hangs from WSL.
-- Retry human/agent SSH using `.local` mDNS and then the known IPv4 address/alias if needed, with short timeouts, e.g. `ssh pi5nvme.local`, `ssh 192.168.1.135`, or the WSL SSH aliases `ssh pi5nvme-ip` / `ssh picanm-ip`.
-- Treat direct IPv4 success after bare-hostname failure as a Starlink/WSL name-resolution issue, not a service outage.
-- For Pi-to-Pi services, prefer `.local` mDNS names when already proven from the source device, e.g. `picanm` raw forwarding uses `pi5nvme.local:20200` because bare `pi5nvme` can resolve IPv6-first while the receiver is IPv4-only.
-- If `.local` stops working between Pis, check `avahi-daemon`, `libnss-mdns`, `/etc/nsswitch.conf` `hosts:` ordering, firewall/multicast isolation, and Starlink/client-isolation settings before changing application services.
-
-## API Keys (`ak`)
-
-The approved low-risk secrets are GPG-encrypted in the explicitly named WSL distro configured by `~/.config/ak/vault.conf`. The current authoritative distro is `Debian-Recovered`; the distro name may change through chezmoi configuration. Never use the default WSL distro implicitly, search other distros, fall back to Windows Credential Manager, or automate Bitwarden access.
-
-{{ if eq .chezmoi.os "windows" -}}
-On Windows (Git Bash/MSYS2), use the `windows-env` wrappers. They route only to the configured named distro and fail closed when it is unavailable:
-
-```bash
-{windows-env}/ak-get brave
-{windows-env}/ak-get --list
-```
-
-Where `{windows-env}` appears, load that skill to resolve its directory.
-{{ else -}}
-Inside the configured authoritative distro, `ak` is available directly:
-
-```bash
-ak get brave
-ak list
-```
-{{ end -}}
-
-The managed `~/.envrc` is the reviewed export profile: WSL direnv and Windows PowerShell import only its explicit service allowlist. Do not use no-argument bulk loading or add `export: false` credentials.
-
-**Never store keys in plaintext dotfiles.** Use `ak` only when explicitly required.
-
-{{ includeTemplate "agent-python-uv.md.tmpl" }}
-
-{{ includeTemplate "agent-screenshot-intent.md.tmpl" }}
+Machine and environment rules live in `~/AGENTS.md`, the single source of truth.
 
 ## Autonomous Completion
 You must complete tasks fully without expecting human feedback or handoff.

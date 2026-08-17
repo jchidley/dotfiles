@@ -1,0 +1,84 @@
+# Machine-wide agent context
+
+Use concise `AGENTS.md` files as the only active startup instructions. `CLAUDE.md` is deprecated; migrate unique current rules into the applicable `AGENTS.md` and remove the vendor-specific file.
+
+## Detect the command environment
+
+This Windows machine runs agents in both native Windows/MSYS Git Bash and WSL2.
+Do not infer the shell from the host OS, prompt, current path, or agent name.
+Before shell work, run:
+
+```bash
+~/.pi/agent/skills/windows-env/detect-env
+```
+
+Pi discovers the global `windows-env` skill at
+`~/.pi/agent/skills/windows-env/SKILL.md`. Load that file whenever a command
+crosses Windows, MSYS, WSL, PowerShell, or SSH boundaries, or when path
+ownership is unclear. Resolve its helper names relative to that skill directory.
+
+## Cross-environment command rules
+
+| Need | Required helper |
+|---|---|
+| Native `.exe` with Unix-looking path arguments | `~/.pi/agent/skills/windows-env/safe-exec` |
+| Git Bash → WSL script | `~/.pi/agent/skills/windows-env/wsl-exec` |
+| Bash → PowerShell script | `~/.pi/agent/skills/windows-env/ps-exec` |
+| Bash → remote Bash script | `~/.pi/agent/skills/windows-env/ssh-exec` |
+
+- `MSYS_NO_PATHCONV=1` disables MSYS path conversion only. It does not fix
+  quote loss or control which shell expands `$variables`.
+- Do not put nontrivial scripts inside `wsl.exe ... bash -c`,
+  `powershell.exe -Command`, or `ssh host "..."` command strings.
+- For multiline helper input, use a quoted here-document (`<<'TAG'`) so the
+  source shell does not expand the script body.
+- If the destination script also needs stdin, transfer a script file instead.
+- After cross-boundary writes, verify destination state independently; a final
+  zero status can hide an earlier nested-shell or pipeline failure.
+
+## Path ownership
+
+- Windows-native agent file tools: relative paths or `C:/...`.
+- Git Bash/MSYS commands: `/c/...` or `C:/...`.
+- WSL Linux commands: `/mnt/c/...` for Windows files; `~/...` for Linux work.
+- Keep builds, clones, installs, and file watchers on WSL ext4, never `/mnt/c`.
+
+{{ includeTemplate "agent-python-uv.md.tmpl" }}
+
+## API keys (`ak`)
+
+Approved low-risk secrets are GPG-encrypted in the WSL distro explicitly named
+by `~/.config/ak/vault.conf` (currently `Debian-Recovered`, but managed
+configuration may change it). Never use the default WSL distro implicitly,
+search other distros, fall back to Windows Credential Manager, or automate
+Bitwarden access.
+
+{{ if eq .chezmoi.os "windows" -}}
+On Windows (Git Bash/MSYS2), use the `windows-env` wrappers. They route only to
+the configured named distro and fail closed when it is unavailable:
+
+```bash
+~/.pi/agent/skills/windows-env/ak-get brave
+~/.pi/agent/skills/windows-env/ak-get --list
+```
+{{ else -}}
+Inside the configured authoritative distro, use `ak` directly:
+
+```bash
+ak get brave
+ak list
+```
+{{ end -}}
+
+Across an environment boundary, use
+`~/.pi/agent/skills/windows-env/ak-get`. The managed `~/.envrc`
+is the reviewed export profile; import only its explicit service allowlist. Do
+not use no-argument bulk loading or add `export: false` credentials. Never store
+keys in plaintext dotfiles, and retrieve them only when explicitly required.
+
+{{ includeTemplate "agent-screenshot-intent.md.tmpl" }}
+
+## Other machine rules
+
+- Use `~/.pi/agent/skills/windows-env/win-open`, not `xdg-open`.
+- USB devices require Windows-side `usbipd attach` before WSL can see them.

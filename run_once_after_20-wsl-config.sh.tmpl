@@ -1,16 +1,36 @@
 {{- if eq .chezmoi.os "linux" -}}
 #!/bin/bash
-# Ensure .wslconfig has dnsTunneling=true and /etc/wsl.conf is correct.
+# Ensure WSL interop, .wslconfig, and /etc/wsl.conf are correct.
 # Only runs inside WSL.
 
 set -euo pipefail
 
-if [ ! -f /proc/sys/fs/binfmt_misc/WSLInterop ] 2>/dev/null; then
+if ! grep -qi microsoft /proc/sys/kernel/osrelease 2>/dev/null; then
     echo "Not running in WSL, skipping."
     exit 0
 fi
 
-WIN_USER=$(powershell.exe -NoProfile -Command '[Environment]::UserName' 2>/dev/null | tr -d '\r')
+# WSL normally registers this at startup. Repair a missing transient registration
+# before invoking any Windows executable; /etc/wsl.conf below keeps it enabled.
+if [ ! -f /proc/sys/fs/binfmt_misc/WSLInterop ]; then
+    if [ ! -e /proc/sys/fs/binfmt_misc/register ]; then
+        echo "WSL binfmt_misc register is unavailable." >&2
+        exit 1
+    fi
+    if [ "$(id -u)" -eq 0 ]; then
+        echo ':WSLInterop:M::MZ::/init:PF' > /proc/sys/fs/binfmt_misc/register
+    else
+        echo ':WSLInterop:M::MZ::/init:PF' | sudo tee /proc/sys/fs/binfmt_misc/register >/dev/null
+    fi
+    echo "Registered missing WSLInterop binfmt handler"
+fi
+
+POWERSHELL=/mnt/c/WINDOWS/System32/WindowsPowerShell/v1.0/powershell.exe
+if [ ! -x "$POWERSHELL" ]; then
+    echo "Windows PowerShell not found at $POWERSHELL" >&2
+    exit 1
+fi
+WIN_USER=$("$POWERSHELL" -NoProfile -Command '[Environment]::UserName' 2>/dev/null | tr -d '\r')
 WIN_HOME="/mnt/c/Users/${WIN_USER}"
 
 if [ ! -d "$WIN_HOME" ]; then
