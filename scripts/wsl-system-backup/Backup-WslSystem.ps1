@@ -22,7 +22,7 @@ function Convert-ToWslPath {
         throw "Validator source is not on a Windows drive: $full"
     }
     $drive = $Matches[1].ToLowerInvariant()
-    $relative = $Matches[2].Replace('\\', '/')
+    $relative = $Matches[2].Replace('\', '/')
     return "/mnt/$drive/$relative"
 }
 
