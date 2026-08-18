@@ -1,0 +1,242 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+CONFIG=${RESTIC_HOME_CONFIG:-/etc/restic/home.conf}
+COMMAND=${1:-help}
+LOCK_FILE=/run/lock/restic-home.lock
+
+fail() {
+  printf 'ERROR: %s\n' "$*" >&2
+  exit 1
+}
+
+[[ $EUID -eq 0 ]] || fail "run as root"
+[[ -r "$CONFIG" ]] || fail "configuration is not readable: $CONFIG"
+# shellcheck source=/dev/null
+source "$CONFIG"
+
+required_vars=(
+  SOURCE RESTIC_REPOSITORY RESTIC_PASSWORD_FILE RECOVERY_CONFIRMATION_FILE LOG_DIR
+  LOG_RETENTION_DAYS STAGING_DIR RESTIC_CACHE_DIR BACKUP_HOST EXPECTED_UID EXPECTED_GID
+  MIN_BYTES MIN_FILES MIN_SESSIONS MCFLY_DATABASE
+  MCFLY_RECOVERY_COPY
+)
+for name in "${required_vars[@]}"; do
+  [[ -n ${!name:-} ]] || fail "missing configuration value: $name"
+done
+
+umask 077
+export RESTIC_REPOSITORY RESTIC_PASSWORD_FILE RESTIC_CACHE_DIR
+
+ensure_runtime() {
+  install -d -m 700 "$LOG_DIR" "$STAGING_DIR" "$RESTIC_CACHE_DIR" "$(dirname "$LOCK_FILE")"
+  [[ -s "$RESTIC_PASSWORD_FILE" ]] || fail "password file is absent or empty: $RESTIC_PASSWORD_FILE"
+  mode=$(stat -c %a "$RESTIC_PASSWORD_FILE")
+  owner=$(stat -c %u "$RESTIC_PASSWORD_FILE")
+  [[ $mode == 600 && $owner == 0 ]] || fail "password file must be root-owned mode 600"
+  if [[ ! -f "$RECOVERY_CONFIRMATION_FILE" ]]; then
+    printf 'WARNING: Bitwarden recovery-password confirmation is absent: %s\n' \
+      "$RECOVERY_CONFIRMATION_FILE" >&2
+  fi
+}
+
+start_log() {
+  local operation=$1 log
+  find "$LOG_DIR" -maxdepth 1 -type f -name '*.log' -mtime "+$LOG_RETENTION_DAYS" -delete
+  log="$LOG_DIR/$(date -u +%Y%m%dT%H%M%SZ)-${operation}.log"
+  exec > >(tee -a "$log") 2>&1
+  printf 'started=%s operation=%s host=%s repository=%s\n' \
+    "$(date --iso-8601=seconds)" "$operation" "$BACKUP_HOST" "$RESTIC_REPOSITORY"
+}
+
+acquire_lock() {
+  exec 9>"$LOCK_FILE"
+  if ! flock -n 9; then
+    printf 'Another Restic home operation owns %s\n' "$LOCK_FILE" >&2
+    exit 75
+  fi
+}
+
+validate_source() {
+  local src=${1:-$SOURCE} uid gid bytes files sessions mode landmark
+  [[ -d "$src" ]] || fail "source directory does not exist: $src"
+  uid=$(stat -c %u "$src")
+  gid=$(stat -c %g "$src")
+  [[ $uid == "$EXPECTED_UID" && $gid == "$EXPECTED_GID" ]] || \
+    fail "source owner is $uid:$gid, expected $EXPECTED_UID:$EXPECTED_GID"
+
+  bytes=$(du -sbx "$src" | awk '{print $1}')
+  files=$(find "$src" -xdev -type f -printf '.\n' | wc -l)
+  [[ $bytes -ge $MIN_BYTES ]] || fail "source has only $bytes bytes; minimum is $MIN_BYTES"
+  [[ $files -ge $MIN_FILES ]] || fail "source has only $files files; minimum is $MIN_FILES"
+
+  for landmark in "${REQUIRED_LANDMARKS[@]}"; do
+    [[ -e "$src/$landmark" ]] || fail "required source landmark is missing: $landmark"
+  done
+
+  sessions=$(find "$src/.pi/agent/sessions" -type f -printf '.\n' | wc -l)
+  [[ $sessions -ge $MIN_SESSIONS ]] || \
+    fail "source has only $sessions Pi sessions; minimum is $MIN_SESSIONS"
+
+  mode=$(stat -c %a "$src/.ssh/id_ed25519")
+  [[ $mode == 600 ]] || fail ".ssh/id_ed25519 mode is $mode, expected 600"
+
+  [[ $(sqlite3 "$src/$MCFLY_DATABASE" 'PRAGMA integrity_check;') == ok ]] || \
+    fail "McFly database integrity check failed"
+
+  printf 'source_valid bytes=%s files=%s sessions=%s uid=%s gid=%s\n' \
+    "$bytes" "$files" "$sessions" "$uid" "$gid"
+}
+
+stage_mcfly() {
+  local live="$SOURCE/$MCFLY_DATABASE" recovery="$SOURCE/$MCFLY_RECOVERY_COPY"
+  local tmp
+  tmp=$(mktemp "$(dirname "$recovery")/.history.db.restic.XXXXXX")
+  if ! sqlite3 "$live" <<SQL
+.timeout 5000
+.backup '$tmp'
+SQL
+  then
+    rm -f "$tmp"
+    fail "could not stage McFly database"
+  fi
+  if [[ $(sqlite3 "$tmp" 'PRAGMA integrity_check;') != ok ]]; then
+    rm -f "$tmp"
+    fail "staged McFly database integrity check failed"
+  fi
+  chown "$EXPECTED_UID:$EXPECTED_GID" "$tmp"
+  chmod 600 "$tmp"
+  mv -f "$tmp" "$recovery"
+  printf 'mcfly_staged path=%s\n' "$recovery"
+}
+
+repository_ready() {
+  restic cat config >/dev/null 2>&1
+}
+
+retention_args=(
+  --host "$BACKUP_HOST"
+  --path "$SOURCE"
+  --keep-within 24h
+  --keep-hourly 168
+  --keep-daily 30
+)
+
+case "$COMMAND" in
+  init)
+    ensure_runtime
+    acquire_lock
+    start_log init
+    validate_source "$SOURCE"
+    if repository_ready; then
+      printf 'Repository is already initialized.\n'
+      exit 0
+    fi
+    if [[ -d "$RESTIC_REPOSITORY" ]] && find "$RESTIC_REPOSITORY" -mindepth 1 -print -quit | grep -q .; then
+      fail "refusing to initialize non-empty invalid repository: $RESTIC_REPOSITORY"
+    fi
+    install -d -m 700 "$RESTIC_REPOSITORY"
+    restic init
+    restic cat config >/dev/null
+    printf 'repository_initialized id=%s\n' "$(restic cat config | jq -r .id)"
+    ;;
+
+  validate)
+    validate_source "${2:-$SOURCE}"
+    ;;
+
+  backup)
+    ensure_runtime
+    acquire_lock
+    start_log backup
+    repository_ready || fail "repository is not initialized"
+    validate_source "$SOURCE"
+    stage_mcfly
+    restic backup "$SOURCE" --one-file-system --host "$BACKUP_HOST" --tag automatic
+    restic snapshots --host "$BACKUP_HOST" --path "$SOURCE" --latest 1
+    printf 'completed=%s operation=backup\n' "$(date --iso-8601=seconds)"
+    ;;
+
+  retention)
+    ensure_runtime
+    acquire_lock
+    start_log retention
+    repository_ready || fail "repository is not initialized"
+    restic forget "${retention_args[@]}"
+    printf 'completed=%s operation=retention\n' "$(date --iso-8601=seconds)"
+    ;;
+
+  prune)
+    ensure_runtime
+    acquire_lock
+    start_log prune
+    repository_ready || fail "repository is not initialized"
+    restic forget "${retention_args[@]}"
+    restic prune
+    printf 'completed=%s operation=prune\n' "$(date --iso-8601=seconds)"
+    ;;
+
+  check)
+    ensure_runtime
+    acquire_lock
+    start_log check
+    repository_ready || fail "repository is not initialized"
+    restic check
+    printf 'completed=%s operation=check\n' "$(date --iso-8601=seconds)"
+    ;;
+
+  check-read-data)
+    ensure_runtime
+    acquire_lock
+    start_log check-read-data
+    repository_ready || fail "repository is not initialized"
+    restic check --read-data
+    printf 'completed=%s operation=check-read-data\n' "$(date --iso-8601=seconds)"
+    ;;
+
+  snapshots)
+    ensure_runtime
+    repository_ready || fail "repository is not initialized"
+    restic snapshots --host "$BACKUP_HOST" --path "$SOURCE"
+    ;;
+
+  restore)
+    ensure_runtime
+    acquire_lock
+    snapshot=${2:-latest}
+    target=${3:-}
+    [[ -n "$target" ]] || fail "usage: $0 restore SNAPSHOT TARGET"
+    [[ "$target" == /var/tmp/* || "$target" == /home/* ]] || \
+      fail "restore target must be under /var/tmp or /home"
+    if [[ -e "$target" ]] && find "$target" -mindepth 1 -print -quit | grep -q .; then
+      fail "restore target is not empty: $target"
+    fi
+    install -d -m 700 "$target"
+    start_log restore
+    repository_ready || fail "repository is not initialized"
+    restic restore "$snapshot" --target "$target"
+    printf 'completed=%s operation=restore snapshot=%s target=%s\n' \
+      "$(date --iso-8601=seconds)" "$snapshot" "$target"
+    ;;
+
+  help|--help|-h)
+    cat <<EOF
+Usage: $0 COMMAND
+
+Commands:
+  init                         initialize the configured repository explicitly
+  validate [SOURCE]            validate production source guards
+  backup                       validate, stage McFly, and create a snapshot
+  retention                    apply retention without reclaiming packs
+  prune                        apply retention and reclaim unused packs
+  check                        verify repository metadata and structure
+  check-read-data              read and verify every repository data pack
+  snapshots                    list snapshots for the configured host and path
+  restore SNAPSHOT TARGET      restore into an empty staging directory
+EOF
+    ;;
+
+  *)
+    fail "unknown command: $COMMAND"
+    ;;
+esac

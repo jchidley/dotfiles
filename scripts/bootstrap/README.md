@@ -1,6 +1,6 @@
 # Debian bootstrap
 
-`debian-bootstrap-safe.sh` rebuilds the declared WSL workspace. It is repository-only code: chezmoi does not render it into `~/scripts`. It installs the latest `fnm` release, a default Node.js LTS, and the pinned McFly release when they are absent; shell initialization remains managed by `dot_bashrc_custom`.
+`debian-bootstrap-safe.sh` rebuilds the declared WSL workspace. It is repository-only code: chezmoi does not render it into `~/scripts`. It installs the latest `fnm` release, a default Node.js LTS, the pinned McFly release, and Restic when they are absent; shell initialization remains managed by `dot_bashrc_custom`. It also installs the root-owned local home-backup program and non-secret configuration, but deliberately does not create credentials, initialize a repository, or register scheduled tasks.
 
 ## Repository selection
 

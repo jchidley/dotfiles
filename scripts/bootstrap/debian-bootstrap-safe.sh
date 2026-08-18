@@ -155,6 +155,11 @@ install_fnm
 install_mcfly
 install_pi
 
+RESTIC_HOME_INSTALLER="$SCRIPT_DIR/../restic-home/install.sh"
+if [[ -x "$RESTIC_HOME_INSTALLER" ]]; then
+  run "$RESTIC_HOME_INSTALLER"
+fi
+
 echo "==> Repository manifest: profile=$BOOTSTRAP_PROFILE groups=$BOOTSTRAP_GROUPS"
 while IFS=$'\t' read -r group kind repository destination profiles extra; do
   [[ -z "${group:-}" || "$group" == \#* ]] && continue
