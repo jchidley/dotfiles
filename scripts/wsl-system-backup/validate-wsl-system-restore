@@ -41,13 +41,11 @@ runuser -u jack -- git -C /home/jack/boat-data-platform fsck --no-dangling >/dev
 for command in restic sqlite3 git; do
   command -v "$command" >/dev/null || fail "required system command is absent: $command"
 done
-# Expansion belongs to the child shell running as jack, not this root shell.
-# shellcheck disable=SC2016
-runuser -u jack -- bash -c '
-  eval "$(/home/jack/.local/share/fnm/fnm env --shell bash)"
-  case "$(command -v node)" in /mnt/*) exit 1;; esac
-  command -v npm >/dev/null && command -v pi >/dev/null
-' || fail "native Node.js, npm, or Pi is absent from jack's fnm environment"
+node=$(find /home/jack/.local/share/fnm/node-versions -path '*/installation/bin/node' \
+  -type f -executable -print -quit)
+[[ -n $node ]] || fail "native fnm Node.js is absent"
+node_bin=$(dirname "$node")
+[[ -x $node_bin/npm && -x $node_bin/pi ]] || fail "native npm or Pi is absent beside fnm Node.js"
 
 files=$(find /home/jack -xdev -type f -printf '.\n' | wc -l)
 sessions=$(find /home/jack/.pi/agent/sessions -type f -printf '.\n' | wc -l)
