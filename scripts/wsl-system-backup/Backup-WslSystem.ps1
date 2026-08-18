@@ -6,6 +6,7 @@ param(
     [string] $StagingDirectory = (Join-Path $env:USERPROFILE 'wsl-backup-staging\distro-exports'),
     [string] $ArchivePath,
     [switch] $ConfirmMaintenanceWindow,
+    [switch] $SourceAlreadyStopped,
     [int64] $MinimumFreeBytes = 45GB
 )
 
@@ -41,14 +42,23 @@ function Assert-Preflight {
     if ($free -lt $MinimumFreeBytes) {
         throw "Insufficient free space on ${root}: $free bytes; require $MinimumFreeBytes"
     }
-    Invoke-WslChecked @('-d', $Distro, '-u', 'root', '--', 'test', '-x', $validator)
+    if ($SourceAlreadyStopped) {
+        if (Test-DistroRunning $Distro) {
+            throw "$Distro is running despite -SourceAlreadyStopped"
+        }
+        $validatorState = 'deferred; previously installed and source remains stopped'
+    }
+    else {
+        Invoke-WslChecked @('-d', $Distro, '-u', 'root', '--', 'test', '-x', $validator)
+        $validatorState = $validator
+    }
     [pscustomobject]@{
         Distro = $Distro
         DistroRunning = (Test-DistroRunning $Distro)
         StagingDirectory = $StagingDirectory
         AvailableBytes = $free
         RequiredBytes = $MinimumFreeBytes
-        Validator = $validator
+        Validator = $validatorState
     }
 }
 
@@ -115,11 +125,14 @@ if ((Test-Path -LiteralPath $partial) -or (Test-Path -LiteralPath $final)) {
 }
 
 $wasRunning = Test-DistroRunning $Distro
+if ($SourceAlreadyStopped -and $wasRunning) {
+    throw "$Distro started after preflight; refusing the stopped-source export"
+}
 $exportCompleted = $false
 $promoted = $false
 try {
-    Invoke-WslChecked @('-d', $Distro, '-u', 'root', '--', 'sync')
-    if (Test-DistroRunning $Distro) {
+    if ($wasRunning) {
+        Invoke-WslChecked @('-d', $Distro, '-u', 'root', '--', 'sync')
         Invoke-WslChecked @('--terminate', $Distro)
     }
     try {

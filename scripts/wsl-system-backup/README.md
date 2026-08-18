@@ -36,6 +36,14 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File `
   -Mode Export -ConfirmMaintenanceWindow
 ```
 
+If the source was deliberately stopped and must remain stopped, avoid starting it for preflight and synchronization:
+
+```powershell
+.\Backup-WslSystem.ps1 -Mode Export -ConfirmMaintenanceWindow -SourceAlreadyStopped
+```
+
+This mode refuses to continue if the source is found running. Disposable import validation still starts a separate temporary WSL distro after export.
+
 Default output:
 
 ```text
