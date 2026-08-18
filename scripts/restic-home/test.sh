@@ -64,6 +64,13 @@ run retention
 run check
 run check-read-data
 run status
+sed -i 's/^MAX_SNAPSHOT_AGE_SECONDS=.*/MAX_SNAPSHOT_AGE_SECONDS=0/' "$config"
+sleep 1
+if run status >/dev/null 2>&1; then
+  echo "stale-snapshot guard accepted an expired snapshot" >&2
+  exit 1
+fi
+sed -i 's/^MAX_SNAPSHOT_AGE_SECONDS=.*/MAX_SNAPSHOT_AGE_SECONDS=1800/' "$config"
 [[ $(RESTIC_REPOSITORY=$root/repository RESTIC_PASSWORD_FILE=$password restic snapshots --json | jq 'length') -eq 2 ]]
 
 mv "$source_dir/.ssh/id_ed25519" "$source_dir/.ssh/id_ed25519.missing"

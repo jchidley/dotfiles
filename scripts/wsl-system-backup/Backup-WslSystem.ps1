@@ -85,10 +85,18 @@ if ($Mode -eq 'Preflight') {
     exit 0
 }
 
+$mutexName = 'Local\WSLSystemBackup-' + ($Distro -replace '[^A-Za-z0-9_.-]', '_')
+$mutex = [Threading.Mutex]::new($false, $mutexName)
+if (-not $mutex.WaitOne(0)) {
+    $mutex.Dispose()
+    throw "Another whole-system backup operation owns $mutexName"
+}
+
+try {
 if ($Mode -eq 'Validate') {
     if (-not $ArchivePath) { throw '-ArchivePath is required in Validate mode' }
     Test-ImportedArchive -Path $ArchivePath | Format-List
-    exit 0
+    return
 }
 
 if (-not $ConfirmMaintenanceWindow) {
@@ -108,6 +116,7 @@ if ((Test-Path -LiteralPath $partial) -or (Test-Path -LiteralPath $final)) {
 
 $wasRunning = Test-DistroRunning $Distro
 $exportCompleted = $false
+$promoted = $false
 try {
     Invoke-WslChecked @('-d', $Distro, '-u', 'root', '--', 'sync')
     if (Test-DistroRunning $Distro) {
@@ -126,6 +135,7 @@ try {
     $hash = (Get-FileHash -LiteralPath $partial -Algorithm SHA256).Hash.ToLowerInvariant()
     $validation = Test-ImportedArchive -Path $partial
     Move-Item -LiteralPath $partial -Destination $final
+    $promoted = $true
     $archive = Get-Item -LiteralPath $final
     $record = [ordered]@{
         SchemaVersion = 1
@@ -156,5 +166,14 @@ catch {
     if ($exportCompleted -and (Test-Path -LiteralPath $partial)) {
         Move-Item -LiteralPath $partial -Destination ($partial + '.failed') -Force
     }
+    if ($promoted -and (Test-Path -LiteralPath $final)) {
+        Move-Item -LiteralPath $final -Destination ($final + '.failed') -Force
+    }
+    Remove-Item -LiteralPath ($manifest + '.partial') -Force -ErrorAction SilentlyContinue
     throw
+}
+}
+finally {
+    $mutex.ReleaseMutex()
+    $mutex.Dispose()
 }
