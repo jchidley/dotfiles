@@ -35,7 +35,8 @@ done
 source /etc/restic/home.conf
 export RESTIC_REPOSITORY RESTIC_PASSWORD_FILE RESTIC_CACHE_DIR
 restic cat config >/dev/null || fail "included local Restic repository is unreadable"
-git -C /home/jack/boat-data-platform fsck --no-dangling >/dev/null || fail "boat-data-platform git fsck failed"
+runuser -u jack -- git -C /home/jack/boat-data-platform fsck --no-dangling >/dev/null ||
+  fail "boat-data-platform git fsck failed"
 
 for command in restic sqlite3 git; do
   command -v "$command" >/dev/null || fail "required system command is absent: $command"

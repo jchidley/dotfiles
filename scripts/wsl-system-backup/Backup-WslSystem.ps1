@@ -13,6 +13,18 @@ param(
 $ErrorActionPreference = 'Stop'
 $wsl = Join-Path $env:SystemRoot 'System32\wsl.exe'
 $validator = '/usr/local/sbin/validate-wsl-system-restore'
+$temporaryValidator = '/tmp/validate-wsl-system-restore-current'
+
+function Convert-ToWslPath {
+    param([Parameter(Mandatory = $true)][string] $WindowsPath)
+    $full = [IO.Path]::GetFullPath($WindowsPath)
+    if ($full -notmatch '^([A-Za-z]):\\(.*)$') {
+        throw "Validator source is not on a Windows drive: $full"
+    }
+    $drive = $Matches[1].ToLowerInvariant()
+    $relative = $Matches[2].Replace('\\', '/')
+    return "/mnt/$drive/$relative"
+}
 
 function Invoke-WslChecked {
     param([Parameter(Mandatory = $true)][string[]] $Arguments)
@@ -73,7 +85,9 @@ function Test-ImportedArchive {
         Invoke-WslChecked @('--import', $name, $directory, $resolved, '--version', '2')
         $registered = $true
         Invoke-WslChecked @('--manage', $name, '--set-default-user', 'jack')
-        Invoke-WslChecked @('-d', $name, '-u', 'root', '--', $validator)
+        $hostValidator = Convert-ToWslPath (Join-Path $PSScriptRoot 'validate-wsl-system-restore')
+        Invoke-WslChecked @('-d', $name, '-u', 'root', '--', 'install', '-o', 'root', '-g', 'root', '-m', '755', $hostValidator, $temporaryValidator)
+        Invoke-WslChecked @('-d', $name, '-u', 'root', '--', $temporaryValidator)
         return [pscustomobject]@{
             Result = 'passed'
             ValidatedAt = (Get-Date).ToUniversalTime().ToString('o')
