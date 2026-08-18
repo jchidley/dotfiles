@@ -4,10 +4,11 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-$distro = 'Debian-Recovered'
-$wsl = Join-Path $env:SystemRoot 'System32\wsl.exe'
+$powershell = Join-Path $PSHOME 'powershell.exe'
 $prefix = 'WSL Home Restic - '
 $userId = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
+$installDirectory = Join-Path $env:LOCALAPPDATA 'WSLHomeRestic'
+$installedWrapper = Join-Path $installDirectory 'Invoke-WslHomeRestic.ps1'
 
 $definitions = @(
     @{
@@ -38,6 +39,13 @@ $definitions = @(
         Trigger = New-ScheduledTaskTrigger -Once -At (Get-Date).Date.AddDays(1).AddHours(5) `
             -RepetitionInterval (New-TimeSpan -Days 30) `
             -RepetitionDuration (New-TimeSpan -Days 3650)
+    },
+    @{
+        Name = 'Monitor'
+        Command = 'status'
+        Trigger = New-ScheduledTaskTrigger -Once -At (Get-Date).AddMinutes(5) `
+            -RepetitionInterval (New-TimeSpan -Minutes 30) `
+            -RepetitionDuration (New-TimeSpan -Days 3650)
     }
 )
 
@@ -52,6 +60,10 @@ if ($Remove) {
     return
 }
 
+New-Item -ItemType Directory -Path $installDirectory -Force | Out-Null
+Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'Invoke-WslHomeRestic.ps1') `
+    -Destination $installedWrapper -Force
+
 $principal = New-ScheduledTaskPrincipal -UserId $userId -LogonType Interactive -RunLevel Limited
 $settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -MultipleInstances IgnoreNew `
     -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries `
@@ -59,8 +71,9 @@ $settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -MultipleInstances 
 
 foreach ($definition in $definitions) {
     $taskName = $prefix + $definition.Name
-    $arguments = "-d $distro -u root -- /usr/local/sbin/backup-wsl-home $($definition.Command)"
-    $action = New-ScheduledTaskAction -Execute $wsl -Argument $arguments
+    $arguments = '-NoProfile -NonInteractive -ExecutionPolicy Bypass -File "{0}" -Operation {1}' -f `
+        $installedWrapper, $definition.Command
+    $action = New-ScheduledTaskAction -Execute $powershell -Argument $arguments
     Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $definition.Trigger `
         -Principal $principal -Settings $settings -Description "Local WSL home Restic $($definition.Command)" `
         -Force | Out-Null

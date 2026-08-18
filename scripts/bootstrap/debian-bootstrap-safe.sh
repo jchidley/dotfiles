@@ -160,6 +160,11 @@ if [[ -x "$RESTIC_HOME_INSTALLER" ]]; then
   run "$RESTIC_HOME_INSTALLER"
 fi
 
+WSL_SYSTEM_BACKUP_INSTALLER="$SCRIPT_DIR/../wsl-system-backup/install.sh"
+if [[ -x "$WSL_SYSTEM_BACKUP_INSTALLER" ]]; then
+  run "$WSL_SYSTEM_BACKUP_INSTALLER"
+fi
+
 echo "==> Repository manifest: profile=$BOOTSTRAP_PROFILE groups=$BOOTSTRAP_GROUPS"
 while IFS=$'\t' read -r group kind repository destination profiles extra; do
   [[ -z "${group:-}" || "$group" == \#* ]] && continue

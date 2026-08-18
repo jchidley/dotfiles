@@ -41,6 +41,7 @@ EXPECTED_GID=0
 MIN_BYTES=1
 MIN_FILES=3
 MIN_SESSIONS=1
+MAX_SNAPSHOT_AGE_SECONDS=1800
 MCFLY_DATABASE=.local/share/mcfly/history.db
 MCFLY_RECOVERY_COPY=.local/share/mcfly/history.db.restic-backup
 EOF
@@ -62,6 +63,7 @@ run backup
 run retention
 run check
 run check-read-data
+run status
 [[ $(RESTIC_REPOSITORY=$root/repository RESTIC_PASSWORD_FILE=$password restic snapshots --json | jq 'length') -eq 2 ]]
 
 mv "$source_dir/.ssh/id_ed25519" "$source_dir/.ssh/id_ed25519.missing"

@@ -18,7 +18,7 @@ source "$CONFIG"
 required_vars=(
   SOURCE RESTIC_REPOSITORY RESTIC_PASSWORD_FILE RECOVERY_CONFIRMATION_FILE LOG_DIR
   LOG_RETENTION_DAYS STAGING_DIR RESTIC_CACHE_DIR BACKUP_HOST EXPECTED_UID EXPECTED_GID
-  MIN_BYTES MIN_FILES MIN_SESSIONS MCFLY_DATABASE
+  MIN_BYTES MIN_FILES MIN_SESSIONS MAX_SNAPSHOT_AGE_SECONDS MCFLY_DATABASE
   MCFLY_RECOVERY_COPY
 )
 for name in "${required_vars[@]}"; do
@@ -200,6 +200,23 @@ case "$COMMAND" in
     restic snapshots --host "$BACKUP_HOST" --path "$SOURCE"
     ;;
 
+  status)
+    ensure_runtime
+    repository_ready || fail "repository is not initialized"
+    latest=$(restic snapshots --host "$BACKUP_HOST" --path "$SOURCE" --latest 1 --json |
+      jq -r '.[0].time // empty')
+    [[ -n "$latest" ]] || fail "repository has no matching snapshots"
+    latest_epoch=$(date --date="$latest" +%s)
+    now_epoch=$(date +%s)
+    age=$((now_epoch - latest_epoch))
+    [[ $age -ge -300 ]] || fail "latest snapshot timestamp is unexpectedly in the future"
+    (( age < 0 )) && age=0
+    printf 'snapshot_status=healthy latest=%s age_seconds=%s maximum_seconds=%s\n' \
+      "$latest" "$age" "$MAX_SNAPSHOT_AGE_SECONDS"
+    [[ $age -le $MAX_SNAPSHOT_AGE_SECONDS ]] || \
+      fail "latest snapshot is stale: ${age}s exceeds ${MAX_SNAPSHOT_AGE_SECONDS}s"
+    ;;
+
   restore)
     ensure_runtime
     acquire_lock
@@ -232,6 +249,7 @@ Commands:
   check                        verify repository metadata and structure
   check-read-data              read and verify every repository data pack
   snapshots                    list snapshots for the configured host and path
+  status                       fail if the latest snapshot is stale
   restore SNAPSHOT TARGET      restore into an empty staging directory
 EOF
     ;;

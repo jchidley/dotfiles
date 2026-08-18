@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+fail() {
+  printf 'ERROR: %s\n' "$*" >&2
+  exit 1
+}
+
+[[ $EUID -eq 0 ]] || fail "run as root"
+getent passwd jack >/dev/null || fail "user jack is absent"
+[[ $(id -u jack) == 1000 && $(id -g jack) == 1000 ]] || fail "jack is not UID/GID 1000"
+[[ $(stat -c %u:%g /home/jack) == 1000:1000 ]] || fail "/home/jack ownership is invalid"
+
+required_paths=(
+  /etc/restic/home.conf
+  /etc/restic/home.password
+  /home/jack/.pi/agent/sessions
+  /home/jack/.local/share/chezmoi
+  /home/jack/.local/share/mcfly/history.db.restic-backup
+  /home/jack/.ssh/id_ed25519
+  /home/jack/boat-data-platform/.git
+  /usr/local/sbin/backup-wsl-home
+)
+for path in "${required_paths[@]}"; do
+  [[ -e $path ]] || fail "required path is absent: $path"
+done
+
+[[ $(stat -c %a /etc/restic/home.password) == 600 ]] || fail "Restic password mode is not 600"
+[[ $(stat -c %u /etc/restic/home.password) == 0 ]] || fail "Restic password is not root-owned"
+[[ $(stat -c %a /home/jack/.ssh/id_ed25519) == 600 ]] || fail "SSH private-key mode is not 600"
+[[ $(sqlite3 /home/jack/.local/share/mcfly/history.db.restic-backup 'PRAGMA integrity_check;') == ok ]] ||
+  fail "McFly recovery database integrity check failed"
+
+# shellcheck source=/dev/null
+source /etc/restic/home.conf
+export RESTIC_REPOSITORY RESTIC_PASSWORD_FILE RESTIC_CACHE_DIR
+restic cat config >/dev/null || fail "included local Restic repository is unreadable"
+git -C /home/jack/boat-data-platform fsck --no-dangling >/dev/null || fail "boat-data-platform git fsck failed"
+
+for command in restic sqlite3 git; do
+  command -v "$command" >/dev/null || fail "required system command is absent: $command"
+done
+# Expansion belongs to the child shell running as jack, not this root shell.
+# shellcheck disable=SC2016
+runuser -u jack -- bash -c '
+  eval "$(/home/jack/.local/share/fnm/fnm env --shell bash)"
+  case "$(command -v node)" in /mnt/*) exit 1;; esac
+  command -v npm >/dev/null && command -v pi >/dev/null
+' || fail "native Node.js, npm, or Pi is absent from jack's fnm environment"
+
+files=$(find /home/jack -xdev -type f -printf '.\n' | wc -l)
+sessions=$(find /home/jack/.pi/agent/sessions -type f -printf '.\n' | wc -l)
+[[ $files -ge 10000 ]] || fail "restored home has too few files"
+[[ $sessions -ge 100 ]] || fail "restored home has too few Pi sessions"
+printf 'restore_validation=passed files=%s sessions=%s\n' "$files" "$sessions"

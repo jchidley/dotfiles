@@ -56,6 +56,7 @@ sudo backup-wsl-home prune
 sudo backup-wsl-home check
 sudo backup-wsl-home check-read-data
 sudo backup-wsl-home snapshots
+sudo backup-wsl-home status
 sudo backup-wsl-home restore latest /var/tmp/restic-home-restore
 ```
 
@@ -75,10 +76,13 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File `
 The registered tasks run as the current Windows user and ask WSL to execute the root-owned program as Linux root:
 
 - backup every 15 minutes;
+- freshness monitoring every 30 minutes;
 - retention daily;
 - prune weekly;
 - structural check weekly;
 - full data read every 30 days.
+
+The Windows-local wrapper under `%LOCALAPPDATA%\WSLHomeRestic` records secret-free operation status and notifies the interactive user with `msg.exe` if an operation fails. The monitor fails when the newest matching snapshot is more than 30 minutes old. Duplicate notices are suppressed for six hours.
 
 Remove them with the same script's `-Remove` switch.
 
