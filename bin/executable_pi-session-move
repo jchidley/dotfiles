@@ -1,0 +1,211 @@
+#!/usr/bin/env node
+
+import crypto from 'node:crypto';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { spawnSync } from 'node:child_process';
+
+function usage() {
+  return `Usage:
+  pi-session-move <session-id-or-file> [--repo <path>] [--sessions-dir <path>] [--dry-run]
+  pi-session-move --latest [--repo <path>] [--sessions-dir <path>] [--dry-run]
+
+Moves a completed Pi JSONL session from Pi's runtime store into the target Git
+repository's session-history/ directory. The repository defaults to the current
+Git worktree. --latest must be explicit to avoid silently selecting the wrong
+session.`;
+}
+
+function parseArgs(argv) {
+  const options = {
+    selector: undefined,
+    latest: false,
+    repo: process.cwd(),
+    sessionsDir: process.env.PI_CODING_AGENT_SESSION_DIR
+      || path.join(process.env.PI_CODING_AGENT_DIR || path.join(os.homedir(), '.pi', 'agent'), 'sessions'),
+    dryRun: false,
+  };
+
+  for (let i = 0; i < argv.length; i += 1) {
+    const arg = argv[i];
+    if (arg === '-h' || arg === '--help') {
+      console.log(usage());
+      process.exit(0);
+    }
+    if (arg === '--latest') options.latest = true;
+    else if (arg === '--dry-run') options.dryRun = true;
+    else if (arg === '--repo' || arg === '--sessions-dir') {
+      const value = argv[i + 1];
+      if (!value) throw new Error(`${arg} requires a path\n${usage()}`);
+      if (arg === '--repo') options.repo = value;
+      else options.sessionsDir = value;
+      i += 1;
+    } else if (arg.startsWith('-')) {
+      throw new Error(`Unknown option: ${arg}\n${usage()}`);
+    } else if (!options.selector) {
+      options.selector = arg;
+    } else {
+      throw new Error(`Unexpected argument: ${arg}\n${usage()}`);
+    }
+  }
+
+  if (options.latest === Boolean(options.selector)) {
+    throw new Error(`Specify exactly one session ID/file or --latest\n${usage()}`);
+  }
+  return options;
+}
+
+function canonical(value) {
+  return path.resolve(value).replaceAll('\\', '/').toLowerCase();
+}
+
+function gitRoot(repo) {
+  const result = spawnSync('git', ['-C', path.resolve(repo), 'rev-parse', '--show-toplevel'], {
+    encoding: 'utf8',
+  });
+  if (result.status !== 0) {
+    throw new Error(`Not a Git worktree: ${path.resolve(repo)}`);
+  }
+  return path.resolve(result.stdout.trim());
+}
+
+function findJsonlFiles(root) {
+  const files = [];
+  const pending = [path.resolve(root)];
+  while (pending.length > 0) {
+    const current = pending.pop();
+    for (const entry of fs.readdirSync(current, { withFileTypes: true })) {
+      const entryPath = path.join(current, entry.name);
+      if (entry.isDirectory()) pending.push(entryPath);
+      else if (entry.isFile() && entry.name.endsWith('.jsonl')) files.push(entryPath);
+    }
+  }
+  return files;
+}
+
+function readHeader(file) {
+  const fd = fs.openSync(file, 'r');
+  try {
+    const buffer = Buffer.alloc(64 * 1024);
+    const bytes = fs.readSync(fd, buffer, 0, buffer.length, 0);
+    const firstLine = buffer.subarray(0, bytes).toString('utf8').split(/\r?\n/, 1)[0];
+    const header = JSON.parse(firstLine);
+    if (header?.type !== 'session' || typeof header.id !== 'string') {
+      throw new Error('first record is not a Pi session header');
+    }
+    return header;
+  } catch (error) {
+    throw new Error(`Invalid Pi session file ${file}: ${error instanceof Error ? error.message : String(error)}`);
+  } finally {
+    fs.closeSync(fd);
+  }
+}
+
+function validateJsonl(file) {
+  const lines = fs.readFileSync(file, 'utf8').split(/\r?\n/);
+  let records = 0;
+  for (let i = 0; i < lines.length; i += 1) {
+    if (!lines[i].trim()) continue;
+    try {
+      JSON.parse(lines[i]);
+      records += 1;
+    } catch (error) {
+      throw new Error(`Invalid JSON on line ${i + 1} of ${file}: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+  if (records === 0) throw new Error(`Session file is empty: ${file}`);
+  readHeader(file);
+}
+
+function selectSession(options) {
+  if (options.selector && fs.existsSync(path.resolve(options.selector))) {
+    const explicit = path.resolve(options.selector);
+    if (!explicit.endsWith('.jsonl') || !fs.statSync(explicit).isFile()) {
+      throw new Error(`Session file must be a JSONL file: ${explicit}`);
+    }
+    return explicit;
+  }
+
+  const root = path.resolve(options.sessionsDir);
+  if (!fs.existsSync(root) || !fs.statSync(root).isDirectory()) {
+    throw new Error(`Pi sessions directory does not exist: ${root}`);
+  }
+  const files = findJsonlFiles(root);
+  if (files.length === 0) throw new Error(`No Pi sessions found under ${root}`);
+
+  if (options.latest) {
+    return files.sort((a, b) => fs.statSync(b).mtimeMs - fs.statSync(a).mtimeMs)[0];
+  }
+
+  const selector = options.selector.toLowerCase();
+  const matches = files.filter((file) => {
+    if (path.basename(file).toLowerCase().includes(selector)) return true;
+    try {
+      return readHeader(file).id.toLowerCase().startsWith(selector);
+    } catch {
+      return false;
+    }
+  });
+  if (matches.length === 0) throw new Error(`No Pi session matches '${options.selector}' under ${root}`);
+  if (matches.length > 1) {
+    throw new Error(`Session selector '${options.selector}' is ambiguous:\n${matches.map((file) => `  ${file}`).join('\n')}`);
+  }
+  return matches[0];
+}
+
+function hash(file) {
+  return crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
+}
+
+function moveFile(source, destination) {
+  try {
+    fs.renameSync(source, destination);
+  } catch (error) {
+    if (error?.code !== 'EXDEV') throw error;
+    fs.copyFileSync(source, destination, fs.constants.COPYFILE_EXCL);
+    if (fs.statSync(source).size !== fs.statSync(destination).size || hash(source) !== hash(destination)) {
+      fs.rmSync(destination, { force: true });
+      throw new Error('Cross-device copy verification failed; source was left unchanged');
+    }
+    fs.unlinkSync(source);
+  }
+}
+
+export function main(argv) {
+  const options = parseArgs(argv);
+  const root = gitRoot(options.repo);
+  const source = selectSession(options);
+  const active = process.env.PI_SESSION_FILE;
+  if (active && canonical(active) === canonical(source)) {
+    throw new Error(`Refusing to move the active Pi session: ${source}\nQuit or switch sessions first, then rerun this command.`);
+  }
+
+  validateJsonl(source);
+  const destinationDir = path.join(root, 'session-history');
+  const destination = path.join(destinationDir, path.basename(source));
+  if (canonical(source) === canonical(destination)) {
+    throw new Error(`Session is already in this repository: ${destination}`);
+  }
+  if (fs.existsSync(destination)) {
+    throw new Error(`Destination already exists; nothing moved: ${destination}`);
+  }
+
+  if (options.dryRun) {
+    console.log(`Would move ${source}\n        to ${destination}`);
+    return destination;
+  }
+
+  fs.mkdirSync(destinationDir, { recursive: true });
+  moveFile(source, destination);
+  validateJsonl(destination);
+  console.log(destination);
+  return destination;
+}
+
+try {
+  main(process.argv.slice(2));
+} catch (error) {
+  console.error(error instanceof Error ? error.message : String(error));
+  process.exitCode = 1;
+}

@@ -1,4 +1,0 @@
-#!/usr/bin/env bash
-set -euo pipefail
-
-exec "$HOME/{{ if eq .chezmoi.os "windows" }}git{{ else }}github{{ end }}/agent-skills/skills/transcript-extract/scripts/pi-session-move" "$@"
