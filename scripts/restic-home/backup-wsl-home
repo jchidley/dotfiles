@@ -211,10 +211,10 @@ case "$COMMAND" in
     age=$((now_epoch - latest_epoch))
     [[ $age -ge -300 ]] || fail "latest snapshot timestamp is unexpectedly in the future"
     (( age < 0 )) && age=0
-    printf 'snapshot_status=healthy latest=%s age_seconds=%s maximum_seconds=%s\n' \
-      "$latest" "$age" "$MAX_SNAPSHOT_AGE_SECONDS"
     [[ $age -le $MAX_SNAPSHOT_AGE_SECONDS ]] || \
       fail "latest snapshot is stale: ${age}s exceeds ${MAX_SNAPSHOT_AGE_SECONDS}s"
+    printf 'snapshot_status=healthy latest=%s age_seconds=%s maximum_seconds=%s\n' \
+      "$latest" "$age" "$MAX_SNAPSHOT_AGE_SECONDS"
     ;;
 
   restore)
