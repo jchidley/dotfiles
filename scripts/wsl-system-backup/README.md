@@ -2,7 +2,7 @@
 
 This directory implements the complete-system stream. It is separate from the frequent Restic `/home/jack` snapshots.
 
-`Backup-WslSystem.ps1` creates a cold compressed export locally, validates it by importing it under a disposable WSL name, and only then promotes it from `.partial` to `.tar.gz`. It writes a SHA-256 JSON manifest and retains the newest two validated local generations.
+`Backup-WslSystem.ps1` creates a cold compressed export locally, validates it by importing it under a disposable WSL name, and only then promotes it from `.partial` to `.tar.gz`. It writes a SHA-256 JSON manifest and retains the newest two validated local generations. During an export it transactionally disables the six `WSL Home Restic - *` tasks so none can restart the source, then restores only the tasks that were enabled before the run.
 
 ## Install the restore validator
 
@@ -52,7 +52,7 @@ C:\Users\jackc\wsl-backup-staging\distro-exports\
   TIMESTAMP_Debian-Recovered.tar.gz.manifest.json
 ```
 
-The script never overwrites a generation. A failed completed export is renamed with `.partial.failed` and is not treated as a backup. Only the newest two validated `.tar.gz` generations and manifests are retained locally.
+The script never overwrites a generation. A failed completed export is renamed with `.partial.failed` and is not treated as a backup. Only the newest two validated `.tar.gz` generations and manifests are retained locally. Export refuses to start if any Restic task is running or if the expected six tasks are not registered.
 
 ## Validate an existing archive
 

@@ -14,6 +14,44 @@ $ErrorActionPreference = 'Stop'
 $wsl = Join-Path $env:SystemRoot 'System32\wsl.exe'
 $validator = '/usr/local/sbin/validate-wsl-system-restore'
 $temporaryValidator = '/tmp/validate-wsl-system-restore-current'
+$resticTaskPattern = 'WSL Home Restic - *'
+
+function Disable-ResticTasks {
+    $tasks = @(Get-ScheduledTask -TaskName $resticTaskPattern -ErrorAction SilentlyContinue)
+    if ($tasks.Count -ne 6) {
+        throw "Expected six Restic tasks, found $($tasks.Count); refusing an uncoordinated export"
+    }
+    $running = @($tasks | Where-Object State -eq 'Running')
+    if ($running.Count -gt 0) {
+        throw "Restic tasks are currently running: $($running.TaskName -join ', ')"
+    }
+    $enabled = @($tasks | Where-Object State -ne 'Disabled' | Select-Object -ExpandProperty TaskName)
+    $disabled = @()
+    try {
+        foreach ($taskName in $enabled) {
+            Disable-ScheduledTask -TaskName $taskName | Out-Null
+            $disabled += $taskName
+        }
+        $raced = @(Get-ScheduledTask -TaskName $resticTaskPattern | Where-Object State -eq 'Running')
+        if ($raced.Count -gt 0) {
+            throw "Restic tasks started during suspension: $($raced.TaskName -join ', ')"
+        }
+        return $disabled
+    }
+    catch {
+        foreach ($taskName in $disabled) {
+            Enable-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue | Out-Null
+        }
+        throw
+    }
+}
+
+function Enable-ResticTasks {
+    param([string[]] $TaskNames)
+    foreach ($taskName in $TaskNames) {
+        Enable-ScheduledTask -TaskName $taskName | Out-Null
+    }
+}
 
 function Convert-ToWslPath {
     param([Parameter(Mandatory = $true)][string] $WindowsPath)
@@ -116,6 +154,7 @@ if (-not $mutex.WaitOne(0)) {
     throw "Another whole-system backup operation owns $mutexName"
 }
 
+$resticTasksDisabledByRun = @()
 try {
 if ($Mode -eq 'Validate') {
     if (-not $ArchivePath) { throw '-ArchivePath is required in Validate mode' }
@@ -129,6 +168,10 @@ if (-not $ConfirmMaintenanceWindow) {
 
 Assert-Preflight | Out-Null
 New-Item -ItemType Directory -Path $StagingDirectory -Force | Out-Null
+$resticTasksDisabledByRun = @(Disable-ResticTasks)
+if ($resticTasksDisabledByRun.Count -gt 0) {
+    Write-Output "Temporarily disabled Restic tasks: $($resticTasksDisabledByRun -join ', ')"
+}
 $timestamp = (Get-Date).ToUniversalTime().ToString('yyyyMMddTHHmmssZ')
 $baseName = "${timestamp}_${Distro}"
 $partial = Join-Path $StagingDirectory "$baseName.tar.gz.partial"
@@ -201,6 +244,14 @@ catch {
 }
 }
 finally {
-    $mutex.ReleaseMutex()
-    $mutex.Dispose()
+    try {
+        if ($resticTasksDisabledByRun.Count -gt 0) {
+            Enable-ResticTasks -TaskNames $resticTasksDisabledByRun
+            Write-Output "Restored Restic tasks: $($resticTasksDisabledByRun -join ', ')"
+        }
+    }
+    finally {
+        $mutex.ReleaseMutex()
+        $mutex.Dispose()
+    }
 }
