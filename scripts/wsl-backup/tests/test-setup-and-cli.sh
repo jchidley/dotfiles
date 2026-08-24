@@ -45,6 +45,9 @@ for arg in "$@"; do
 done
 if ((system_command)); then
   printf 'fixture PowerShell output\r\n'
+  if [[ -n ${POWERSHELL_STDERR:-} ]]; then
+    printf '%s\r\n' "$POWERSHELL_STDERR" >&2
+  fi
 fi
 exit "${POWERSHELL_EXIT:-0}"
 FAKE
@@ -135,6 +138,9 @@ system_output=$(run_cli system Preflight)
 assert_log '<-Mode> <Preflight>'
 assert_log '<C:\Fixture User\WSLBackup\Backup-WslSystem.ps1>'
 [[ $system_output == 'fixture PowerShell output' ]] || fail "PowerShell output was not normalized: $(printf %q "$system_output")"
+system_error=$TMP/system-error
+POWERSHELL_STDERR='fixture PowerShell error' run_cli system Status >/dev/null 2> "$system_error"
+[[ $(<"$system_error") == 'fixture PowerShell error' ]] || fail "PowerShell error output was not normalized: $(printf %q "$(<"$system_error")")"
 : > "$CALL_LOG"
 run_cli status >/dev/null
 assert_log 'home <status>'

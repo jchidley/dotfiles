@@ -54,7 +54,8 @@ run_system() {
   script=$(system_script)
   # Windows-native PowerShell writes CRLF even when called through WSL.
   # Normalize stdout at this boundary while pipefail preserves PowerShell failures.
-  "$POWERSHELL" -NoLogo -NoProfile -NonInteractive -File "$script" "$@" </dev/null |
+  "$POWERSHELL" -NoLogo -NoProfile -NonInteractive -File "$script" "$@" </dev/null \
+    2> >(sed 's/\r$//' >&2) |
     sed 's/\r$//'
 }
 
