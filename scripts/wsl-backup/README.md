@@ -22,6 +22,8 @@ For a distro whose registered name is not `Debian-Recovered`:
 
 ## Everyday commands
 
+Run the commands in this section inside WSL. Any command documented for direct Windows execution uses the built-in Windows PowerShell (`powershell.exe`, currently version 5.1), not `pwsh`.
+
 ```bash
 # Combined status
 wsl-backup status

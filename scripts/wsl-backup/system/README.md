@@ -18,7 +18,7 @@ It checks the restored user, important paths and permissions, McFly SQLite recov
 
 ## Non-disruptive preflight
 
-Run from Windows PowerShell 5.1:
+Run from the built-in Windows PowerShell (`powershell.exe`, currently version 5.1), not `pwsh`:
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File `

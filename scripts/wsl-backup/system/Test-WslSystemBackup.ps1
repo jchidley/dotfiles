@@ -1,4 +1,7 @@
 $ErrorActionPreference = 'Stop'
+if ($PSVersionTable.PSEdition -ne 'Desktop') {
+    throw 'Run this script with the built-in Windows PowerShell (powershell.exe), not pwsh.'
+}
 Set-StrictMode -Version 2
 . (Join-Path $PSScriptRoot 'WslSystemBackup.Common.ps1')
 

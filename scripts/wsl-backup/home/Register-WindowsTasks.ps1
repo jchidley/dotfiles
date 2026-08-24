@@ -6,10 +6,13 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+if ($PSVersionTable.PSEdition -ne 'Desktop') {
+    throw 'Run this script with the built-in Windows PowerShell (powershell.exe), not pwsh.'
+}
 if ([string]::IsNullOrWhiteSpace($DistroName) -or $DistroName -match '[\r\n"]') {
     throw 'Invalid WSL distro name'
 }
-$powershell = Join-Path $PSHOME 'powershell.exe'
+$powershell = Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe'
 $prefix = 'WSL Home Restic - '
 $userId = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
 $installDirectory = Join-Path $env:LOCALAPPDATA 'WSLHomeRestic'

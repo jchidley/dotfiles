@@ -68,7 +68,7 @@ Retention keeps every snapshot for 24 hours, hourly snapshots for seven days, an
 
 ## Scheduling
 
-Windows Task Scheduler owns wake-up because a Linux timer cannot start a stopped WSL distro. From native Windows PowerShell 5.1:
+Windows Task Scheduler owns wake-up because a Linux timer cannot start a stopped WSL distro. From the built-in Windows PowerShell (`powershell.exe`, currently version 5.1), not `pwsh`:
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File `

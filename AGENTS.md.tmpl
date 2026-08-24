@@ -6,7 +6,16 @@
 
 Use concise `AGENTS.md` files as the only active startup instructions. `CLAUDE.md` is deprecated; migrate unique current rules into the applicable `AGENTS.md` and remove the vendor-specific file.
 
-## Windows / WSL boundaries
+## Native shell and Windows / WSL boundaries
+
+Choose the destination OS's built-in shell first:
+
+- For commands executed directly on Windows, use the built-in Windows PowerShell
+  (`powershell.exe`, currently version 5.1). Do not default to `pwsh` or Git Bash
+  for Windows-native automation.
+- Inside Linux or WSL, use Bash first.
+- When the current harness shell differs from the destination shell, cross the
+  boundary with the `windows-env` helper rather than nesting command strings.
 
 This machine runs agents in both native Windows/MSYS Git Bash and WSL2. Ordinary
 same-shell commands need no environment probe. When a command crosses Windows,
