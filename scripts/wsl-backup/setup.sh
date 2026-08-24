@@ -5,6 +5,9 @@ SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 DISTRO_NAME=${WSL_DISTRO_NAME:-Debian-Recovered}
 REGISTER_TASKS=1
 FORCE_TASKS=0
+DESTDIR=${WSL_BACKUP_DESTDIR:-${DESTDIR:-}}
+POWERSHELL=${WSL_BACKUP_POWERSHELL:-powershell.exe}
+WSLPATH=${WSL_BACKUP_WSLPATH:-wslpath}
 
 usage() {
   cat <<'EOF'
@@ -17,6 +20,15 @@ Windows tasks are registered only when the local Restic repository already
 has both its config and password file. Existing task schedules are preserved
 unless --force-windows-tasks is supplied.
 EOF
+}
+
+require_command() {
+  local command_name=$1 message=$2
+  if [[ "$command_name" == */* ]]; then
+    [[ -x "$command_name" ]] || { echo "$message" >&2; exit 1; }
+  else
+    command -v "$command_name" >/dev/null 2>&1 || { echo "$message" >&2; exit 1; }
+  fi
 }
 
 while (($#)); do
@@ -37,41 +49,48 @@ done
   echo "Invalid WSL distro name" >&2
   exit 2
 }
-command -v sudo >/dev/null 2>&1 || { echo "sudo is required" >&2; exit 1; }
 
-"$SCRIPT_DIR/home/install.sh"
-"$SCRIPT_DIR/system/install.sh"
-sudo install -d -o root -g root -m 755 /etc/wsl-backup
-sudo install -o root -g root -m 755 "$SCRIPT_DIR/wsl-backup" /usr/local/bin/wsl-backup
+if [[ -n "$DESTDIR" ]]; then
+  privilege=()
+  ownership=()
+else
+  require_command sudo "sudo is required"
+  privilege=(sudo)
+  ownership=(-o root -g root)
+fi
+
+DESTDIR=$DESTDIR "$SCRIPT_DIR/home/install.sh"
+DESTDIR=$DESTDIR "$SCRIPT_DIR/system/install.sh"
+"${privilege[@]}" install -d "${ownership[@]}" -m 755 "$DESTDIR/etc/wsl-backup" "$DESTDIR/usr/local/bin"
+"${privilege[@]}" install "${ownership[@]}" -m 755 "$SCRIPT_DIR/wsl-backup" "$DESTDIR/usr/local/bin/wsl-backup"
 
 if ((REGISTER_TASKS)); then
-  command -v powershell.exe >/dev/null 2>&1 || {
-    echo "powershell.exe is unavailable; Linux tools were installed but Windows integration was skipped" >&2
-    exit 1
-  }
-  command -v wslpath >/dev/null 2>&1 || {
-    echo "wslpath is unavailable; Linux tools were installed but Windows integration was skipped" >&2
-    exit 1
-  }
+  require_command "$POWERSHELL" "$POWERSHELL is unavailable; Linux tools were installed but Windows integration was skipped"
+  require_command "$WSLPATH" "$WSLPATH is unavailable; Linux tools were installed but Windows integration was skipped"
 
-  installer=$(wslpath -w "$SCRIPT_DIR/Install-Windows.ps1")
-  powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$installer" -DistroName "$DISTRO_NAME" </dev/null
+  installer=$("$WSLPATH" -w "$SCRIPT_DIR/Install-Windows.ps1")
+  "$POWERSHELL" -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$installer" -DistroName "$DISTRO_NAME" </dev/null
 
   # PowerShell, not Bash, expands $env:LOCALAPPDATA in this single-quoted argument.
   # shellcheck disable=SC2016
-  windows_system_script=$(powershell.exe -NoProfile -NonInteractive -Command \
+  windows_system_script=$("$POWERSHELL" -NoProfile -NonInteractive -Command \
     '[Console]::Write((Join-Path $env:LOCALAPPDATA "WSLBackup\system\Backup-WslSystem.ps1"))' </dev/null | tr -d '\r')
   [[ -n "$windows_system_script" ]] || { echo "Could not resolve installed Windows controller" >&2; exit 1; }
-  printf '%s\n' "$windows_system_script" | sudo tee /etc/wsl-backup/windows-system-script >/dev/null
-  sudo chmod 644 /etc/wsl-backup/windows-system-script
+  if [[ -n "$DESTDIR" ]]; then
+    printf '%s\n' "$windows_system_script" > "$DESTDIR/etc/wsl-backup/windows-system-script"
+  else
+    printf '%s\n' "$windows_system_script" | sudo tee /etc/wsl-backup/windows-system-script >/dev/null
+    sudo chmod 644 /etc/wsl-backup/windows-system-script
+  fi
 
-  if sudo test -s /etc/restic/home.password && sudo test -f /var/lib/restic/home/config; then
-    tasks=$(wslpath -w "$SCRIPT_DIR/home/Register-WindowsTasks.ps1")
+  if "${privilege[@]}" test -s "$DESTDIR/etc/restic/home.password" && \
+      "${privilege[@]}" test -f "$DESTDIR/var/lib/restic/home/config"; then
+    tasks=$("$WSLPATH" -w "$SCRIPT_DIR/home/Register-WindowsTasks.ps1")
     task_args=(-NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$tasks" -DistroName "$DISTRO_NAME")
     if ((FORCE_TASKS)); then
       task_args+=(-Force)
     fi
-    powershell.exe "${task_args[@]}" </dev/null
+    "$POWERSHELL" "${task_args[@]}" </dev/null
   else
     cat >&2 <<'EOF'
 Local Restic credentials or repository config are absent, so scheduled tasks

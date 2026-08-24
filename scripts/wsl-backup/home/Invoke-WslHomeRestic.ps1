@@ -7,12 +7,9 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-if ($PSVersionTable.PSEdition -ne 'Desktop') {
-    throw 'Run this script with the built-in Windows PowerShell (powershell.exe), not pwsh.'
-}
-if ([string]::IsNullOrWhiteSpace($DistroName) -or $DistroName -match '[\r\n"]') {
-    throw 'Invalid WSL distro name'
-}
+. (Join-Path $PSScriptRoot 'WslHomeRestic.Common.ps1')
+Assert-BuiltInWindowsPowerShell
+Assert-WslDistroName -DistroName $DistroName
 $distro = $DistroName
 $wsl = Join-Path $env:SystemRoot 'System32\wsl.exe'
 $msg = Join-Path $env:SystemRoot 'System32\msg.exe'
@@ -24,7 +21,7 @@ New-Item -ItemType Directory -Path $stateDirectory -Force | Out-Null
 
 function Write-StatusLog {
     param([string] $Level, [string] $Text)
-    $safeText = $Text -replace "[\r\n]+", ' '
+    $safeText = ConvertTo-WslHomeLogText -Text $Text
     Add-Content -LiteralPath $logPath -Encoding UTF8 -Value (
         '{0} level={1} operation={2} message={3}' -f (Get-Date).ToString('o'), $Level, $Operation, $safeText
     )
@@ -33,14 +30,14 @@ function Write-StatusLog {
 function Send-FailureNotification {
     param([string] $Reason)
     $signature = "$Operation|$Reason"
-    $notify = $true
+    $previous = $null
+    $age = [timespan]::MaxValue
     if (Test-Path -LiteralPath $failurePath) {
         $previous = Get-Content -LiteralPath $failurePath -Raw -ErrorAction SilentlyContinue
         $age = (Get-Date) - (Get-Item -LiteralPath $failurePath).LastWriteTime
-        if ($previous -eq $signature -and $age.TotalHours -lt 6) {
-            $notify = $false
-        }
     }
+    $notify = Test-WslHomeNotificationRequired -Signature $signature `
+        -PreviousSignature $previous -PreviousAge $age
     Set-Content -LiteralPath $failurePath -Encoding UTF8 -NoNewline -Value $signature
     if ($notify) {
         $text = "WSL home backup problem: $Reason. See $logPath"

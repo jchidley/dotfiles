@@ -63,29 +63,15 @@ A fresh machine needs a separately escrowed Restic password and explicit reposit
 
 ## Validation
 
-Linux fixture test:
+Run the unified test command inside WSL:
 
 ```bash
-sudo ./scripts/wsl-backup/home/test.sh
+./scripts/wsl-backup/test-all fast         # static analysis and disposable component/contract tests
+./scripts/wsl-backup/test-all integration  # real disposable Restic fixture and production status smoke test
+./scripts/wsl-backup/test-all all          # both lanes
 ```
 
-Windows-only system test (does not invoke WSL or alter production tasks):
-
-```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File `
-  .\scripts\wsl-backup\system\Test-WslSystemBackup.ps1
-```
-
-Static checks:
-
-```bash
-bash -n scripts/wsl-backup/setup.sh scripts/wsl-backup/wsl-backup \
-  scripts/wsl-backup/home/*.sh scripts/wsl-backup/home/backup-wsl-home \
-  scripts/wsl-backup/system/install.sh scripts/wsl-backup/system/validate-wsl-system-restore
-shellcheck scripts/wsl-backup/setup.sh scripts/wsl-backup/wsl-backup \
-  scripts/wsl-backup/home/*.sh scripts/wsl-backup/home/backup-wsl-home \
-  scripts/wsl-backup/system/install.sh scripts/wsl-backup/system/validate-wsl-system-restore
-```
+The fast lane does not modify production repositories or tasks. It covers isolated setup, command dispatch and exit propagation, task policy, notification suppression, manifest/task helpers, Bash syntax, ShellCheck, and PSScriptAnalyzer under the built-in Windows PowerShell. The integration lane creates and removes a disposable Restic repository under `/var/tmp`; its production interaction is read-only status inspection.
 
 ## Documentation ownership
 

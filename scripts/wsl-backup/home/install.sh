@@ -2,6 +2,7 @@
 set -euo pipefail
 
 SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+DESTDIR=${DESTDIR:-}
 
 command -v restic >/dev/null 2>&1 || {
   echo "restic is not installed" >&2
@@ -12,10 +13,22 @@ command -v sqlite3 >/dev/null 2>&1 || {
   exit 1
 }
 
-sudo install -d -m 755 /etc/restic
-sudo install -d -m 700 /var/lib/restic /var/lib/restic/staging /var/cache/restic-home /var/log/restic-home
-sudo install -o root -g root -m 755 "$SCRIPT_DIR/backup-wsl-home" /usr/local/sbin/backup-wsl-home
-sudo install -o root -g root -m 644 "$SCRIPT_DIR/home.conf" /etc/restic/home.conf
+if [[ -n "$DESTDIR" ]]; then
+  privilege=()
+  ownership=()
+else
+  privilege=(sudo)
+  ownership=(-o root -g root)
+fi
+
+"${privilege[@]}" install -d -m 755 "$DESTDIR/etc/restic" "$DESTDIR/usr/local/sbin"
+"${privilege[@]}" install -d -m 700 \
+  "$DESTDIR/var/lib/restic" "$DESTDIR/var/lib/restic/staging" \
+  "$DESTDIR/var/cache/restic-home" "$DESTDIR/var/log/restic-home"
+"${privilege[@]}" install "${ownership[@]}" -m 755 "$SCRIPT_DIR/backup-wsl-home" \
+  "$DESTDIR/usr/local/sbin/backup-wsl-home"
+"${privilege[@]}" install "${ownership[@]}" -m 644 "$SCRIPT_DIR/home.conf" \
+  "$DESTDIR/etc/restic/home.conf"
 
 cat <<'EOF'
 Installed the local Restic home-backup program and non-secret configuration.

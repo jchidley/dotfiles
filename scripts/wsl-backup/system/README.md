@@ -84,10 +84,10 @@ These modes do not perform an export:
 
 ## Tests
 
-The self-contained test suite uses injected Task Scheduler adapters and disposable small files; it does not invoke WSL or modify production tasks:
+From inside WSL, the umbrella fast lane runs the self-contained PowerShell suite, static analysis, and the other backup contract tests:
 
-```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Test-WslSystemBackup.ps1
+```bash
+./scripts/wsl-backup/test-all fast
 ```
 
-No schedule is registered yet. Scheduling recurring downtime requires an explicit decision about the maintenance window.
+The system suite uses injected Task Scheduler adapters and disposable small files; it does not invoke WSL or modify production tasks. No schedule is registered yet. Scheduling recurring downtime requires an explicit decision about the maintenance window.

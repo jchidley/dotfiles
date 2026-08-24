@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+HOME_COMMAND=${WSL_BACKUP_HOME_COMMAND:-/usr/local/sbin/backup-wsl-home}
+SUDO_COMMAND=${WSL_BACKUP_SUDO:-sudo}
+POWERSHELL=${WSL_BACKUP_POWERSHELL:-powershell.exe}
+SYSTEM_SCRIPT_CONFIG=${WSL_BACKUP_SYSTEM_SCRIPT_CONFIG:-/etc/wsl-backup/windows-system-script}
+
 usage() {
   cat <<'EOF'
 Usage:
@@ -21,14 +26,14 @@ EOF
 
 run_home() {
   if ((EUID == 0)); then
-    /usr/local/sbin/backup-wsl-home "$@"
+    "$HOME_COMMAND" "$@"
   else
-    sudo /usr/local/sbin/backup-wsl-home "$@"
+    "$SUDO_COMMAND" "$HOME_COMMAND" "$@"
   fi
 }
 
 system_script() {
-  local config=/etc/wsl-backup/windows-system-script
+  local config=$SYSTEM_SCRIPT_CONFIG
   [[ -r "$config" ]] || {
     echo "Windows controller is not installed; rerun scripts/wsl-backup/setup.sh" >&2
     return 1
@@ -40,10 +45,14 @@ system_script() {
 }
 
 run_system() {
-  command -v powershell.exe >/dev/null 2>&1 || { echo "powershell.exe is unavailable" >&2; return 1; }
+  if [[ "$POWERSHELL" == */* ]]; then
+    [[ -x "$POWERSHELL" ]] || { echo "$POWERSHELL is unavailable" >&2; return 1; }
+  else
+    command -v "$POWERSHELL" >/dev/null 2>&1 || { echo "$POWERSHELL is unavailable" >&2; return 1; }
+  fi
   local script
   script=$(system_script)
-  powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$script" "$@" </dev/null
+  "$POWERSHELL" -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$script" "$@" </dev/null
 }
 
 command=${1:-help}

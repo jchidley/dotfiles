@@ -88,6 +88,17 @@ The Windows-local wrapper under `%LOCALAPPDATA%\WSLHomeRestic` records secret-fr
 
 Existing tasks and their next-run times are preserved by default. Use `-Force` to rebuild their definitions deliberately. Remove them with the same script's `-Remove` switch.
 
+## Tests
+
+Use the umbrella runner from inside WSL:
+
+```bash
+./scripts/wsl-backup/test-all fast
+./scripts/wsl-backup/test-all integration
+```
+
+The fast lane uses a disposable install root and fake Windows adapters. The integration lane exercises a real disposable Restic repository and staged restore.
+
 ## Restore rule
 
 Always restore into an empty ext4 staging directory. Do not restore directly over the live home. Validate contents, metadata, Pi sessions, histories, credentials and repositories before an atomic same-filesystem rename.
