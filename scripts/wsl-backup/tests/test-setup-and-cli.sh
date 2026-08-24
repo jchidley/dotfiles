@@ -35,11 +35,17 @@ cat > "$FAKEBIN/fake-powershell" <<'FAKE'
 printf 'powershell' >> "$CALL_LOG"
 printf ' <%s>' "$@" >> "$CALL_LOG"
 printf '\n' >> "$CALL_LOG"
+system_command=0
 for arg in "$@"; do
   if [[ $arg == *'Join-Path $env:LOCALAPPDATA'* ]]; then
     printf 'C:\\Fixture User\\AppData\\Local\\WSLBackup\\system\\Backup-WslSystem.ps1'
+  elif [[ $arg == -Mode ]]; then
+    system_command=1
   fi
 done
+if ((system_command)); then
+  printf 'fixture PowerShell output\r\n'
+fi
 exit "${POWERSHELL_EXIT:-0}"
 FAKE
 chmod +x "$FAKEBIN/fake-powershell"
@@ -125,9 +131,10 @@ run_cli() {
 run_cli home snapshots >/dev/null
 assert_log 'home <snapshots>'
 : > "$CALL_LOG"
-run_cli system Preflight >/dev/null
+system_output=$(run_cli system Preflight)
 assert_log '<-Mode> <Preflight>'
 assert_log '<C:\Fixture User\WSLBackup\Backup-WslSystem.ps1>'
+[[ $system_output == 'fixture PowerShell output' ]] || fail "PowerShell output was not normalized: $(printf %q "$system_output")"
 : > "$CALL_LOG"
 run_cli status >/dev/null
 assert_log 'home <status>'
@@ -139,5 +146,11 @@ HOME_EXIT=7 run_cli home backup >/dev/null 2>&1
 code=$?
 set -e
 [[ $code -eq 7 ]] || fail "home exit code was not preserved: $code"
+
+set +e
+POWERSHELL_EXIT=9 run_cli system Status >/dev/null 2>&1
+code=$?
+set -e
+[[ $code -eq 9 ]] || fail "PowerShell exit code was not preserved through output normalization: $code"
 
 printf 'WSL backup setup/CLI tests passed.\n'

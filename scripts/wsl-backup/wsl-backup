@@ -52,7 +52,10 @@ run_system() {
   fi
   local script
   script=$(system_script)
-  "$POWERSHELL" -NoLogo -NoProfile -NonInteractive -File "$script" "$@" </dev/null
+  # Windows-native PowerShell writes CRLF even when called through WSL.
+  # Normalize stdout at this boundary while pipefail preserves PowerShell failures.
+  "$POWERSHELL" -NoLogo -NoProfile -NonInteractive -File "$script" "$@" </dev/null |
+    sed 's/\r$//'
 }
 
 command=${1:-help}

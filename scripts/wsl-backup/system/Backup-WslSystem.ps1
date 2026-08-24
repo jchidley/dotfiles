@@ -15,6 +15,7 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+$PSStyle.OutputRendering = 'PlainText'
 . (Join-Path $PSScriptRoot 'WslSystemBackup.Common.ps1')
 $wsl = Join-Path $env:SystemRoot 'System32\wsl.exe'
 $validator = '/usr/local/sbin/validate-wsl-system-restore'
