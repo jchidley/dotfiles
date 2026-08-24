@@ -10,6 +10,14 @@
   "transport": "websocket",
   "httpIdleTimeoutMs": 0,
   "websocketConnectTimeoutMs": 60000,
+{{- if eq .chezmoi.os "windows" }}
+  "defaultTools": [
+    "read",
+    "powershell",
+    "edit",
+    "write"
+  ],
+{{- end }}
   "packages": [
     "{{ if eq .chezmoi.os "windows" }}../../git/agent-skills{{ else }}../../github/agent-skills{{ end }}"
   ],

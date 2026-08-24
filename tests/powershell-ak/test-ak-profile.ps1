@@ -1,7 +1,12 @@
 #requires -Version 7.0
 $ErrorActionPreference = 'Stop'
 
-$repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+$testDir = if ($env:DOTFILES_TEST_DIR) { $env:DOTFILES_TEST_DIR } else { $PSScriptRoot }
+$repoRoot = if ($env:DOTFILES_REPO_ROOT) {
+    $env:DOTFILES_REPO_ROOT
+} else {
+    (Resolve-Path (Join-Path $testDir '..\..')).Path
+}
 $modulePath = Join-Path $repoRoot 'Documents\PowerShell\ak-profile.ps1'
 $work = Join-Path $env:TEMP ('powershell-ak-profile-test-' + [guid]::NewGuid().ToString('N'))
 

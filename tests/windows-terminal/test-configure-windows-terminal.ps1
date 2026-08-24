@@ -1,10 +1,15 @@
 #requires -Version 7.0
 $ErrorActionPreference = 'Stop'
 
-$repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+$testDir = if ($env:DOTFILES_TEST_DIR) { $env:DOTFILES_TEST_DIR } else { $PSScriptRoot }
+$repoRoot = if ($env:DOTFILES_REPO_ROOT) {
+    $env:DOTFILES_REPO_ROOT
+} else {
+    (Resolve-Path (Join-Path $testDir '..\..')).Path
+}
 $scriptPath = Join-Path $repoRoot 'scripts\configure-windows-terminal.ps1'
-$inputFixture = Join-Path $PSScriptRoot 'input-settings.json'
-$expectedFixture = Join-Path $PSScriptRoot 'expected-state.json'
+$inputFixture = Join-Path $testDir 'input-settings.json'
+$expectedFixture = Join-Path $testDir 'expected-state.json'
 $expected = Get-Content -LiteralPath $expectedFixture -Raw | ConvertFrom-Json
 $work = Join-Path $env:TEMP ('windows-terminal-dotfiles-test-' + [guid]::NewGuid().ToString('N'))
 
