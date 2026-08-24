@@ -55,12 +55,12 @@ if ((REGISTER_TASKS)); then
   }
 
   installer=$(wslpath -w "$SCRIPT_DIR/Install-Windows.ps1")
-  powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$installer" -DistroName "$DISTRO_NAME"
+  powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$installer" -DistroName "$DISTRO_NAME" </dev/null
 
   # PowerShell, not Bash, expands $env:LOCALAPPDATA in this single-quoted argument.
   # shellcheck disable=SC2016
   windows_system_script=$(powershell.exe -NoProfile -NonInteractive -Command \
-    '[Console]::Write((Join-Path $env:LOCALAPPDATA "WSLBackup\system\Backup-WslSystem.ps1"))' | tr -d '\r')
+    '[Console]::Write((Join-Path $env:LOCALAPPDATA "WSLBackup\system\Backup-WslSystem.ps1"))' </dev/null | tr -d '\r')
   [[ -n "$windows_system_script" ]] || { echo "Could not resolve installed Windows controller" >&2; exit 1; }
   printf '%s\n' "$windows_system_script" | sudo tee /etc/wsl-backup/windows-system-script >/dev/null
   sudo chmod 644 /etc/wsl-backup/windows-system-script
@@ -71,7 +71,7 @@ if ((REGISTER_TASKS)); then
     if ((FORCE_TASKS)); then
       task_args+=(-Force)
     fi
-    powershell.exe "${task_args[@]}"
+    powershell.exe "${task_args[@]}" </dev/null
   else
     cat >&2 <<'EOF'
 Local Restic credentials or repository config are absent, so scheduled tasks

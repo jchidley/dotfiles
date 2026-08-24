@@ -43,7 +43,7 @@ run_system() {
   command -v powershell.exe >/dev/null 2>&1 || { echo "powershell.exe is unavailable" >&2; return 1; }
   local script
   script=$(system_script)
-  powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$script" "$@"
+  powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$script" "$@" </dev/null
 }
 
 command=${1:-help}
