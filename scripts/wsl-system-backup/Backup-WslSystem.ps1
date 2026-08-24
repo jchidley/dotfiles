@@ -120,16 +120,24 @@ function Test-ImportedArchive {
     $registered = $false
     try {
         New-Item -ItemType Directory -Path (Split-Path -Parent $directory) -Force | Out-Null
-        Invoke-WslChecked @('--import', $name, $directory, $resolved, '--version', '2')
+        Invoke-WslChecked @('--import', $name, $directory, $resolved, '--version', '2') | Out-Null
         $registered = $true
-        Invoke-WslChecked @('--manage', $name, '--set-default-user', 'jack')
+        Invoke-WslChecked @('--manage', $name, '--set-default-user', 'jack') | Out-Null
         $hostValidator = Convert-ToWslPath (Join-Path $PSScriptRoot 'validate-wsl-system-restore')
-        Invoke-WslChecked @('-d', $name, '-u', 'root', '--', 'install', '-o', 'root', '-g', 'root', '-m', '755', $hostValidator, $temporaryValidator)
-        Invoke-WslChecked @('-d', $name, '-u', 'root', '--', $temporaryValidator)
+        Invoke-WslChecked @('-d', $name, '-u', 'root', '--', 'install', '-o', 'root', '-g', 'root', '-m', '755', $hostValidator, $temporaryValidator) | Out-Null
+        $validatorOutput = @(Invoke-WslChecked @('-d', $name, '-u', 'root', '--', $temporaryValidator) |
+            ForEach-Object { ($_ -replace "`0", '').Trim() } | Where-Object { $_ })
+        $summary = @($validatorOutput | Where-Object { $_ -match '^restore_validation=passed files=(\d+) sessions=(\d+)$' })
+        if ($summary.Count -ne 1) {
+            throw "Restore validator did not return one parseable summary"
+        }
+        [void]($summary[0] -match '^restore_validation=passed files=(\d+) sessions=(\d+)$')
         return [pscustomobject]@{
             Result = 'passed'
             ValidatedAt = (Get-Date).ToUniversalTime().ToString('o')
             DisposableDistro = $name
+            Files = [int]$Matches[1]
+            PiSessions = [int]$Matches[2]
         }
     }
     finally {
@@ -216,7 +224,7 @@ try {
         Sha256 = $hash
         Format = 'tar.gz'
         Validation = $validation
-        WslVersion = ((& $wsl --version | Out-String).Trim())
+        WslVersion = (((& $wsl --version | Out-String) -replace "`0", '').Trim())
     }
     $manifestTemp = "$manifest.partial"
     $record | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath $manifestTemp -Encoding UTF8
