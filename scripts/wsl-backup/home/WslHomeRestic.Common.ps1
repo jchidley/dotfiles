@@ -27,6 +27,27 @@ function Get-WslHomeTaskSpecifications {
     )
 }
 
+function Get-WslHomeTaskTriggerPlan {
+    param([Parameter(Mandatory = $true)] $Specification)
+    switch ($Specification.Kind) {
+        'RepeatedMinutes' {
+            return [pscustomobject]@{Kind='Repeated';At=$Specification.Start;Unit='Minutes';Interval=[int]$Specification.Value;DurationDays=3650}
+        }
+        'RepeatedDays' {
+            return [pscustomobject]@{Kind='Repeated';At=$Specification.Start;Unit='Days';Interval=[int]$Specification.Value;DurationDays=3650}
+        }
+        'Daily' {
+            return [pscustomobject]@{Kind='Daily';At=[string]$Specification.Value}
+        }
+        'Weekly' {
+            $parts = [string]$Specification.Value -split '@', 2
+            if ($parts.Count -ne 2) { throw "Invalid weekly task value: $($Specification.Value)" }
+            return [pscustomobject]@{Kind='Weekly';Day=$parts[0];At=$parts[1]}
+        }
+        default { throw "Unknown task trigger kind: $($Specification.Kind)" }
+    }
+}
+
 function New-WslHomeTaskArguments {
     param(
         [Parameter(Mandatory = $true)][string] $WrapperPath,

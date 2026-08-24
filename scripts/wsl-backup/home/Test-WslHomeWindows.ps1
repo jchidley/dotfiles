@@ -41,6 +41,13 @@ Assert-True (($specs | Where-Object Name -eq 'Monitor').Value -eq 30) 'monitor i
 Assert-True (($specs | Where-Object Name -eq 'Retention').Value -eq '03:30') 'retention time'
 Assert-True (($specs | Where-Object Name -eq 'Read Data Check').Start -eq $now.Date.AddDays(1).AddHours(5)) 'read-data first run'
 Assert-True ((@($specs.Command | Sort-Object -Unique).Count) -eq 6) 'operations unique'
+$backupPlan = Get-WslHomeTaskTriggerPlan -Specification ($specs | Where-Object Name -eq 'Backup')
+Assert-True ($backupPlan.Kind -eq 'Repeated' -and $backupPlan.Unit -eq 'Minutes' -and $backupPlan.Interval -eq 15) 'backup trigger plan'
+$readPlan = Get-WslHomeTaskTriggerPlan -Specification ($specs | Where-Object Name -eq 'Read Data Check')
+Assert-True ($readPlan.Unit -eq 'Days' -and $readPlan.Interval -eq 30) 'read-data trigger plan'
+$prunePlan = Get-WslHomeTaskTriggerPlan -Specification ($specs | Where-Object Name -eq 'Prune')
+Assert-True ($prunePlan.Kind -eq 'Weekly' -and $prunePlan.Day -eq 'Sunday' -and $prunePlan.At -eq '04:00') 'weekly trigger plan'
+Expect-Throw { Get-WslHomeTaskTriggerPlan -Specification ([pscustomobject]@{Kind='Unknown';Value=1}) } 'Unknown task trigger kind'
 
 $arguments = New-WslHomeTaskArguments -WrapperPath 'C:\Fixture User\Invoke-WslHomeRestic.ps1' `
     -Operation 'backup' -DistroName 'Debian Recovered'

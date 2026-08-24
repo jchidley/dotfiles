@@ -16,25 +16,25 @@ $installDirectory = Join-Path $env:LOCALAPPDATA 'WSLHomeRestic'
 $installedWrapper = Join-Path $installDirectory 'Invoke-WslHomeRestic.ps1'
 
 $definitions = @(Get-WslHomeTaskSpecifications | ForEach-Object {
-    $trigger = switch ($_.Kind) {
-        'RepeatedMinutes' {
-            New-ScheduledTaskTrigger -Once -At $_.Start `
-                -RepetitionInterval (New-TimeSpan -Minutes $_.Value) `
-                -RepetitionDuration (New-TimeSpan -Days 3650)
+    $specification = $_
+    $plan = Get-WslHomeTaskTriggerPlan -Specification $specification
+    $trigger = switch ($plan.Kind) {
+        'Repeated' {
+            $interval = if ($plan.Unit -eq 'Minutes') {
+                New-TimeSpan -Minutes $plan.Interval
+            }
+            else {
+                New-TimeSpan -Days $plan.Interval
+            }
+            New-ScheduledTaskTrigger -Once -At $plan.At `
+                -RepetitionInterval $interval `
+                -RepetitionDuration (New-TimeSpan -Days $plan.DurationDays)
         }
-        'RepeatedDays' {
-            New-ScheduledTaskTrigger -Once -At $_.Start `
-                -RepetitionInterval (New-TimeSpan -Days $_.Value) `
-                -RepetitionDuration (New-TimeSpan -Days 3650)
-        }
-        'Daily' { New-ScheduledTaskTrigger -Daily -At $_.Value }
-        'Weekly' {
-            $parts = $_.Value -split '@', 2
-            New-ScheduledTaskTrigger -Weekly -DaysOfWeek $parts[0] -At $parts[1]
-        }
-        default { throw "Unknown task trigger kind: $($_.Kind)" }
+        'Daily' { New-ScheduledTaskTrigger -Daily -At $plan.At }
+        'Weekly' { New-ScheduledTaskTrigger -Weekly -DaysOfWeek $plan.Day -At $plan.At }
+        default { throw "Unknown task trigger plan: $($plan.Kind)" }
     }
-    [pscustomobject]@{Name=$_.Name;Command=$_.Command;Trigger=$trigger}
+    [pscustomobject]@{Name=$specification.Name;Command=$specification.Command;Trigger=$trigger}
 })
 
 if ($Remove) {
