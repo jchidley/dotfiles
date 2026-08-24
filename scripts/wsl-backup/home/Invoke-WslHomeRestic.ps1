@@ -2,11 +2,15 @@
 param(
     [Parameter(Mandatory = $true)]
     [ValidateSet('backup', 'retention', 'prune', 'check', 'check-read-data', 'status')]
-    [string] $Operation
+    [string] $Operation,
+    [string] $DistroName = 'Debian-Recovered'
 )
 
 $ErrorActionPreference = 'Stop'
-$distro = 'Debian-Recovered'
+if ([string]::IsNullOrWhiteSpace($DistroName) -or $DistroName -match '[\r\n"]') {
+    throw 'Invalid WSL distro name'
+}
+$distro = $DistroName
 $wsl = Join-Path $env:SystemRoot 'System32\wsl.exe'
 $msg = Join-Path $env:SystemRoot 'System32\msg.exe'
 $stateDirectory = Join-Path $env:LOCALAPPDATA 'WSLHomeRestic'

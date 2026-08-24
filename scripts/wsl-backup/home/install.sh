@@ -20,5 +20,5 @@ sudo install -o root -g root -m 644 "$SCRIPT_DIR/home.conf" /etc/restic/home.con
 cat <<'EOF'
 Installed the local Restic home-backup program and non-secret configuration.
 The installer deliberately does not create credentials, initialize a repository,
-or register Windows tasks. See scripts/restic-home/README.md.
+or register Windows tasks. See scripts/wsl-backup/README.md.
 EOF

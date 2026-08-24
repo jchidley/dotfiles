@@ -36,6 +36,18 @@ BOOTSTRAP_MODE=full ~/.local/share/chezmoi/scripts/bootstrap/debian-bootstrap-sa
 chezmoi update
 ```
 
+### WSL backup and recovery
+
+On the recovered Debian WSL installation, install or update the complete backup toolset with:
+
+```bash
+cd ~/.local/share/chezmoi
+./scripts/wsl-backup/setup.sh
+wsl-backup status
+```
+
+See [`scripts/wsl-backup/README.md`](scripts/wsl-backup/README.md) for operations and safety boundaries.
+
 ## Features
 
 - **Cross-platform support**: Windows (PowerShell) and Debian Linux (Bash)

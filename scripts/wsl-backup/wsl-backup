@@ -1,0 +1,71 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+usage() {
+  cat <<'EOF'
+Usage:
+  wsl-backup status
+  wsl-backup home <backup|snapshots|status|retention|prune|check|check-read-data|restore> [args...]
+  wsl-backup system <Preflight|Status|Export|Validate|Recover|ValidateManifest|Cleanup> [PowerShell options...]
+
+Examples:
+  wsl-backup status
+  wsl-backup home snapshots
+  wsl-backup system Preflight
+  wsl-backup system Export -ConfirmMaintenanceWindow
+
+System Export stops the source distro and requires the explicit maintenance
+window switch. Restore always targets an empty ext4 staging directory.
+EOF
+}
+
+run_home() {
+  if ((EUID == 0)); then
+    /usr/local/sbin/backup-wsl-home "$@"
+  else
+    sudo /usr/local/sbin/backup-wsl-home "$@"
+  fi
+}
+
+system_script() {
+  local config=/etc/wsl-backup/windows-system-script
+  [[ -r "$config" ]] || {
+    echo "Windows controller is not installed; rerun scripts/wsl-backup/setup.sh" >&2
+    return 1
+  }
+  local path
+  IFS= read -r path < "$config"
+  [[ -n "$path" ]] || { echo "Windows controller path is empty" >&2; return 1; }
+  printf '%s\n' "$path"
+}
+
+run_system() {
+  command -v powershell.exe >/dev/null 2>&1 || { echo "powershell.exe is unavailable" >&2; return 1; }
+  local script
+  script=$(system_script)
+  powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$script" "$@"
+}
+
+command=${1:-help}
+case "$command" in
+  status)
+    echo '== Home snapshots =='
+    run_home status
+    echo
+    echo '== Whole-system exports =='
+    run_system -Mode Status
+    ;;
+  home)
+    (($# >= 2)) || { usage >&2; exit 2; }
+    shift
+    run_home "$@"
+    ;;
+  system)
+    (($# >= 2)) || { usage >&2; exit 2; }
+    mode=$2
+    shift 2
+    run_system -Mode "$mode" "$@"
+    ;;
+  help|-h|--help) usage ;;
+  *) echo "Unknown command: $command" >&2; usage >&2; exit 2 ;;
+esac

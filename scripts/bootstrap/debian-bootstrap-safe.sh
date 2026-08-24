@@ -155,12 +155,12 @@ install_fnm
 install_mcfly
 install_pi
 
-RESTIC_HOME_INSTALLER="$SCRIPT_DIR/../restic-home/install.sh"
+RESTIC_HOME_INSTALLER="$SCRIPT_DIR/../wsl-backup/home/install.sh"
 if [[ -x "$RESTIC_HOME_INSTALLER" ]]; then
   run "$RESTIC_HOME_INSTALLER"
 fi
 
-WSL_SYSTEM_BACKUP_INSTALLER="$SCRIPT_DIR/../wsl-system-backup/install.sh"
+WSL_SYSTEM_BACKUP_INSTALLER="$SCRIPT_DIR/../wsl-backup/system/install.sh"
 if [[ -x "$WSL_SYSTEM_BACKUP_INSTALLER" ]]; then
   run "$WSL_SYSTEM_BACKUP_INSTALLER"
 fi

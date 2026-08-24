@@ -1,6 +1,8 @@
 # Local WSL home backup
 
-This directory implements the short-retention local half of the two-stream WSL backup architecture. It backs up `/home/jack` into an encrypted Restic repository on Debian's native ext4 filesystem. Whole-distro `tar.gz` exports and external replication are separate operations.
+This component implements the short-retention local half of the WSL backup architecture. Start with the [umbrella README](../README.md) for setup and routine commands. This page is the detailed home-snapshot reference.
+
+It backs up `/home/jack` into an encrypted Restic repository on Debian's native ext4 filesystem. Whole-distro `tar.gz` exports and external replication are separate operations.
 
 ## Installed paths
 
@@ -70,7 +72,7 @@ Windows Task Scheduler owns wake-up because a Linux timer cannot start a stopped
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File `
-  "\\wsl.localhost\Debian-Recovered\home\jack\.local\share\chezmoi\scripts\restic-home\Register-WindowsTasks.ps1"
+  "\\wsl.localhost\Debian-Recovered\home\jack\.local\share\chezmoi\scripts\wsl-backup\home\Register-WindowsTasks.ps1"
 ```
 
 The registered tasks run as the current Windows user and ask WSL to execute the root-owned program as Linux root:
@@ -84,7 +86,7 @@ The registered tasks run as the current Windows user and ask WSL to execute the 
 
 The Windows-local wrapper under `%LOCALAPPDATA%\WSLHomeRestic` records secret-free operation status and notifies the interactive user with `msg.exe` if an operation fails. The monitor fails when the newest matching snapshot is more than 30 minutes old. Duplicate notices are suppressed for six hours.
 
-Remove them with the same script's `-Remove` switch.
+Existing tasks and their next-run times are preserved by default. Use `-Force` to rebuild their definitions deliberately. Remove them with the same script's `-Remove` switch.
 
 ## Restore rule
 

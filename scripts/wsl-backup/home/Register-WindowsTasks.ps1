@@ -1,9 +1,14 @@
 [CmdletBinding()]
 param(
-    [switch] $Remove
+    [switch] $Remove,
+    [switch] $Force,
+    [string] $DistroName = 'Debian-Recovered'
 )
 
 $ErrorActionPreference = 'Stop'
+if ([string]::IsNullOrWhiteSpace($DistroName) -or $DistroName -match '[\r\n"]') {
+    throw 'Invalid WSL distro name'
+}
 $powershell = Join-Path $PSHOME 'powershell.exe'
 $prefix = 'WSL Home Restic - '
 $userId = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
@@ -71,8 +76,13 @@ $settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -MultipleInstances 
 
 foreach ($definition in $definitions) {
     $taskName = $prefix + $definition.Name
-    $arguments = '-NoProfile -NonInteractive -ExecutionPolicy Bypass -File "{0}" -Operation {1}' -f `
-        $installedWrapper, $definition.Command
+    $existing = Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
+    if ($existing -and -not $Force) {
+        Write-Output "Kept existing $taskName"
+        continue
+    }
+    $arguments = '-NoProfile -NonInteractive -ExecutionPolicy Bypass -File "{0}" -Operation {1} -DistroName "{2}"' -f `
+        $installedWrapper, $definition.Command, $DistroName
     $action = New-ScheduledTaskAction -Execute $powershell -Argument $arguments
     Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $definition.Trigger `
         -Principal $principal -Settings $settings -Description "Local WSL home Restic $($definition.Command)" `

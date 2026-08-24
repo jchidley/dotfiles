@@ -1,6 +1,8 @@
 # Whole-system WSL backup
 
-This directory implements the complete-system stream. It is separate from the frequent Restic `/home/jack` snapshots.
+This component implements the complete-system stream. Start with the [umbrella README](../README.md) for setup and routine commands. This page is the detailed whole-system reference.
+
+It is separate from the frequent Restic `/home/jack` snapshots.
 
 `Backup-WslSystem.ps1` creates a cold compressed export locally, validates it by importing it under a disposable WSL name, and only then promotes it from `.partial` to `.tar.gz`. It writes a SHA-256 JSON manifest and retains the newest two validated local generations. During an export it transactionally disables the six `WSL Home Restic - *` tasks so none can restart the source, then restores only the tasks that were enabled before the run.
 
@@ -20,7 +22,7 @@ Run from Windows PowerShell 5.1:
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File `
-  "\\wsl.localhost\Debian-Recovered\home\jack\.local\share\chezmoi\scripts\wsl-system-backup\Backup-WslSystem.ps1" `
+  "\\wsl.localhost\Debian-Recovered\home\jack\.local\share\chezmoi\scripts\wsl-backup\system\Backup-WslSystem.ps1" `
   -Mode Preflight
 ```
 
@@ -32,7 +34,7 @@ This operation stops `Debian-Recovered` and requires an approved maintenance win
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File `
-  "\\wsl.localhost\Debian-Recovered\home\jack\.local\share\chezmoi\scripts\wsl-system-backup\Backup-WslSystem.ps1" `
+  "\\wsl.localhost\Debian-Recovered\home\jack\.local\share\chezmoi\scripts\wsl-backup\system\Backup-WslSystem.ps1" `
   -Mode Export -ConfirmMaintenanceWindow
 ```
 
