@@ -5,7 +5,8 @@ set -euo pipefail
 
 helper={{ joinPath .chezmoi.sourceDir "scripts/configure-windows-terminal.ps1" | quote }}
 [[ -f "$helper" ]] || { echo "Windows Terminal configuration helper not found: $helper" >&2; exit 1; }
-helper_windows="$(wslpath -w "$helper")"
 command -v pwsh.exe >/dev/null 2>&1 || { echo "PowerShell 7 (pwsh.exe) is required; Windows PowerShell 5.1 is unsupported" >&2; exit 1; }
-pwsh.exe -NoLogo -NoProfile -File "$helper_windows"
+# Feed trusted managed content over stdin so RemoteSigned does not misclassify
+# the WSL UNC path as a downloaded script. Do not weaken execution policy.
+pwsh.exe -NoLogo -NoProfile -NonInteractive -Command - < "$helper"
 {{- end -}}
