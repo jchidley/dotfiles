@@ -73,6 +73,8 @@ Run the unified test command inside WSL:
 
 The fast lane does not modify production repositories or tasks. It covers isolated setup, command dispatch and exit propagation, task policy, notification suppression, manifest/task helpers, Bash syntax, ShellCheck, and PSScriptAnalyzer under the built-in Windows PowerShell. The integration lane creates and removes a disposable Restic repository under `/var/tmp`; its production interaction is read-only status inspection.
 
+See [`TESTING.md`](TESTING.md) for stable contracts, mutation evidence, and explicitly deferred scope.
+
 ## Documentation ownership
 
 - This README and component READMEs: current commands and operational behaviour.
