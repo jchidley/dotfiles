@@ -3,9 +3,9 @@
   "copyOnSelect": true,
   "tabWidthMode": "equal",
   "useAcrylicInTabRow": false,
-  "defaultProfile": "{7e3ad175-91fc-536c-b346-f9d77cce7280}",
-  "debianOnlyDefaultProfile": "{58ad8b0c-3ef8-5f4d-bc6f-13e4c00f2530}",
-  "noWslDefaultProfile": "{61c54bbd-c2c6-5271-96e7-009a87ff44bf}",
+  "defaultProfile": "{574e775e-4f2a-5b96-ac1e-a2962a402336}",
+  "debianOnlyDefaultProfile": "{574e775e-4f2a-5b96-ac1e-a2962a402336}",
+  "noWslDefaultProfile": "{574e775e-4f2a-5b96-ac1e-a2962a402336}",
   "profileDefaults": {
     "colorScheme": "Gruvbox Dark (Hard)",
     "fontFace": "SauceCodePro Nerd Font",
@@ -14,8 +14,8 @@
     "preservedFontWeight": "bold"
   },
   "profiles": {
-    "windowsPowerShellHidden": false,
-    "powerShell7Hidden": true,
+    "windowsPowerShellHidden": true,
+    "powerShell7Hidden": false,
     "debianHidden": false,
     "debianRecoveredHidden": false,
     "archHiddenWhenAbsent": true,

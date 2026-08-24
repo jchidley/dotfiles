@@ -1,3 +1,6 @@
+#requires -Version 7.0
+# PowerShell 7 is the supported Windows shell for these dotfiles.
+
 # # SSH Agent setup (run once as Administrator):
 # Get-Service ssh-agent | Set-Service -StartupType Automatic
 # Start-Service ssh-agent
@@ -33,11 +36,10 @@ $script:AkVaultPath = "/home/jack/github/ak/bin/ak"
 $script:AkWslDistro = $null
 . (Join-Path $PSScriptRoot 'ak-profile.ps1')
 
-try {
-    Import-AkExportProfile
-} catch {
-    Write-Warning "ak export profile was not loaded: $($_.Exception.Message)"
-}
+# Secret decryption is deliberately lazy. Importing every configured key here
+# starts WSL/GPG repeatedly and can block shell startup on a pinentry prompt.
+# Run Import-AkExportProfile in a shell that actually needs the allowlisted keys.
+Write-Host "ak: run Import-AkExportProfile to load allowlisted API keys" -ForegroundColor DarkGray
 
 # Android Studio / SDK (only if installed)
 if (Test-Path "$env:LOCALAPPDATA\Android\Sdk") {

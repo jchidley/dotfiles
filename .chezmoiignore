@@ -2,6 +2,7 @@
 AppData
 Documents
 ./ps_shell_hints
+.config/chezmoi/chezmoi.toml
 {{ end }}
 {{ if eq .chezmoi.os "windows" }}
 # Windows reserved device names (cause "unsupported file type" errors)

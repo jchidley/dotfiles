@@ -25,12 +25,12 @@ if [ ! -f /proc/sys/fs/binfmt_misc/WSLInterop ]; then
     echo "Registered missing WSLInterop binfmt handler"
 fi
 
-POWERSHELL=/mnt/c/WINDOWS/System32/WindowsPowerShell/v1.0/powershell.exe
-if [ ! -x "$POWERSHELL" ]; then
-    echo "Windows PowerShell not found at $POWERSHELL" >&2
+POWERSHELL=$(command -v pwsh.exe || true)
+if [ -z "$POWERSHELL" ]; then
+    echo "PowerShell 7 (pwsh.exe) is required; Windows PowerShell 5.1 is unsupported" >&2
     exit 1
 fi
-WIN_USER=$("$POWERSHELL" -NoProfile -Command '[Environment]::UserName' 2>/dev/null | tr -d '\r')
+WIN_USER=$("$POWERSHELL" -NoLogo -NoProfile -Command '[Environment]::UserName' 2>/dev/null | tr -d '\r')
 WIN_HOME="/mnt/c/Users/${WIN_USER}"
 
 if [ ! -d "$WIN_HOME" ]; then
@@ -78,5 +78,5 @@ else
     echo "/etc/wsl.conf already correct"
 fi
 
-echo "Done. Run 'wsl --shutdown' from PowerShell for changes to take effect."
+echo "Done. Run 'wsl --shutdown' from PowerShell 7 for changes to take effect."
 {{- end }}

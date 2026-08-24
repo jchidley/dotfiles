@@ -1,0 +1,4 @@
+# Run managed PowerShell scripts only with PowerShell 7.
+[interpreters.ps1]
+command = "pwsh.exe"
+args = ["-NoLogo", "-NoProfile", "-File"]

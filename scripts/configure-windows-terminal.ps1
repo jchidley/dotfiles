@@ -1,3 +1,4 @@
+#requires -Version 7.0
 # Idempotently apply the Windows Terminal preferences that are worth managing.
 # Do not manage the live settings.json with chezmoi: Windows Terminal rewrites it.
 
@@ -18,7 +19,6 @@ $wslProfileSpecs = @(
         Distro = 'Debian'
         Name = 'Debian'
         Guid = '{58ad8b0c-3ef8-5f4d-bc6f-13e4c00f2530}'
-        DefaultPriority = 2
     },
     [pscustomobject]@{
         Distro = 'Debian-Recovered'
@@ -26,19 +26,16 @@ $wslProfileSpecs = @(
         # Adopt Windows Terminal's deterministic Microsoft.WSL profile identity.
         Guid = '{7e3ad175-91fc-536c-b346-f9d77cce7280}'
         LegacyGuids = @('{20517053-d9f3-52e4-b051-e3ddd867b0a3}')
-        DefaultPriority = 1
     },
     [pscustomobject]@{
         Distro = 'Alpine'
         Name = 'Alpine Linux'
         Guid = '{77526b00-08ae-4477-bddc-9587432a0901}'
-        DefaultPriority = 0
     },
     [pscustomobject]@{
         Distro = 'archlinux'
         Name = 'Arch Linux'
         Guid = '{a06ad568-9eae-4b45-98e1-d7b6a5309eec}'
-        DefaultPriority = 0
     }
 )
 
@@ -264,19 +261,21 @@ Ensure-Scheme $settings @{
     selectionBackground = '#7C6F64'
 }
 
+# Keep Windows PowerShell 5.1 unavailable in the Terminal UI.
 Ensure-Profile $settings @{
     guid = $windowsPowerShellGuid
-    name = 'Windows PowerShell'
+    name = 'Windows PowerShell (unsupported)'
     commandline = '%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe'
-    hidden = $false
+    hidden = $true
 }
 
-# Keep the dynamically discovered PowerShell 7 profile out of the Terminal UI.
+# PowerShell 7 is the only managed Windows PowerShell profile.
 Ensure-Profile $settings @{
     guid = $powerShellCoreGuid
-    name = 'PowerShell'
-    source = 'Windows.Terminal.PowershellCore'
-    hidden = $true
+    name = 'PowerShell 7'
+    commandline = 'pwsh.exe'
+    source = $null
+    hidden = $false
 }
 
 foreach ($spec in $wslProfileSpecs) {
@@ -302,14 +301,7 @@ foreach ($spec in $wslProfileSpecs) {
     }
 }
 
-$defaultProfile = $windowsPowerShellGuid
-foreach ($spec in $wslProfileSpecs | Where-Object { $_.DefaultPriority -gt 0 } | Sort-Object DefaultPriority) {
-    if (Find-Distribution $availableDistributions $spec.Distro) {
-        $defaultProfile = $spec.Guid
-        break
-    }
-}
-Set-JsonProperty $settings 'defaultProfile' $defaultProfile
+Set-JsonProperty $settings 'defaultProfile' $powerShellCoreGuid
 
 $newJson = $settings | ConvertTo-Json -Depth 100
 $null = $newJson | ConvertFrom-Json

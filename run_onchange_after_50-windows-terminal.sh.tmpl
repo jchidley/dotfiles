@@ -6,5 +6,6 @@ set -euo pipefail
 helper={{ joinPath .chezmoi.sourceDir "scripts/configure-windows-terminal.ps1" | quote }}
 [[ -f "$helper" ]] || { echo "Windows Terminal configuration helper not found: $helper" >&2; exit 1; }
 helper_windows="$(wslpath -w "$helper")"
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$helper_windows"
+command -v pwsh.exe >/dev/null 2>&1 || { echo "PowerShell 7 (pwsh.exe) is required; Windows PowerShell 5.1 is unsupported" >&2; exit 1; }
+pwsh.exe -NoLogo -NoProfile -File "$helper_windows"
 {{- end -}}

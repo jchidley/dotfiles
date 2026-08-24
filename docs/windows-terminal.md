@@ -8,12 +8,12 @@ Windows Terminal owns and rewrites its live `settings.json`, so chezmoi does not
 - Equal-width tabs with no tab-row acrylic.
 - `SauceCodePro Nerd Font` at 12 pt.
 - The complete `Gruvbox Dark (Hard)` color scheme.
-- Windows PowerShell 5.1 is visible.
-- The dynamically discovered PowerShell 7 profile is hidden.
+- Windows PowerShell 5.1 is marked unsupported and hidden.
+- PowerShell 7 is visible and explicitly launches `pwsh.exe`.
 - Registered WSL distributions in the profile table receive static profiles and their registered `shortcut.ico`.
 - Managed profiles use Windows Terminal's generated GUIDs so dynamic WSL profiles are adopted rather than duplicated; superseded managed GUIDs are removed during migration.
 - Stale managed profiles are hidden; profiles are not created for absent distributions.
-- Default profile priority is Debian-Recovered, Debian, then Windows PowerShell.
+- PowerShell 7 is always the default profile; WSL profiles remain available explicitly.
 
 Command Prompt, actions, keybindings, menus, themes, unrelated schemes, custom profiles, and unmanaged profile-default properties remain Windows Terminal-owned.
 
@@ -28,6 +28,8 @@ tests/windows-terminal/                      non-live fixtures and regression te
 The WSL profile policy is the `$wslProfileSpecs` table near the top of the helper. Add or rename a managed distro there rather than duplicating profile mutation code.
 
 ## Apply and test
+
+PowerShell 7 (`pwsh.exe`) is required. The helper has a `#requires -Version 7.0` guard and refuses Windows PowerShell 5.1.
 
 From WSL:
 

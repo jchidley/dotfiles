@@ -1,9 +1,10 @@
 {{- if eq .chezmoi.os "windows" -}}
+#requires -Version 7.0
 # Helper content fingerprint: {{ include "scripts/configure-windows-terminal.ps1" | sha256sum }}
 # chezmoi run-on-change hook: apply the repository-only helper directly.
 $script = {{ joinPath .chezmoi.sourceDir "scripts/configure-windows-terminal.ps1" | quote }}
 if (-not (Test-Path $script)) {
     throw "Windows Terminal configuration helper not found: $script"
 }
-& powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script
+& pwsh.exe -NoLogo -NoProfile -File $script
 {{- end -}}

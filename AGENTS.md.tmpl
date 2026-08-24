@@ -10,9 +10,10 @@ Use concise `AGENTS.md` files as the only active startup instructions. `CLAUDE.m
 
 Choose the destination OS's built-in shell first:
 
-- For commands executed directly on Windows, use the built-in Windows PowerShell
-  (`powershell.exe`, currently version 5.1). Do not default to `pwsh` or Git Bash
-  for Windows-native automation.
+- For commands executed directly on Windows, use PowerShell 7 (`pwsh.exe`), not
+  Windows PowerShell (`powershell.exe`, version 5.1) or Git Bash for
+  Windows-native automation. Dotfile-managed PowerShell scripts require
+  PowerShell 7 and must fail closed under Windows PowerShell 5.1.
 - Inside Linux or WSL, use Bash first.
 - When the current harness shell differs from the destination shell, cross the
   boundary with the `windows-env` helper rather than nesting command strings.

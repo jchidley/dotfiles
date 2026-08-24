@@ -1,3 +1,4 @@
+#requires -Version 7.0
 $ErrorActionPreference = 'Stop'
 
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path

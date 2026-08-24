@@ -1,4 +1,5 @@
-# GPG-backed API-key integration shared by Windows PowerShell and PowerShell 7.
+#requires -Version 7.0
+# GPG-backed API-key integration for PowerShell 7.
 # The calling profile sets AkVaultConfig, AkExportProfile, AkVaultPath, and
 # AkWslDistro before importing this file.
 

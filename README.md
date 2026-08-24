@@ -50,7 +50,7 @@ See [`scripts/wsl-backup/README.md`](scripts/wsl-backup/README.md) for operation
 
 ## Features
 
-- **Cross-platform support**: Windows (PowerShell) and Debian Linux (Bash)
+- **Cross-platform support**: Windows (PowerShell 7) and Debian Linux (Bash)
 - **Conditional configuration**: OS-specific settings using chezmoi templates
 - **Development tools integration**: Neovim, Rust, Python (uv/uvx), Git
 - **Shell enhancements**: zoxide navigation, ripgrep search, shared history
@@ -58,7 +58,7 @@ See [`scripts/wsl-backup/README.md`](scripts/wsl-backup/README.md) for operation
 
 ## Supported Platforms
 
-- **Windows**: PowerShell profile, Windows Terminal settings, winget packages
+- **Windows**: PowerShell 7 profile, Windows Terminal settings, winget packages
 - **Debian Linux**: Bash configuration, APT packages, development tools
 
 ## Key Tools Configured
@@ -134,7 +134,7 @@ git push
 ## Platform-Specific Features
 
 ### Windows
-- PowerShell profile with custom prompt
+- PowerShell 7 (`pwsh.exe`) profile with custom prompt; Windows PowerShell 5.1 is unsupported
 - [Windows Terminal configuration](docs/windows-terminal.md)
 - winget package management
 - Python path detection and setup

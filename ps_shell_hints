@@ -17,6 +17,6 @@ llm or aichat for LLM
 cd $env:TEMP
 ~/bash_shell_hints
 # SMB/iPhone file transfer: enable Windows File and Printer Sharing on Private networks, then disable after use
-sudo powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Set-NetFirewallRule -DisplayGroup 'File and Printer Sharing' -Enabled True -Profile Private"
-sudo powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Set-NetFirewallRule -DisplayGroup 'File and Printer Sharing' -Enabled False -Profile Private"
+sudo pwsh.exe -NoLogo -NoProfile -Command "Set-NetFirewallRule -DisplayGroup 'File and Printer Sharing' -Enabled True -Profile Private"
+sudo pwsh.exe -NoLogo -NoProfile -Command "Set-NetFirewallRule -DisplayGroup 'File and Printer Sharing' -Enabled False -Profile Private"
 # Network Discovery can stay off if connecting directly, e.g. smb://black/AppleShare

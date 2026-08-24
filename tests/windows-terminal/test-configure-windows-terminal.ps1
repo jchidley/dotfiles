@@ -1,3 +1,4 @@
+#requires -Version 7.0
 $ErrorActionPreference = 'Stop'
 
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
@@ -61,7 +62,10 @@ try {
     $alpine = Get-Profile $settings '{77526b00-08ae-4477-bddc-9587432a0901}'
 
     Assert-Equal $windowsPowerShell.hidden $expected.profiles.windowsPowerShellHidden 'Windows PowerShell visibility differs'
+    Assert-Equal $windowsPowerShell.name 'Windows PowerShell (unsupported)' 'Windows PowerShell was not marked unsupported'
     Assert-Equal $powerShell7.hidden $expected.profiles.powerShell7Hidden 'PowerShell 7 visibility differs'
+    Assert-Equal $powerShell7.commandline 'pwsh.exe' 'PowerShell 7 does not explicitly launch pwsh.exe'
+    Assert-True (-not $powerShell7.PSObject.Properties['source']) 'PowerShell 7 remained dynamically sourced'
     Assert-Equal $debian.hidden $expected.profiles.debianHidden 'Debian visibility differs'
     Assert-Equal $recovered.hidden $expected.profiles.debianRecoveredHidden 'Debian-Recovered visibility differs'
     Assert-Equal @($settings.profiles.list | Where-Object { $_.guid -eq '{20517053-d9f3-52e4-b051-e3ddd867b0a3}' }).Count 0 'legacy Debian-Recovered profile was not removed'
@@ -99,12 +103,12 @@ try {
     Copy-Item -LiteralPath $inputFixture -Destination $debianOnlyPath
     & $scriptPath -SettingsPath $debianOnlyPath -Distributions @($distributions[0])
     $debianOnly = Get-Content -LiteralPath $debianOnlyPath -Raw | ConvertFrom-Json
-    Assert-Equal $debianOnly.defaultProfile $expected.debianOnlyDefaultProfile 'Debian was not selected when the recovered distro was absent'
+    Assert-Equal $debianOnly.defaultProfile $expected.debianOnlyDefaultProfile 'PowerShell 7 was not retained as the default with only Debian installed'
 
     $noWslPath = Join-Path $work 'new\settings.json'
     & $scriptPath -SettingsPath $noWslPath -Distributions @()
     $noWsl = Get-Content -LiteralPath $noWslPath -Raw | ConvertFrom-Json
-    Assert-Equal $noWsl.defaultProfile $expected.noWslDefaultProfile 'Windows PowerShell was not selected when WSL was absent'
+    Assert-Equal $noWsl.defaultProfile $expected.noWslDefaultProfile 'PowerShell 7 was not selected when WSL was absent'
     Assert-Equal @($noWsl.profiles.list | Where-Object { $_.commandline -like 'wsl.exe -d *' }).Count 0 'WSL profiles were created when no distros were installed'
 
     $newWhatIfPath = Join-Path $work 'whatif-new\settings.json'
