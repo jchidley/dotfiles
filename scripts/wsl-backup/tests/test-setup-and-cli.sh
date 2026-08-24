@@ -64,9 +64,17 @@ assert_log 'Install-Windows.ps1'
 assert_not_log 'Register-WindowsTasks.ps1'
 grep -F 'were not registered' "$TMP/setup-warning" >/dev/null || fail 'missing repository warning'
 
-# Once repository landmarks exist, registration is requested; force is explicit.
-mkdir -p "$install_root/var/lib/restic/home"
+# One repository landmark is insufficient; both are required.
 printf 'fixture\n' > "$install_root/etc/restic/home.password"
+: > "$CALL_LOG"
+PATH="$FAKEBIN:$PATH" WSL_BACKUP_DESTDIR=$install_root \
+  WSL_BACKUP_POWERSHELL="$FAKEBIN/fake-powershell" \
+  WSL_BACKUP_WSLPATH="$FAKEBIN/fake-wslpath" \
+  "$ROOT/setup.sh" --distro 'Fixture Distro' >/dev/null 2> /dev/null
+assert_not_log 'Register-WindowsTasks.ps1'
+
+# Once both repository landmarks exist, registration is requested; force is explicit.
+mkdir -p "$install_root/var/lib/restic/home"
 printf '{}\n' > "$install_root/var/lib/restic/home/config"
 : > "$CALL_LOG"
 PATH="$FAKEBIN:$PATH" WSL_BACKUP_DESTDIR=$install_root \
@@ -117,8 +125,8 @@ run_cli() {
 run_cli home snapshots >/dev/null
 assert_log 'home <snapshots>'
 : > "$CALL_LOG"
-run_cli system Status >/dev/null
-assert_log '<-Mode> <Status>'
+run_cli system Preflight >/dev/null
+assert_log '<-Mode> <Preflight>'
 assert_log '<C:\Fixture User\WSLBackup\Backup-WslSystem.ps1>'
 : > "$CALL_LOG"
 run_cli status >/dev/null
