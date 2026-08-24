@@ -50,8 +50,8 @@ Assert-True ($arguments -match '-DistroName "Debian Recovered"') 'distro quoted'
 Expect-Throw { New-WslHomeTaskArguments -WrapperPath 'C:\wrapper.ps1' -Operation 'erase' -DistroName 'Debian' } 'Invalid home-backup operation'
 Expect-Throw { New-WslHomeTaskArguments -WrapperPath 'C:\bad"path.ps1' -Operation 'backup' -DistroName 'Debian' } 'unsupported quote'
 Assert-True (-not (Test-WslHomeTaskRegistrationRequired -TaskExists $true -Force $false)) 'existing task preserved'
-Assert-True (Test-WslHomeTaskRegistrationRequired -TaskExists $true -Force $true) 'force rebuilds existing task'
 Assert-True (Test-WslHomeTaskRegistrationRequired -TaskExists $false -Force $false) 'missing task registered'
+Assert-True (Test-WslHomeTaskRegistrationRequired -TaskExists $true -Force $true) 'force rebuilds existing task'
 
 Assert-True ((ConvertTo-WslHomeLogText -Text "one`r`ntwo") -eq 'one two') 'multiline logs normalized'
 Assert-True (-not (Test-WslHomeNotificationRequired -Signature 'backup|failed' `
