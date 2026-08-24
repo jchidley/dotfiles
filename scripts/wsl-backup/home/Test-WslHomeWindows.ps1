@@ -1,7 +1,5 @@
+#requires -Version 7.0
 $ErrorActionPreference = 'Stop'
-if ($PSVersionTable.PSEdition -ne 'Desktop') {
-    throw 'Run this script with the built-in Windows PowerShell (powershell.exe), not pwsh.'
-}
 Set-StrictMode -Version 2
 . (Join-Path $PSScriptRoot 'WslHomeRestic.Common.ps1')
 
@@ -24,13 +22,13 @@ function Expect-Throw {
     }
 }
 
-Assert-BuiltInWindowsPowerShell
+Assert-PowerShell7
 Assert-WslDistroName -DistroName 'Debian Recovered'
 Expect-Throw { Assert-WslDistroName -DistroName 'bad"name' } 'Invalid WSL distro name'
 Expect-Throw { Assert-WslDistroName -DistroName "bad`nname" } 'Invalid WSL distro name'
 
-$powershell = Get-BuiltInWindowsPowerShellPath
-Assert-True ($powershell -eq (Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe')) 'built-in PowerShell path'
+$powershell = Get-PowerShell7Path
+Assert-True ([System.IO.Path]::GetFileName($powershell) -eq 'pwsh.exe') 'PowerShell 7 executable path'
 
 $now = [datetime]'2026-08-24T12:00:00'
 $specs = @(Get-WslHomeTaskSpecifications -Now $now)
@@ -59,6 +57,10 @@ Expect-Throw { New-WslHomeTaskArguments -WrapperPath 'C:\bad"path.ps1' -Operatio
 Assert-True (-not (Test-WslHomeTaskRegistrationRequired -TaskExists $true -Force $false)) 'existing task preserved'
 Assert-True (Test-WslHomeTaskRegistrationRequired -TaskExists $false -Force $false) 'missing task registered'
 Assert-True (Test-WslHomeTaskRegistrationRequired -TaskExists $true -Force $true) 'force rebuilds existing task'
+Assert-True (Test-WslHomeTaskActionMigrationRequired -CurrentExecute 'powershell.exe' -CurrentArguments 'old' `
+    -DesiredExecute $powershell -DesiredArguments $arguments) 'legacy PowerShell task action migrated'
+Assert-True (-not (Test-WslHomeTaskActionMigrationRequired -CurrentExecute $powershell -CurrentArguments $arguments `
+    -DesiredExecute $powershell -DesiredArguments $arguments)) 'matching PowerShell 7 task action preserved'
 
 Assert-True ((ConvertTo-WslHomeLogText -Text "one`r`ntwo") -eq 'one two') 'multiline logs normalized'
 Assert-True (-not (Test-WslHomeNotificationRequired -Signature 'backup|failed' `

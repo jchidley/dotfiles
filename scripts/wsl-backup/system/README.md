@@ -18,10 +18,10 @@ It checks the restored user, important paths and permissions, McFly SQLite recov
 
 ## Non-disruptive preflight
 
-Run from the built-in Windows PowerShell (`powershell.exe`, currently version 5.1), not `pwsh`:
+Run from PowerShell 7 (`pwsh.exe`); Windows PowerShell 5.1 is unsupported:
 
 ```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File `
+pwsh.exe -NoLogo -NoProfile -File `
   "\\wsl.localhost\Debian-Recovered\home\jack\.local\share\chezmoi\scripts\wsl-backup\system\Backup-WslSystem.ps1" `
   -Mode Preflight
 ```
@@ -33,7 +33,7 @@ Preflight verifies the exact distro, free space, staging path, and installed val
 This operation stops `Debian-Recovered` and requires an approved maintenance window. The measured export time was about 18 minutes; disposable import and validation add several minutes.
 
 ```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File `
+pwsh.exe -NoLogo -NoProfile -File `
   "\\wsl.localhost\Debian-Recovered\home\jack\.local\share\chezmoi\scripts\wsl-backup\system\Backup-WslSystem.ps1" `
   -Mode Export -ConfirmMaintenanceWindow
 ```

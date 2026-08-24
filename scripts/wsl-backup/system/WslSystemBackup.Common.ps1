@@ -1,3 +1,4 @@
+#requires -Version 7.0
 function Convert-ToWslPath {
     param([Parameter(Mandatory = $true)][string] $WindowsPath)
     if ($WindowsPath -notmatch '^[A-Za-z]:[\\/]') {
@@ -125,7 +126,7 @@ function Test-JournalProcessActive {
     $process = Get-Process -Id ([int]$Journal.ProcessId) -ErrorAction SilentlyContinue
     if (-not $process) { return $false }
     try {
-        $expected = [datetime]::Parse($Journal.ProcessStartedAt)
+        $expected = [datetime]$Journal.ProcessStartedAt
         return ([math]::Abs(($process.StartTime - $expected).TotalSeconds) -lt 2)
     }
     catch { return $false }

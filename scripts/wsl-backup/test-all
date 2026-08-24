@@ -10,13 +10,13 @@ require() { command -v "$1" >/dev/null 2>&1 || { echo "Required test tool is mis
 run_windows_test() {
   local path
   path=$(wslpath -w "$1")
-  powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$path" </dev/null
+  pwsh.exe -NoLogo -NoProfile -NonInteractive -File "$path" </dev/null
 }
 
 run_fast() {
   require bash
   require shellcheck
-  require powershell.exe
+  require pwsh.exe
   require wslpath
 
   local shell_files=(
@@ -31,11 +31,15 @@ run_fast() {
   run_windows_test "$ROOT/home/Test-WslHomeWindows.ps1"
   run_windows_test "$ROOT/system/Test-WslSystemBackup.ps1"
 
-  local ps_lint=''
+  local ps_lint='' ps_exec=''
   for candidate in \
-      "$HOME/github/agent-skills/skills/windows-env/ps-lint" \
-      "$HOME/git/agent-skills/skills/windows-env/ps-lint"; do
-    if [[ -f "$candidate" ]]; then ps_lint=$candidate; break; fi
+      "$HOME/git/agent-skills/skills/windows-env/ps-lint" \
+      "$HOME/github/agent-skills/skills/windows-env/ps-lint"; do
+    ps_exec="$(dirname "$candidate")/ps-exec"
+    if [[ -f "$candidate" && -f "$ps_exec" ]] && grep -q 'pwsh\.exe' "$ps_exec"; then
+      ps_lint=$candidate
+      break
+    fi
   done
   if [[ -n "$ps_lint" ]]; then
     local ps_files=()

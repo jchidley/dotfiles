@@ -3,7 +3,7 @@ set -euo pipefail
 
 HOME_COMMAND=${WSL_BACKUP_HOME_COMMAND:-/usr/local/sbin/backup-wsl-home}
 SUDO_COMMAND=${WSL_BACKUP_SUDO:-sudo}
-POWERSHELL=${WSL_BACKUP_POWERSHELL:-powershell.exe}
+POWERSHELL=${WSL_BACKUP_POWERSHELL:-pwsh.exe}
 SYSTEM_SCRIPT_CONFIG=${WSL_BACKUP_SYSTEM_SCRIPT_CONFIG:-/etc/wsl-backup/windows-system-script}
 
 usage() {
@@ -52,7 +52,7 @@ run_system() {
   fi
   local script
   script=$(system_script)
-  "$POWERSHELL" -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$script" "$@" </dev/null
+  "$POWERSHELL" -NoLogo -NoProfile -NonInteractive -File "$script" "$@" </dev/null
 }
 
 command=${1:-help}

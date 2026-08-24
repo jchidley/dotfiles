@@ -6,7 +6,7 @@ DISTRO_NAME=${WSL_DISTRO_NAME:-Debian-Recovered}
 REGISTER_TASKS=1
 FORCE_TASKS=0
 DESTDIR=${WSL_BACKUP_DESTDIR:-${DESTDIR:-}}
-POWERSHELL=${WSL_BACKUP_POWERSHELL:-powershell.exe}
+POWERSHELL=${WSL_BACKUP_POWERSHELL:-pwsh.exe}
 WSLPATH=${WSL_BACKUP_WSLPATH:-wslpath}
 
 usage() {
@@ -69,11 +69,11 @@ if ((REGISTER_TASKS)); then
   require_command "$WSLPATH" "$WSLPATH is unavailable; Linux tools were installed but Windows integration was skipped"
 
   installer=$("$WSLPATH" -w "$SCRIPT_DIR/Install-Windows.ps1")
-  "$POWERSHELL" -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$installer" -DistroName "$DISTRO_NAME" </dev/null
+  "$POWERSHELL" -NoLogo -NoProfile -NonInteractive -File "$installer" -DistroName "$DISTRO_NAME" </dev/null
 
   # PowerShell, not Bash, expands $env:LOCALAPPDATA in this single-quoted argument.
   # shellcheck disable=SC2016
-  windows_system_script=$("$POWERSHELL" -NoProfile -NonInteractive -Command \
+  windows_system_script=$("$POWERSHELL" -NoLogo -NoProfile -NonInteractive -Command \
     '[Console]::Write((Join-Path $env:LOCALAPPDATA "WSLBackup\system\Backup-WslSystem.ps1"))' </dev/null | tr -d '\r')
   [[ -n "$windows_system_script" ]] || { echo "Could not resolve installed Windows controller" >&2; exit 1; }
   if [[ -n "$DESTDIR" ]]; then
@@ -86,7 +86,7 @@ if ((REGISTER_TASKS)); then
   if "${privilege[@]}" test -s "$DESTDIR/etc/restic/home.password" && \
       "${privilege[@]}" test -f "$DESTDIR/var/lib/restic/home/config"; then
     tasks=$("$WSLPATH" -w "$SCRIPT_DIR/home/Register-WindowsTasks.ps1")
-    task_args=(-NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$tasks" -DistroName "$DISTRO_NAME")
+    task_args=(-NoLogo -NoProfile -NonInteractive -File "$tasks" -DistroName "$DISTRO_NAME")
     if ((FORCE_TASKS)); then
       task_args+=(-Force)
     fi

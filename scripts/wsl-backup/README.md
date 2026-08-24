@@ -22,7 +22,7 @@ For a distro whose registered name is not `Debian-Recovered`:
 
 ## Everyday commands
 
-Run the commands in this section inside WSL. Any command documented for direct Windows execution uses the built-in Windows PowerShell (`powershell.exe`, currently version 5.1), not `pwsh`.
+Run the commands in this section inside WSL. Direct Windows execution requires PowerShell 7 (`pwsh.exe`); Windows PowerShell 5.1 is unsupported.
 
 ```bash
 # Combined status
@@ -71,7 +71,7 @@ Run the unified test command inside WSL:
 ./scripts/wsl-backup/test-all all          # both lanes
 ```
 
-The fast lane does not modify production repositories or tasks. It covers isolated setup, command dispatch and exit propagation, task policy, notification suppression, manifest/task helpers, Bash syntax, ShellCheck, and PSScriptAnalyzer under the built-in Windows PowerShell. The integration lane creates and removes a disposable Restic repository under `/var/tmp`; its production interaction is read-only status inspection.
+The fast lane does not modify production repositories or tasks. It covers isolated setup, command dispatch and exit propagation, task policy, notification suppression, manifest/task helpers, Bash syntax, ShellCheck, and PSScriptAnalyzer under PowerShell 7. The integration lane creates and removes a disposable Restic repository under `/var/tmp`; its production interaction is read-only status inspection.
 
 See [`TESTING.md`](TESTING.md) for stable contracts, mutation evidence, and explicitly deferred scope.
 

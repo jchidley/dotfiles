@@ -1,3 +1,4 @@
+#requires -Version 7.0
 [CmdletBinding()]
 param(
     [ValidateSet('Preflight', 'Export', 'Validate', 'Status', 'Recover', 'ValidateManifest', 'Cleanup')]
@@ -14,9 +15,6 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-if ($PSVersionTable.PSEdition -ne 'Desktop') {
-    throw 'Run this script with the built-in Windows PowerShell (powershell.exe), not pwsh.'
-}
 . (Join-Path $PSScriptRoot 'WslSystemBackup.Common.ps1')
 $wsl = Join-Path $env:SystemRoot 'System32\wsl.exe'
 $validator = '/usr/local/sbin/validate-wsl-system-restore'

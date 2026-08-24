@@ -1,3 +1,4 @@
+#requires -Version 7.0
 [CmdletBinding()]
 param(
     [Parameter(Mandatory = $true)]
@@ -8,7 +9,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'WslHomeRestic.Common.ps1')
-Assert-BuiltInWindowsPowerShell
+Assert-PowerShell7
 Assert-WslDistroName -DistroName $DistroName
 $distro = $DistroName
 $wsl = Join-Path $env:SystemRoot 'System32\wsl.exe'

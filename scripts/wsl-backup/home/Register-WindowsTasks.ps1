@@ -1,3 +1,4 @@
+#requires -Version 7.0
 [CmdletBinding()]
 param(
     [switch] $Remove,
@@ -7,9 +8,9 @@ param(
 
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'WslHomeRestic.Common.ps1')
-Assert-BuiltInWindowsPowerShell
+Assert-PowerShell7
 Assert-WslDistroName -DistroName $DistroName
-$powershell = Get-BuiltInWindowsPowerShellPath
+$powershell = Get-PowerShell7Path
 $prefix = 'WSL Home Restic - '
 $userId = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
 $installDirectory = Join-Path $env:LOCALAPPDATA 'WSLHomeRestic'
@@ -62,13 +63,20 @@ $settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -MultipleInstances 
 foreach ($definition in $definitions) {
     $taskName = $prefix + $definition.Name
     $existing = Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
-    if (-not (Test-WslHomeTaskRegistrationRequired -TaskExists ($null -ne $existing) -Force $Force.IsPresent)) {
-        Write-Output "Kept existing $taskName"
-        continue
-    }
     $arguments = New-WslHomeTaskArguments -WrapperPath $installedWrapper `
         -Operation $definition.Command -DistroName $DistroName
     $action = New-ScheduledTaskAction -Execute $powershell -Argument $arguments
+    if (-not (Test-WslHomeTaskRegistrationRequired -TaskExists ($null -ne $existing) -Force $Force.IsPresent)) {
+        $currentAction = @($existing.Actions)[0]
+        if (Test-WslHomeTaskActionMigrationRequired -CurrentExecute $currentAction.Execute `
+                -CurrentArguments $currentAction.Arguments -DesiredExecute $powershell -DesiredArguments $arguments) {
+            Set-ScheduledTask -TaskName $taskName -Action $action | Out-Null
+            Write-Output "Migrated $taskName to PowerShell 7"
+        } else {
+            Write-Output "Kept existing $taskName"
+        }
+        continue
+    }
     Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $definition.Trigger `
         -Principal $principal -Settings $settings -Description "Local WSL home Restic $($definition.Command)" `
         -Force | Out-Null

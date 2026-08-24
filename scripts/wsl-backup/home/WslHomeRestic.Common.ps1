@@ -1,6 +1,7 @@
-function Assert-BuiltInWindowsPowerShell {
-    if ($PSVersionTable.PSEdition -ne 'Desktop') {
-        throw 'Run this script with the built-in Windows PowerShell (powershell.exe), not pwsh.'
+#requires -Version 7.0
+function Assert-PowerShell7 {
+    if ($PSVersionTable.PSEdition -ne 'Core') {
+        throw 'PowerShell 7 (pwsh.exe) is required; Windows PowerShell 5.1 is unsupported.'
     }
 }
 
@@ -11,8 +12,9 @@ function Assert-WslDistroName {
     }
 }
 
-function Get-BuiltInWindowsPowerShellPath {
-    Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe'
+function Get-PowerShell7Path {
+    $command = Get-Command pwsh.exe -CommandType Application -ErrorAction Stop | Select-Object -First 1
+    $command.Source
 }
 
 function Get-WslHomeTaskSpecifications {
@@ -59,13 +61,23 @@ function New-WslHomeTaskArguments {
     if ($Operation -notin @('backup','retention','prune','check','check-read-data','status')) {
         throw "Invalid home-backup operation: $Operation"
     }
-    '-NoProfile -NonInteractive -ExecutionPolicy Bypass -File "{0}" -Operation {1} -DistroName "{2}"' -f `
+    '-NoLogo -NoProfile -NonInteractive -File "{0}" -Operation {1} -DistroName "{2}"' -f `
         $WrapperPath, $Operation, $DistroName
 }
 
 function Test-WslHomeTaskRegistrationRequired {
     param([bool] $TaskExists, [bool] $Force)
     return (-not $TaskExists -or $Force)
+}
+
+function Test-WslHomeTaskActionMigrationRequired {
+    param(
+        [string] $CurrentExecute,
+        [string] $CurrentArguments,
+        [Parameter(Mandatory = $true)][string] $DesiredExecute,
+        [Parameter(Mandatory = $true)][string] $DesiredArguments
+    )
+    return ($CurrentExecute -ne $DesiredExecute -or $CurrentArguments -ne $DesiredArguments)
 }
 
 function ConvertTo-WslHomeLogText {

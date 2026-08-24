@@ -1,12 +1,10 @@
+#requires -Version 7.0
 [CmdletBinding()]
 param(
     [string] $DistroName = 'Debian-Recovered'
 )
 
 $ErrorActionPreference = 'Stop'
-if ($PSVersionTable.PSEdition -ne 'Desktop') {
-    throw 'Run this script with the built-in Windows PowerShell (powershell.exe), not pwsh.'
-}
 if ([string]::IsNullOrWhiteSpace($DistroName) -or $DistroName -match '[\r\n"]') {
     throw 'Invalid WSL distro name'
 }
