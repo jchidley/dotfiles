@@ -40,6 +40,7 @@ The following mutations were executed one at a time and reverted. Each accepted 
 | Operator system dispatch | Every system command became `Status` | Requested `Preflight` | Killed |
 | Operator failure propagation | Home adapter status 7 was converted to success | Fake home adapter exits 7 | Killed |
 | Task registration decision | Missing-task/force logic changed from OR to AND | Task missing; force false | Killed after isolating the intended assertion |
+| Task trigger mapping | Backup interval unit changed from minutes to days | Backup specification with 15-minute interval | Killed |
 | Notification boundary | Six-hour comparison changed from `<` to `<=` | Same failure exactly six hours old | Killed |
 
 The first scheduler trial was rejected as invalid because an adjacent force assertion failed before the intended missing-task assertion. The assertions were reordered, and the retry was killed at the intended seam. Mutation evidence covers guard, precedence, mapping, side-effect, and boundary classes. No mutation debt remains for the setup, operator-dispatch, task-registration, or notification boundaries audited in this pass.
