@@ -1,68 +1,27 @@
 [CmdletBinding()]
 param(
-    [ValidateSet('Preflight', 'Export', 'Validate')]
+    [ValidateSet('Preflight', 'Export', 'Validate', 'Status', 'Recover', 'ValidateManifest', 'Cleanup')]
     [string] $Mode = 'Preflight',
     [string] $Distro = 'Debian-Recovered',
     [string] $StagingDirectory = (Join-Path $env:USERPROFILE 'wsl-backup-staging\distro-exports'),
     [string] $ArchivePath,
     [switch] $ConfirmMaintenanceWindow,
     [switch] $SourceAlreadyStopped,
+    [switch] $ConfirmCleanup,
+    [switch] $RemoveFailedArtifacts,
+    [switch] $RemoveValidationDirectories,
     [int64] $MinimumFreeBytes = 45GB
 )
 
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'WslSystemBackup.Common.ps1')
 $wsl = Join-Path $env:SystemRoot 'System32\wsl.exe'
 $validator = '/usr/local/sbin/validate-wsl-system-restore'
 $temporaryValidator = '/tmp/validate-wsl-system-restore-current'
 $resticTaskPattern = 'WSL Home Restic - *'
-
-function Disable-ResticTasks {
-    $tasks = @(Get-ScheduledTask -TaskName $resticTaskPattern -ErrorAction SilentlyContinue)
-    if ($tasks.Count -ne 6) {
-        throw "Expected six Restic tasks, found $($tasks.Count); refusing an uncoordinated export"
-    }
-    $running = @($tasks | Where-Object State -eq 'Running')
-    if ($running.Count -gt 0) {
-        throw "Restic tasks are currently running: $($running.TaskName -join ', ')"
-    }
-    $enabled = @($tasks | Where-Object State -ne 'Disabled' | Select-Object -ExpandProperty TaskName)
-    $disabled = @()
-    try {
-        foreach ($taskName in $enabled) {
-            Disable-ScheduledTask -TaskName $taskName | Out-Null
-            $disabled += $taskName
-        }
-        $raced = @(Get-ScheduledTask -TaskName $resticTaskPattern | Where-Object State -eq 'Running')
-        if ($raced.Count -gt 0) {
-            throw "Restic tasks started during suspension: $($raced.TaskName -join ', ')"
-        }
-        return $disabled
-    }
-    catch {
-        foreach ($taskName in $disabled) {
-            Enable-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue | Out-Null
-        }
-        throw
-    }
-}
-
-function Enable-ResticTasks {
-    param([string[]] $TaskNames)
-    foreach ($taskName in $TaskNames) {
-        Enable-ScheduledTask -TaskName $taskName | Out-Null
-    }
-}
-
-function Convert-ToWslPath {
-    param([Parameter(Mandatory = $true)][string] $WindowsPath)
-    $full = [IO.Path]::GetFullPath($WindowsPath)
-    if ($full -notmatch '^([A-Za-z]):\\(.*)$') {
-        throw "Validator source is not on a Windows drive: $full"
-    }
-    $drive = $Matches[1].ToLowerInvariant()
-    $relative = $Matches[2].Replace('\', '/')
-    return "/mnt/$drive/$relative"
-}
+$stateDirectory = Join-Path $env:LOCALAPPDATA 'WSLSystemBackup'
+$journalPath = Join-Path $stateDirectory 'active-run.json'
+$logDirectory = Join-Path $stateDirectory 'logs'
 
 function Invoke-WslChecked {
     param([Parameter(Mandatory = $true)][string[]] $Arguments)
@@ -150,8 +109,61 @@ function Test-ImportedArchive {
     }
 }
 
+function Write-RunLog {
+    param([string] $Message)
+    if ($script:runLogPath) {
+        Add-Content -LiteralPath $script:runLogPath -Encoding UTF8 -Value (
+            '{0} {1}' -f (Get-Date).ToString('o'), $Message
+        )
+    }
+}
+
+function Set-RunStage {
+    param([string] $Stage)
+    $script:journalRecord.Stage = $Stage
+    $script:journalRecord.UpdatedAt = (Get-Date).ToUniversalTime().ToString('o')
+    Write-AtomicJson -Value $script:journalRecord -Path $journalPath
+    Write-RunLog "stage=$Stage"
+}
+
+function Show-SystemBackupStatus {
+    $journal = Read-RunJournal -Path $journalPath
+    $journalState = 'absent'
+    if ($journal) {
+        $journalState = $(if (Test-JournalProcessActive $journal) { 'active' } else { 'abandoned' })
+    }
+    Write-Output "journal=$journalState path=$journalPath"
+    Write-Output "export_client_active=$(Test-ExportClientActive -Distro $Distro)"
+    if ($journal) {
+        Write-Output "run_id=$($journal.RunId) stage=$($journal.Stage) process_id=$($journal.ProcessId)"
+    }
+    Write-Output 'tasks:'
+    Get-ScheduledTask -TaskName $resticTaskPattern -ErrorAction SilentlyContinue |
+        Sort-Object TaskName | Select-Object TaskName, State | Format-Table -AutoSize
+    $artifacts = @(Get-BackupArtifacts -Directory $StagingDirectory)
+    Write-Output "failed_artifacts=$($artifacts.Count)"
+    $artifacts | Select-Object Name, Length, LastWriteTime | Format-Table -AutoSize
+    $validationRoot = Join-Path $env:LOCALAPPDATA 'WSLSystemBackupValidation'
+    $validationDirectories = @(Get-ChildItem -LiteralPath $validationRoot -Directory -Force -ErrorAction SilentlyContinue)
+    Write-Output "validation_directories=$($validationDirectories.Count)"
+    $manifests = @(Get-ChildItem -LiteralPath $StagingDirectory -Filter '*.tar.gz.manifest.json' -File -ErrorAction SilentlyContinue)
+    foreach ($item in $manifests) {
+        try {
+            $result = Test-BackupManifest -ManifestPath $item.FullName -SkipHash
+            Write-Output "manifest=valid archive=$([IO.Path]::GetFileName($result.Archive))"
+        }
+        catch {
+            Write-Output "manifest=invalid path=$($item.FullName) reason=$($_.Exception.Message)"
+        }
+    }
+}
+
 if ($Mode -eq 'Preflight') {
     Assert-Preflight | Format-List
+    exit 0
+}
+if ($Mode -eq 'Status') {
+    Show-SystemBackupStatus
     exit 0
 }
 
@@ -162,101 +174,209 @@ if (-not $mutex.WaitOne(0)) {
     throw "Another whole-system backup operation owns $mutexName"
 }
 
-$resticTasksDisabledByRun = @()
+$taskState = @()
+$journalCreated = $false
+$tasksSuspended = $false
+$script:journalRecord = $null
+$script:runLogPath = $null
 try {
-if ($Mode -eq 'Validate') {
-    if (-not $ArchivePath) { throw '-ArchivePath is required in Validate mode' }
-    Test-ImportedArchive -Path $ArchivePath | Format-List
-    return
-}
-
-if (-not $ConfirmMaintenanceWindow) {
-    throw 'Export mode stops Debian-Recovered. Re-run with -ConfirmMaintenanceWindow during an approved maintenance window.'
-}
-
-Assert-Preflight | Out-Null
-New-Item -ItemType Directory -Path $StagingDirectory -Force | Out-Null
-$resticTasksDisabledByRun = @(Disable-ResticTasks)
-if ($resticTasksDisabledByRun.Count -gt 0) {
-    Write-Output "Temporarily disabled Restic tasks: $($resticTasksDisabledByRun -join ', ')"
-}
-$timestamp = (Get-Date).ToUniversalTime().ToString('yyyyMMddTHHmmssZ')
-$baseName = "${timestamp}_${Distro}"
-$partial = Join-Path $StagingDirectory "$baseName.tar.gz.partial"
-$final = Join-Path $StagingDirectory "$baseName.tar.gz"
-$manifest = "$final.manifest.json"
-if ((Test-Path -LiteralPath $partial) -or (Test-Path -LiteralPath $final)) {
-    throw "Refusing to replace an existing generation: $baseName"
-}
-
-$wasRunning = Test-DistroRunning $Distro
-if ($SourceAlreadyStopped -and $wasRunning) {
-    throw "$Distro started after preflight; refusing the stopped-source export"
-}
-$exportCompleted = $false
-$promoted = $false
-try {
-    if ($wasRunning) {
-        Invoke-WslChecked @('-d', $Distro, '-u', 'root', '--', 'sync')
-        Invoke-WslChecked @('--terminate', $Distro)
+    if ($Mode -eq 'Recover') {
+        $journal = Read-RunJournal -Path $journalPath
+        if (-not $journal) { Write-Output 'No run journal requires recovery.'; return }
+        if ($journal.SchemaVersion -ne 1 -or -not $journal.Tasks) { throw 'Run journal schema or task state is invalid' }
+        if (Test-JournalProcessActive $journal) { throw "Run is still active: $($journal.RunId)" }
+        if (Test-ExportClientActive -Distro $journal.Distro) { throw "A WSL export client is still active for $($journal.Distro)" }
+        Restore-BackupTaskState -TaskState @($journal.Tasks)
+        Remove-Item -LiteralPath $journalPath -Force
+        Write-Output "Recovered task state from abandoned run: $($journal.RunId)"
+        return
     }
-    try {
-        Invoke-WslChecked @('--export', $Distro, $partial, '--format', 'tar.gz')
-        $exportCompleted = $true
+
+    if ($Mode -eq 'ValidateManifest') {
+        if (-not $ArchivePath) { throw '-ArchivePath must name a manifest in ValidateManifest mode' }
+        Test-BackupManifest -ManifestPath $ArchivePath | Format-List
+        return
     }
-    finally {
-        if ($wasRunning) {
-            Invoke-WslChecked @('-d', $Distro, '-u', 'root', '--', 'true')
+
+    if ($Mode -eq 'Cleanup') {
+        $journal = Read-RunJournal -Path $journalPath
+        if ($journal) { throw 'A run journal exists; use Status and Recover before cleanup' }
+        if (Test-ExportClientActive -Distro $Distro) { throw "A WSL export client is still active for $Distro" }
+        if (-not $ConfirmCleanup) { throw 'Cleanup requires -ConfirmCleanup' }
+        if ($RemoveFailedArtifacts) {
+            foreach ($artifact in @(Get-BackupArtifacts -Directory $StagingDirectory)) {
+                Remove-Item -LiteralPath $artifact.FullName -Force
+                if ($artifact.Name -match '\.tar\.gz\.failed$') {
+                    $orphanManifest = $artifact.FullName.Substring(0, $artifact.FullName.Length - '.failed'.Length) + '.manifest.json'
+                    Remove-Item -LiteralPath $orphanManifest -Force -ErrorAction SilentlyContinue
+                }
+                Write-Output "Removed failed artifact: $($artifact.FullName)"
+            }
         }
+        if ($RemoveValidationDirectories) {
+            $root = Join-Path $env:LOCALAPPDATA 'WSLSystemBackupValidation'
+            $registeredPaths = @(Get-ChildItem 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Lxss' -ErrorAction SilentlyContinue |
+                ForEach-Object { (Get-ItemProperty $_.PSPath).BasePath } | Where-Object { $_ } |
+                ForEach-Object { [IO.Path]::GetFullPath($_.Replace('/', '\')).TrimEnd('\') })
+            foreach ($directory in @(Get-ChildItem -LiteralPath $root -Directory -Force -ErrorAction SilentlyContinue)) {
+                $normalizedDirectory = [IO.Path]::GetFullPath($directory.FullName).TrimEnd('\')
+                if ($registeredPaths -contains $normalizedDirectory) {
+                    throw "Refusing to remove a registered validation directory: $($directory.FullName)"
+                }
+                Remove-Item -LiteralPath $directory.FullName -Recurse -Force
+                Write-Output "Removed validation directory: $($directory.FullName)"
+            }
+        }
+        Show-SystemBackupStatus
+        return
     }
 
-    $hash = (Get-FileHash -LiteralPath $partial -Algorithm SHA256).Hash.ToLowerInvariant()
-    $validation = Test-ImportedArchive -Path $partial
-    Move-Item -LiteralPath $partial -Destination $final
-    $promoted = $true
-    $archive = Get-Item -LiteralPath $final
-    $record = [ordered]@{
+    if ($Mode -eq 'Validate') {
+        if (-not $ArchivePath) { throw '-ArchivePath is required in Validate mode' }
+        Test-ImportedArchive -Path $ArchivePath | Format-List
+        return
+    }
+
+    if (-not $ConfirmMaintenanceWindow) {
+        throw 'Export mode stops Debian-Recovered. Re-run with -ConfirmMaintenanceWindow during an approved maintenance window.'
+    }
+
+    $existingJournal = Read-RunJournal -Path $journalPath
+    if ($existingJournal) {
+        $state = $(if (Test-JournalProcessActive $existingJournal) { 'active' } else { 'abandoned' })
+        throw "An $state run journal exists; use Status or Recover: $journalPath"
+    }
+
+    if (Test-ExportClientActive -Distro $Distro) { throw "A WSL export client is already active for $Distro" }
+    Assert-Preflight | Out-Null
+    New-Item -ItemType Directory -Path $StagingDirectory -Force | Out-Null
+    New-Item -ItemType Directory -Path $logDirectory -Force | Out-Null
+    $taskState = @(Get-BackupTaskState -Pattern $resticTaskPattern)
+    $process = Get-Process -Id $PID
+    $runId = (Get-Date).ToUniversalTime().ToString('yyyyMMddTHHmmssZ')
+    $script:runLogPath = Join-Path $logDirectory "$runId.log"
+    $script:journalRecord = [ordered]@{
         SchemaVersion = 1
+        RunId = $runId
         Distro = $Distro
-        CreatedAt = (Get-Date).ToUniversalTime().ToString('o')
-        Archive = $archive.Name
-        ArchiveBytes = $archive.Length
-        Sha256 = $hash
-        Format = 'tar.gz'
-        Validation = $validation
-        WslVersion = (((& $wsl --version | Out-String) -replace "`0", '').Trim())
+        ProcessId = $PID
+        ProcessStartedAt = $process.StartTime.ToString('o')
+        StartedAt = (Get-Date).ToUniversalTime().ToString('o')
+        UpdatedAt = (Get-Date).ToUniversalTime().ToString('o')
+        Stage = 'journal-created'
+        Tasks = $taskState
+        Partial = $null
+        Final = $null
+        Manifest = $null
+        Log = $script:runLogPath
     }
-    $manifestTemp = "$manifest.partial"
-    $record | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath $manifestTemp -Encoding UTF8
-    Move-Item -LiteralPath $manifestTemp -Destination $manifest
+    Write-AtomicJson -Value $script:journalRecord -Path $journalPath
+    $journalCreated = $true
+    Write-RunLog "run_id=$runId distro=$Distro"
 
-    $generations = @(Get-ChildItem -LiteralPath $StagingDirectory -Filter "*_${Distro}.tar.gz" -File |
-        Sort-Object Name -Descending)
-    foreach ($old in @($generations | Select-Object -Skip 2)) {
-        Remove-Item -LiteralPath $old.FullName -Force
-        Remove-Item -LiteralPath ($old.FullName + '.manifest.json') -Force -ErrorAction SilentlyContinue
-    }
+    $tasksSuspended = $true
+    Suspend-BackupTasks -TaskState $taskState -Pattern $resticTaskPattern
+    Set-RunStage 'tasks-suspended'
+    Write-Output "Temporarily disabled Restic tasks: $((@($taskState | Where-Object WasEnabled).Name) -join ', ')"
 
-    Write-Output "Validated system generation: $final"
-    Write-Output "SHA-256: $hash"
-}
-catch {
-    if ($exportCompleted -and (Test-Path -LiteralPath $partial)) {
-        Move-Item -LiteralPath $partial -Destination ($partial + '.failed') -Force
+    $timestamp = (Get-Date).ToUniversalTime().ToString('yyyyMMddTHHmmssZ')
+    $baseName = "${timestamp}_${Distro}"
+    $partial = Join-Path $StagingDirectory "$baseName.tar.gz.partial"
+    $final = Join-Path $StagingDirectory "$baseName.tar.gz"
+    $manifest = "$final.manifest.json"
+    if ((Test-Path -LiteralPath $partial) -or (Test-Path -LiteralPath $final)) {
+        throw "Refusing to replace an existing generation: $baseName"
     }
-    if ($promoted -and (Test-Path -LiteralPath $final)) {
-        Move-Item -LiteralPath $final -Destination ($final + '.failed') -Force
+    $script:journalRecord.Partial = $partial
+    $script:journalRecord.Final = $final
+    $script:journalRecord.Manifest = $manifest
+    Set-RunStage 'paths-selected'
+
+    $wasRunning = Test-DistroRunning $Distro
+    if ($SourceAlreadyStopped -and $wasRunning) {
+        throw "$Distro started after preflight; refusing the stopped-source export"
     }
-    Remove-Item -LiteralPath ($manifest + '.partial') -Force -ErrorAction SilentlyContinue
-    throw
-}
+    $exportCompleted = $false
+    $promoted = $false
+    try {
+        if ($wasRunning) {
+            Set-RunStage 'synchronizing-source'
+            Invoke-WslChecked @('-d', $Distro, '-u', 'root', '--', 'sync')
+            Invoke-WslChecked @('--terminate', $Distro)
+        }
+        try {
+            Set-RunStage 'exporting'
+            Invoke-WslChecked @('--export', $Distro, $partial, '--format', 'tar.gz')
+            $exportCompleted = $true
+        }
+        finally {
+            if ($wasRunning) {
+                Invoke-WslChecked @('-d', $Distro, '-u', 'root', '--', 'true')
+            }
+        }
+
+        Set-RunStage 'hashing'
+        $hash = (Get-FileHash -LiteralPath $partial -Algorithm SHA256).Hash.ToLowerInvariant()
+        Set-RunStage 'validating-import'
+        $validation = Test-ImportedArchive -Path $partial
+        Move-Item -LiteralPath $partial -Destination $final
+        $promoted = $true
+        $archive = Get-Item -LiteralPath $final
+        $record = [ordered]@{
+            SchemaVersion = 1
+            Distro = $Distro
+            CreatedAt = (Get-Date).ToUniversalTime().ToString('o')
+            Archive = $archive.Name
+            ArchiveBytes = $archive.Length
+            Sha256 = $hash
+            Format = 'tar.gz'
+            Validation = $validation
+            WslVersion = (((& $wsl --version | Out-String) -replace "`0", '').Trim())
+        }
+        Set-RunStage 'writing-manifest'
+        Write-AtomicJson -Value $record -Path $manifest -Depth 5
+        $manifestCheck = Test-BackupManifest -ManifestPath $manifest -SkipHash
+        if ($manifestCheck.Sha256 -ne $hash) { throw 'Generated manifest hash does not match export hash' }
+
+        Set-RunStage 'applying-retention'
+        foreach ($old in @(Get-OldBackupGenerations -Directory $StagingDirectory -Distro $Distro -Keep 2)) {
+            Remove-Item -LiteralPath $old.FullName -Force
+            Remove-Item -LiteralPath ($old.FullName + '.manifest.json') -Force -ErrorAction SilentlyContinue
+        }
+        Set-RunStage 'completed'
+        Write-Output "Validated system generation: $final"
+        Write-Output "SHA-256: $hash"
+    }
+    catch {
+        Write-RunLog "error=$($_.Exception.Message -replace '[\r\n]+',' ')"
+        if ($exportCompleted -and (Test-Path -LiteralPath $partial)) {
+            Move-Item -LiteralPath $partial -Destination ($partial + '.failed') -Force
+        }
+        if ($promoted -and (Test-Path -LiteralPath $final)) {
+            Move-Item -LiteralPath $final -Destination ($final + '.failed') -Force
+        }
+        Remove-Item -LiteralPath ($manifest + '.partial') -Force -ErrorAction SilentlyContinue
+        throw
+    }
 }
 finally {
     try {
-        if ($resticTasksDisabledByRun.Count -gt 0) {
-            Enable-ResticTasks -TaskNames $resticTasksDisabledByRun
-            Write-Output "Restored Restic tasks: $($resticTasksDisabledByRun -join ', ')"
+        if ($journalCreated -and $tasksSuspended) {
+            Restore-BackupTaskState -TaskState $taskState
+            Write-RunLog 'tasks=restored'
+            Write-Output "Restored Restic tasks: $((@($taskState | Where-Object WasEnabled).Name) -join ', ')"
         }
+        if ($journalCreated) {
+            Remove-Item -LiteralPath $journalPath -Force -ErrorAction SilentlyContinue
+        }
+    }
+    catch {
+        if ($journalCreated) {
+            $script:journalRecord.Stage = 'task-restore-failed'
+            $script:journalRecord.UpdatedAt = (Get-Date).ToUniversalTime().ToString('o')
+            Write-AtomicJson -Value $script:journalRecord -Path $journalPath
+        }
+        throw
     }
     finally {
         $mutex.ReleaseMutex()

@@ -54,6 +54,8 @@ C:\Users\jackc\wsl-backup-staging\distro-exports\
 
 The script never overwrites a generation. A failed completed export is renamed with `.partial.failed` and is not treated as a backup. Only the newest two validated `.tar.gz` generations and manifests are retained locally. Export refuses to start if any Restic task is running or if the expected six tasks are not registered.
 
+Before task suspension, export atomically writes `%LOCALAPPDATA%\WSLSystemBackup\active-run.json` with the exact prior task state, process identity, selected paths and current stage. Normal completion removes the journal. If PowerShell is killed or Windows restarts, the journal remains for explicit recovery. Durable stage logs are retained under `%LOCALAPPDATA%\WSLSystemBackup\logs`.
+
 ## Validate an existing archive
 
 ```powershell
@@ -61,5 +63,29 @@ The script never overwrites a generation. A failed completed export is renamed w
 ```
 
 Validation imports under a random disposable name and unregisters it in a `finally` block. It needs enough temporary disk space for the restored VHDX.
+
+## Status, recovery and cleanup
+
+These modes do not perform an export:
+
+```powershell
+.\Backup-WslSystem.ps1 -Mode Status
+.\Backup-WslSystem.ps1 -Mode Recover
+.\Backup-WslSystem.ps1 -Mode ValidateManifest -ArchivePath C:\path\archive.tar.gz.manifest.json
+.\Backup-WslSystem.ps1 -Mode Cleanup -ConfirmCleanup -RemoveFailedArtifacts
+.\Backup-WslSystem.ps1 -Mode Cleanup -ConfirmCleanup -RemoveValidationDirectories
+```
+
+`Status` reports active or abandoned journals, task state, failed export artifacts, validation directories and malformed manifests without hashing multi-gigabyte archives. `Recover` refuses to act while the recorded process is still active and otherwise restores the exact pre-run task state. Cleanup is explicit and refuses to run while any journal exists. It never removes validated generations.
+
+`ValidateManifest` performs a complete archive-size, schema, validation-evidence and SHA-256 check. Every generated manifest also receives a fast structural check before generation retention runs.
+
+## Tests
+
+The self-contained test suite uses injected Task Scheduler adapters and disposable small files; it does not invoke WSL or modify production tasks:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Test-WslSystemBackup.ps1
+```
 
 No schedule is registered yet. Scheduling recurring downtime requires an explicit decision about the maintenance window.
