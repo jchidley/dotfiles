@@ -78,6 +78,7 @@ See [`TESTING.md`](TESTING.md) for stable contracts, mutation evidence, and expl
 ## Documentation ownership
 
 - This README and component READMEs: current commands and operational behaviour.
+- [`LAPTOP-SCHEDULING-PLAN.md`](LAPTOP-SCHEDULING-PLAN.md): current implementation plan for awake-time scheduling, serialized due work, and informed consent for long operations.
 - Source code and tests: implementation truth.
 - `jchidley/tools/docs/wsl-backup.md`: clean cross-repository reference, capability status, and reading path.
 - `jchidley/tools/research/2026-08-15-wsl-debian-backup-and-home-recovery.md`: historical recovery evidence, measurements, decisions, and rejected alternatives.
