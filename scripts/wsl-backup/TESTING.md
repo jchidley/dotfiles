@@ -73,6 +73,10 @@ Retained cases additionally prove interval reset at awake minutes 15/16/29/30, s
 
 The first scheduler trial was rejected as invalid because an adjacent force assertion failed before the intended missing-task assertion. The assertions were reordered, and the retry was killed at the intended seam. Mutation evidence covers guard, precedence, mapping, side-effect, and boundary classes. No mutation debt remains for the setup, operator-dispatch, task-registration, or notification boundaries audited in this pass.
 
+## Planned production health-state adapter gate
+
+The exact disposable cross-process, atomic-write fault-injection, interrupted-attempt, strict-policy, notification-episode, production-isolation, and semantic-mutation requirements are defined in [`PRODUCTION-HEALTH-STATE-DECISION.md`](PRODUCTION-HEALTH-STATE-DECISION.md). They are acceptance criteria only: no production adapter exists and none of those future tests are claimed as passing.
+
 ## Explicitly deferred scope
 
 A full failure-injection state machine covering every stage of whole-system export was considered and deliberately deferred. Existing crash-journal tests, helper tests, recovery smoke tests, and the proven production export remain the evidence for that boundary. This test suite does not claim exhaustive stage-by-stage export fault injection.

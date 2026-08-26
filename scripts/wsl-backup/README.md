@@ -83,6 +83,7 @@ Phase 1 state/policy support and the Phase 2 fixture-only shadow coordinator are
 
 - This README and component READMEs: current commands and operational behaviour.
 - [`LAPTOP-SCHEDULING-PLAN.md`](LAPTOP-SCHEDULING-PLAN.md): current implementation plan for awake-time scheduling, serialized due work, and informed consent for long operations.
+- [`PRODUCTION-HEALTH-STATE-DECISION.md`](PRODUCTION-HEALTH-STATE-DECISION.md): approved production health-state policy and acceptance contract; implementation and deployment remain unauthorized.
 - Source code and tests: implementation truth.
 - `jchidley/tools/docs/wsl-backup.md`: clean cross-repository reference, capability status, and reading path.
 - `jchidley/tools/research/2026-08-15-wsl-debian-backup-and-home-recovery.md`: historical recovery evidence, measurements, decisions, and rejected alternatives.

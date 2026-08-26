@@ -252,6 +252,6 @@ Those remain separate recovery-capability work after laptop scheduling is safe.
 
 ## Immediate bounded objective
 
-No further implementation phase is authorized. The next bounded controller decision is the production-state contract: select explicit failure/deferral warning values and acceptance criteria for an adapter that atomically persists the Phase 2 projected counters across real coordinator runs.
+The controller approved the production-state contract in [`PRODUCTION-HEALTH-STATE-DECISION.md`](PRODUCTION-HEALTH-STATE-DECISION.md): warn on the second consecutive eligible failure or lock deferral, preserve counters unchanged across suspension of any duration, suppress duplicate same-episode notifications for six wall-clock hours, use one tracked policy, and require the documented atomic persistence/recovery and disposable acceptance tests.
 
-Do not implement that adapter, deploy the coordinator, alter production tasks, invoke backup or maintenance, clear the failed full-data-check marker, or begin Phase 3 until a later bounded action explicitly authorizes it.
+No implementation phase is authorized by that policy approval. The next bounded action requires separate controller authorization to implement and prove only the production-state adapter. Do not deploy the coordinator, alter production tasks, invoke backup or maintenance, clear the failed full-data-check marker, or begin Phase 3.
