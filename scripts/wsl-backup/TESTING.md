@@ -42,14 +42,34 @@ The following mutations were executed one at a time and reverted. Each accepted 
 | Task registration decision | Missing-task/force logic changed from OR to AND | Task missing; force false | Killed after isolating the intended assertion |
 | Task trigger mapping | Backup interval unit changed from minutes to days | Backup specification with 15-minute interval | Killed |
 | Notification boundary | Six-hour comparison changed from `<` to `<=` | Same failure exactly six hours old | Killed |
-| Phase 2 suspension boundary | Shadow awake output included suspended days as awake minutes | Three suspended days; zero awake minutes | Shallow: detected an output change but did not prove due-time or health behavior |
-| Phase 2 lock result | Exit 75 deferral was marked complete | Linux exit 75 with explicit Lock result | Provisional: direct result assertion detected it, but repeated-deferral health remains uncovered |
-| Phase 2 no-change result | Explicit no-change was collapsed into changed success | Exit 0 with NoChange result | Provisional: direct result assertion detected it |
-| Phase 2 maintenance serialization | Selection allowed two overdue items | Two eligible overdue maintenance items | Rejected: the harness accepts an incidental exception as a kill |
+| Phase 2 suspension boundary | Shadow due logic counted suspended days as awake time | Identical awake clocks with zero versus three suspended days | Killed at the shared suspension-independence predicate |
+| Phase 2 lock result | Exit 75 deferral was marked complete | First lock with explicit prior counters and threshold | Killed at the shared lock due/non-alerting predicate |
+| Phase 2 no-change result | Explicit no-change was collapsed into changed success | Exit 0 with `NoChange` at the exact interval | Killed at the shared result-distinction predicate |
+| Phase 2 maintenance serialization | Selection allowed two overdue items | Two eligible items in explicit fixture policy order | Killed when the mutant emitted two maintenance decisions |
+| Phase 2 threshold boundary | Warning comparison changed from `>=` to `>` | Second projected deferral at threshold 2 | Killed at the exact-threshold predicate |
+| Phase 2 recovery state | Successful `NoChange` preserved the prior failure count | Successful invocation starting at the warning boundary | Killed at the recovery-reset predicate |
 
-The uncommitted Phase 2 candidate test reported 18 passing assertions. Its fixture is explicit JSON and read-only; it does not invoke WSL, Restic, Scheduled Tasks, maintenance, notifications, or production state. The canonical fast lane then passed with 44 existing home assertions, 18 shadow assertions, 19 system assertions, and PSScriptAnalyzer 1.25.0 with no findings in 11 paths. `git diff --check` passed.
+The Phase 2 shadow test uses explicit JSON fixtures and `-ReadOnly`; it does not invoke WSL backup, Restic, Scheduled Tasks, maintenance, notifications, or production state. The direct PowerShell 7 command passed with 38 assertions. From WSL, the canonical `./scripts/wsl-backup/test-all fast` passed with 44 home assertions, 38 shadow assertions, 19 system assertions, and PSScriptAnalyzer 1.25.0 with no findings in 11 paths. `git diff --check` passed.
 
-Controller review rejected this evidence as the Phase 2 gate. The retained tests must directly prove elapsed awake time from the previous attempt, no immediate alert for one lock deferral, no maintenance after backup deferral/failure, and suspension-independent due and health decisions. Mutation trials must fail through the named retained assertion; an unrelated exception is not an accepted kill.
+The completion mutation command was the retained test's self-restoring temporary-copy loop in `scripts/wsl-backup/home/Test-WslHomeSchedulingShadow.ps1`; each mutant emitted valid structured coordinator JSON and was killed by its named retained assertion:
+
+| Mutation | Retained assertion | Result |
+|---|---|---|
+| Count suspended duration as awake time (`-or $suspendedDays -gt 0` in due logic) | Shared suspension-independence predicate | Killed |
+| Mark exit-75 `Lock` complete (`Due = $false`) | Shared lock due/non-alerting predicate | Killed |
+| Collapse `NoChange` into `Changed` | Shared no-change distinction predicate | Killed |
+| Allow two maintenance selections (`Select-Object -First 2`) | Shared one-selection/fixture-order predicate | Killed with valid two-decision JSON |
+| Delay threshold warning by changing `-ge` to `-gt` | Shared exact-threshold predicate on the second projected invocation | Killed |
+| Preserve failure count after successful `NoChange` | Shared recovery-reset predicate | Killed |
+
+The mutation loop uses `try`/`finally` to remove its unique temporary directory. No mutation exception, replacement miss, malformed output, or unrelated assertion was counted as a kill.
+
+## Current Phase 2 evidence recheck
+
+`pwsh.exe -NoLogo -NoProfile -NonInteractive -File scripts/wsl-backup/home/Test-WslHomeSchedulingShadow.ps1` passed with 38 assertions. The exact Windows-source WSL `./scripts/wsl-backup/test-all fast` passed with 44 home assertions, 38 shadow assertions, 19 system assertions, and PSScriptAnalyzer clean in 11 paths. The Phase 2 fixture-only evidence gate is complete; source integration remains controller-owned and production integration remains excluded.
+
+Retained cases additionally prove interval reset at awake minutes 15/16/29/30, strict booleans, complete validation on overlap and not-due branches, exact exit-75 classification, nondecreasing awake clocks, overlap refusal, backup-gated maintenance, explicit fixture ordering, projected consecutive counters, threshold crossing on later invocations, success resets, and rejection of contradictory or orphaned health counters. Threshold value `2` is test policy data only; no production threshold is approved.
+
 
 The first scheduler trial was rejected as invalid because an adjacent force assertion failed before the intended missing-task assertion. The assertions were reordered, and the retry was killed at the intended seam. Mutation evidence covers guard, precedence, mapping, side-effect, and boundary classes. No mutation debt remains for the setup, operator-dispatch, task-registration, or notification boundaries audited in this pass.
 
