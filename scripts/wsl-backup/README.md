@@ -75,6 +75,10 @@ The fast lane does not modify production repositories or tasks. It covers isolat
 
 See [`TESTING.md`](TESTING.md) for stable contracts, mutation evidence, and explicitly deferred scope.
 
+## Laptop scheduling migration status
+
+Phase 1 state/policy support and the Phase 2 fixture-only shadow coordinator are committed; Phase 2 remains undeployed. The existing six production tasks therefore remain authoritative. Production threshold values, state persistence, task migration, and consent execution remain unapproved.
+
 ## Documentation ownership
 
 - This README and component READMEs: current commands and operational behaviour.

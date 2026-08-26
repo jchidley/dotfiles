@@ -188,7 +188,7 @@ The implementation must verify which Task Scheduler trigger combination reliably
 - Treat one lock conflict as a non-alerting deferral that remains due, and select no maintenance in a run whose backup was deferred or failed.
 - Prove exact exit-code, health, interval, and lock-deferral behaviour with fixtures and semantic mutations that fail at their intended retained assertions.
 
-**Gate:** a shadow-mode coordinator makes the same safe backup decisions expected from recorded wake/activity scenarios, and controller review accepts the retained test and mutation evidence.
+**Completed:** commit `d946664` added the fixture-only shadow coordinator, 38 retained assertions, six attributed semantic mutations, and the fast-lane hook. The canonical fast lane, PSScriptAnalyzer, and controller review passed. It models projected state only and performs no production operation; completion does not authorize deployment or production state.
 
 ### Phase 3 — Consent and long-job execution
 
@@ -252,4 +252,6 @@ Those remain separate recovery-capability work after laptop scheduling is safe.
 
 ## Immediate bounded objective
 
-The next implementation session should complete a **Phase 2 shadow-mode coordinator only**: consume explicit fixture/read-only inputs, model post-resume and periodic awake-time backup decisions, distinguish no-change success, lock deferral, and failure, and prove serialized due-work decisions with deterministic tests and semantic mutations. It must not alter production tasks, invoke a backup or maintenance operation, write production coordinator state, clear the failed full-data-check marker, or execute long maintenance.
+No further implementation phase is authorized. The next bounded controller decision is the production-state contract: select explicit failure/deferral warning values and acceptance criteria for an adapter that atomically persists the Phase 2 projected counters across real coordinator runs.
+
+Do not implement that adapter, deploy the coordinator, alter production tasks, invoke backup or maintenance, clear the failed full-data-check marker, or begin Phase 3 until a later bounded action explicitly authorizes it.
