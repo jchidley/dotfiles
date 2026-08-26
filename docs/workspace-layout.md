@@ -4,13 +4,13 @@ This document records machine-wide location ownership. Project-specific truth re
 
 | Location | Role |
 |---|---|
-| `~/github/` | Substantial version-controlled projects and deliberate upstream checkouts |
+| `~/git/` | Substantial version-controlled projects and deliberate upstream checkouts |
 | `~/tools/` | Small maintained first-party utilities in the tools umbrella repository |
 | `~/.local/bin/` | Installed user command interface |
 | `~/.local/share/chezmoi/` | Sole authoritative dotfiles and machine-bootstrap checkout |
-| `~/github/ak/` | Credential utility source, metadata, and ignored encrypted runtime payload |
+| `~/git/ak/` | Credential utility source, metadata, and ignored encrypted runtime payload |
 | `~/work/` | Disposable inspections, generated inventories, staging, and rollback bundles |
-| `~/github/mkdocs-material-test/` | Personal technical knowledge garden and historical/thematic writing |
+| `~/git/mkdocs-material-test/` | Personal technical knowledge garden and historical/thematic writing |
 
 ## Explicit location exceptions
 

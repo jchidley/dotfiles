@@ -4,8 +4,8 @@ set -euo pipefail
 repo=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)
 ak_bin=$(command -v ak || true)
 askpass_bin=$(command -v ak-ssh-askpass || true)
-[[ -n $ak_bin ]] || ak_bin=$HOME/github/ak/bin/ak
-[[ -n $askpass_bin ]] || askpass_bin=$HOME/github/ak/bin/ak-ssh-askpass
+[[ -n $ak_bin ]] || ak_bin=$HOME/git/ak/bin/ak
+[[ -n $askpass_bin ]] || askpass_bin=$HOME/git/ak/bin/ak-ssh-askpass
 [[ -x $ak_bin && -x $askpass_bin ]]
 work=$(mktemp -d)
 agent_pid=

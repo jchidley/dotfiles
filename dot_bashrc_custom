@@ -21,14 +21,8 @@ export BAT_THEME="gruvbox-dark"
 
 # Resolve helpers from the platform's source checkout. Pi discovers the same
 # resources through its package manifest; no duplicate skill link is required.
-_windows_env_dir=""
-for _candidate in "$HOME/github/agent-skills/skills/windows-env" "$HOME/git/agent-skills/skills/windows-env"; do
-  if [[ -f "$_candidate/SKILL.md" ]]; then
-    _windows_env_dir="$_candidate"
-    break
-  fi
-done
-unset _candidate
+_windows_env_dir="$HOME/git/agent-skills/skills/windows-env"
+[[ -f "$_windows_env_dir/SKILL.md" ]] || _windows_env_dir=""
 
 # WSL2: use win-open as BROWSER so OAuth callbacks work (xdg-open doesn't).
 if [[ -x "$_windows_env_dir/win-open" ]]; then
@@ -67,7 +61,7 @@ unset SSH_KEY_PASSPHRASE
 # OpenSSH keys remain in OpenSSH's agent, while ak decrypts their passphrase
 # through the same 20h gpg-agent cache used by API secrets. Start/reuse the
 # agent now; the askpass helper performs the explicit `ak get ssh-key` below.
-if [[ -r "$HOME/.local/lib/credential-agent.sh" ]]; then
+if [[ -n ${WSL_DISTRO_NAME:-} && -r "$HOME/.local/lib/credential-agent.sh" ]]; then
   source "$HOME/.local/lib/credential-agent.sh"
   credential_agent_start
 fi
@@ -88,9 +82,9 @@ command -v direnv >/dev/null 2>&1 && eval "$(direnv hook bash)"
 # McFly records every completed command in SQLite and appends it promptly to
 # the ordinary HISTFILE. Its database can contain secrets typed as commands.
 _mcfly_data_dir="${XDG_DATA_HOME:-$HOME/.local/share}/mcfly"
-mkdir -p -m 700 "$_mcfly_data_dir"
-chmod 700 "$_mcfly_data_dir"
-[ ! -f "$_mcfly_data_dir/history.db" ] || chmod 600 "$_mcfly_data_dir/history.db"
+mkdir -p "$_mcfly_data_dir"
+chmod 700 "$_mcfly_data_dir" 2>/dev/null || true
+[ ! -f "$_mcfly_data_dir/history.db" ] || chmod 600 "$_mcfly_data_dir/history.db" 2>/dev/null || true
 unset _mcfly_data_dir
 
 # Fall back to an equivalent per-prompt file flush when McFly is unavailable,
@@ -116,7 +110,7 @@ else
 fi
 
 
-# API Keys - GPG-based management (see the platform's ~/github/ak or ~/git/ak checkout)
+# API Keys - GPG-based management (see the platform's ~/git/ak checkout)
 #
 # Quick usage:
 #   ak list              # Show service metadata without decrypting values
@@ -131,7 +125,7 @@ fi
 
 # Askpass explicitly retrieves only ssh-key; the passphrase never enters this
 # shell's environment, and ssh-agent enforces the matching 20h key lifetime.
-if [[ $- == *i* ]] && declare -F credential_agent_load_ssh_key >/dev/null; then
+if [[ -n ${WSL_DISTRO_NAME:-} && $- == *i* ]] && declare -F credential_agent_load_ssh_key >/dev/null; then
     credential_agent_load_ssh_key || true
 fi
 

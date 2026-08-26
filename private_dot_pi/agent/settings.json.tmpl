@@ -19,7 +19,7 @@
   ],
 {{- end }}
   "packages": [
-    "{{ if eq .chezmoi.os "windows" }}../../git/agent-skills{{ else }}../../github/agent-skills{{ end }}"
+    "../../git/agent-skills"
   ],
   "enabledModels": [
     "openai-codex/gpt-5.6-sol",

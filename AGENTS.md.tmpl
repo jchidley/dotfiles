@@ -1,7 +1,4 @@
-{{- $windowsEnv := "~/github/agent-skills/skills/windows-env" -}}
-{{- if eq .chezmoi.os "windows" -}}
-{{- $windowsEnv = "~/git/agent-skills/skills/windows-env" -}}
-{{- end -}}
+{{- $windowsEnv := "~/git/agent-skills/skills/windows-env" -}}
 # Machine-wide agent context
 
 Use concise `AGENTS.md` files as the only active startup instructions. `CLAUDE.md` is deprecated; migrate unique current rules into the applicable `AGENTS.md` and remove the vendor-specific file.
@@ -33,7 +30,8 @@ verify cross-boundary writes independently.
 Pi 0.84+ built-in file tools accept relative paths, `C:/...`, and supported
 Git Bash/Cygwin/WSL drive aliases. Commands still use their actual shell's path
 namespace. Keep builds, clones, installs, and file watchers on WSL ext4 rather
-than `/mnt/c`.
+than `/mnt/c`. Use `~/git` as the normal repository checkout root in each OS;
+for WSL-targeted work, use the distro's `~/git`, not `/mnt/c/...`.
 
 {{ includeTemplate "agent-python-uv.md.tmpl" }}
 

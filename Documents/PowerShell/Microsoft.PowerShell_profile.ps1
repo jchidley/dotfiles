@@ -32,7 +32,7 @@ Write-Host "uv: run, init, add, pip install | uvx <tool>" -ForegroundColor Cyan
 # default-distro lookup, or Credential Manager fallback.
 $script:AkVaultConfig = "$env:USERPROFILE\.config\ak\vault.conf"
 $script:AkExportProfile = "$env:USERPROFILE\.envrc"
-$script:AkVaultPath = "/home/jack/github/ak/bin/ak"
+$script:AkVaultPath = "/home/jack/git/ak/bin/ak"
 $script:AkWslDistro = $null
 . (Join-Path $PSScriptRoot 'ak-profile.ps1')
 

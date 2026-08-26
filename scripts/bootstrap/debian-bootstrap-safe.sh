@@ -150,7 +150,7 @@ if [[ "$SKIP_SYSTEM_PACKAGES" != 1 ]]; then
   run sudo apt install -y ca-certificates curl direnv dirmngr git gnupg2 jq openssh-client pinentry-curses restic shellcheck sqlite3 tmux unzip zoxide
 fi
 
-run mkdir -p "$HOME/github" "$HOME/tools" "$HOME/work" "$HOME/.local/bin"
+run mkdir -p "$HOME/git" "$HOME/tools" "$HOME/work" "$HOME/.local/bin"
 install_fnm
 install_mcfly
 install_pi
@@ -196,7 +196,7 @@ while IFS=$'\t' read -r group kind repository destination profiles extra; do
   esac
 done < "$MANIFEST"
 
-AK_REPO="$HOME/github/ak"
+AK_REPO="$HOME/git/ak"
 if [[ -x "$AK_REPO/bin/ak" ]]; then
   run ln -sfn "$AK_REPO/bin/ak" "$HOME/.local/bin/ak"
   [[ ! -x "$AK_REPO/bin/ak-ssh-askpass" ]] || run ln -sfn "$AK_REPO/bin/ak-ssh-askpass" "$HOME/.local/bin/ak-ssh-askpass"
@@ -204,8 +204,8 @@ if [[ -x "$AK_REPO/bin/ak" ]]; then
   run ln -sfn "$AK_REPO/integrations/direnv.sh" "$HOME/.config/direnv/lib/ak.sh"
 fi
 
-if [[ -x "$HOME/github/agent-skills/install.sh" ]]; then
-  run "$HOME/github/agent-skills/install.sh" install pi
+if [[ -x "$HOME/git/agent-skills/install.sh" ]]; then
+  run "$HOME/git/agent-skills/install.sh" install pi
 fi
 
 if [[ "$APPLY_CHEZMOI" == 1 ]]; then
