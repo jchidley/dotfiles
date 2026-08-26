@@ -175,21 +175,20 @@ The implementation must verify which Task Scheduler trigger combination reliably
 
 ### Phase 1 — State and policy, no production schedule changes
 
-- Add pure PowerShell functions for due calculation, awake/suspended interpretation, duration estimates, automatic-versus-consent policy, snooze, and failure/deferral classification.
-- Define and validate the atomic state schema.
-- Add deterministic tests for clock changes, multi-day suspension, repeated resume, lock deferral, failed operations, snooze boundaries, unknown duration, and schema rejection.
-- Add read-only reporting showing what the coordinator would do against production state.
+**Completed:** commit `542e465` added the versioned state/policy foundation, deterministic tests, and explicit read-only dry-run. The exact Windows source passed the fast lane from WSL (44 home assertions, 19 system assertions, PSScriptAnalyzer clean). No production task, maintenance, credential, marker, deployment, or production-state change was made.
 
-**Gate:** tests and a dry-run report pass without modifying scheduled tasks or running maintenance.
+**Gate:** complete.
 
 ### Phase 2 — Routine coordinator
 
 - Implement the single coordinator and post-resume/periodic backup semantics.
+- Track elapsed awake time from the previous attempt so arbitrary periodic events cannot run backups more often than the configured interval or replay suspended time.
 - Record successful no-change attempts separately from snapshot creation.
 - Replace wall-clock freshness with awake-time attempt health.
-- Prove exact exit-code and lock-deferral behaviour with fixtures and semantic mutations.
+- Treat one lock conflict as a non-alerting deferral that remains due, and select no maintenance in a run whose backup was deferred or failed.
+- Prove exact exit-code, health, interval, and lock-deferral behaviour with fixtures and semantic mutations that fail at their intended retained assertions.
 
-**Gate:** a shadow-mode coordinator makes the same safe backup decisions expected from recorded wake/activity scenarios.
+**Gate:** a shadow-mode coordinator makes the same safe backup decisions expected from recorded wake/activity scenarios, and controller review accepts the retained test and mutation evidence.
 
 ### Phase 3 — Consent and long-job execution
 
@@ -221,10 +220,11 @@ The implementation must verify which Task Scheduler trigger combination reliably
 
 At minimum, tests must prove:
 
-- three suspended days do not create a stale failure;
+- three suspended days do not create a stale failure or advance the awake-time interval;
 - work followed by suspend is backed up on the next resume opportunity;
-- multiple overdue operations produce one serialized decision;
-- a lock conflict remains due and retries rather than being marked complete;
+- arbitrary periodic events cannot schedule attempts more often than the awake-time interval;
+- multiple overdue operations produce one serialized decision only after backup succeeds;
+- a lock conflict remains due, creates no immediate warning, blocks maintenance for that run, and retries rather than being marked complete;
 - a long operation never runs after No, timeout, or absent interactive session;
 - Yes can dispatch only the operation shown;
 - snooze suppresses prompts until its exact boundary;
@@ -252,4 +252,4 @@ Those remain separate recovery-capability work after laptop scheduling is safe.
 
 ## Immediate bounded objective
 
-The next implementation session should complete **Phase 1 only**: state schema, pure scheduling/consent policy, deterministic tests, and a read-only production dry run. It must not alter production tasks, clear the failed full-data-check marker, or execute long maintenance.
+The next implementation session should complete a **Phase 2 shadow-mode coordinator only**: consume explicit fixture/read-only inputs, model post-resume and periodic awake-time backup decisions, distinguish no-change success, lock deferral, and failure, and prove serialized due-work decisions with deterministic tests and semantic mutations. It must not alter production tasks, invoke a backup or maintenance operation, write production coordinator state, clear the failed full-data-check marker, or execute long maintenance.
