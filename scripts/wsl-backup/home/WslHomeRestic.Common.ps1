@@ -94,3 +94,89 @@ function Test-WslHomeNotificationRequired {
     )
     -not ($PreviousSignature -eq $Signature -and $PreviousAge -lt $SuppressionWindow)
 }
+
+$script:WslHomeStateSchemaVersion = 1
+
+function New-WslHomeCoordinatorState {
+    param([datetime] $Now = (Get-Date))
+    [pscustomobject]@{
+        SchemaVersion = $script:WslHomeStateSchemaVersion
+        LastCoordinatorAttempt = $null
+        LastCoordinatorSuccess = $null
+        LastPostResumeAttempt = $null
+        LastPostResumeSuccess = $null
+        ConsecutiveBackupFailures = 0
+        ConsecutiveBackupDeferrals = 0
+        Operations = [ordered]@{}
+        ApprovedOperation = $null
+        Recovery = [ordered]@{ LastAtomicOperation = $null }
+    }
+}
+
+function Assert-WslHomeCoordinatorState {
+    param([Parameter(Mandatory = $true)] $State)
+    if ($null -eq $State.SchemaVersion -or [int]$State.SchemaVersion -ne $script:WslHomeStateSchemaVersion) {
+        throw "Unsupported coordinator state schema version: $($State.SchemaVersion)"
+    }
+    foreach ($name in 'LastCoordinatorAttempt','LastCoordinatorSuccess','LastPostResumeAttempt','LastPostResumeSuccess',
+        'ConsecutiveBackupFailures','ConsecutiveBackupDeferrals','Operations','ApprovedOperation','Recovery') {
+        if (-not ($State.PSObject.Properties.Name -contains $name)) { throw "Missing coordinator state field: $name" }
+    }
+    return $true
+}
+
+function Read-WslHomeCoordinatorState {
+    param([Parameter(Mandatory = $true)][string] $Path)
+    if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) { throw "Coordinator state is absent: $Path" }
+    try { $state = Get-Content -LiteralPath $Path -Raw -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop }
+    catch { throw "Coordinator state is unreadable or malformed: $Path" }
+    Assert-WslHomeCoordinatorState -State $state | Out-Null
+    $state
+}
+
+function Write-WslHomeCoordinatorStateAtomic {
+    param([Parameter(Mandatory = $true)] $State, [Parameter(Mandatory = $true)][string] $Path)
+    Assert-WslHomeCoordinatorState -State $State | Out-Null
+    $directory = Split-Path -Parent $Path
+    New-Item -ItemType Directory -Path $directory -Force | Out-Null
+    $temporary = Join-Path $directory ('.{0}.{1}.tmp' -f [IO.Path]::GetFileName($Path), [guid]::NewGuid())
+    try {
+        $State | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath $temporary -Encoding UTF8 -NoNewline
+        Move-Item -LiteralPath $temporary -Destination $Path -Force
+    } finally { Remove-Item -LiteralPath $temporary -Force -ErrorAction SilentlyContinue }
+}
+
+function Test-WslHomeOperationDue {
+    param([datetime] $Now, [AllowNull()][object] $LastSuccess, [timespan] $Interval,
+        [AllowNull()][object] $SnoozeUntil, [AllowNull()][timespan] $AwakeElapsed)
+    if ($null -ne $SnoozeUntil -and $Now -lt ([datetime]$SnoozeUntil)) { return $false }
+    if ($null -ne $AwakeElapsed) { return ($null -eq $LastSuccess -or $AwakeElapsed -ge $Interval) }
+    return ($null -eq $LastSuccess -or $Now -ge ([datetime]$LastSuccess).Add($Interval))
+}
+
+function Get-WslHomeDurationEstimate {
+    param([AllowNull()][object[]] $Durations)
+    $values = @($Durations | Where-Object { $_ -is [double] -or $_ -is [int] -or $_ -is [long] } | ForEach-Object { [double]$_ })
+    if ($values.Count -eq 0) { return $null }
+    [math]::Ceiling(($values | Measure-Object -Average).Average)
+}
+
+function Get-WslHomeExecutionPolicy {
+    param([Parameter(Mandatory = $true)][string] $Operation, [AllowNull()][object] $DurationSeconds,
+        [bool] $Interactive, [bool] $OnAc, [double] $LongJobThresholdSeconds = 120)
+    $alwaysConsent = $Operation -in @('prune','check-read-data','system-export')
+    $long = $Operation -eq 'system-export' -or $alwaysConsent -or $null -eq $DurationSeconds -or $DurationSeconds -gt $LongJobThresholdSeconds
+    if (-not $Interactive -or ($long -and -not $OnAc)) { return 'Deferred' }
+    if ($long) { return 'ConsentRequired' }
+    'Automatic'
+}
+
+function Get-WslHomeOperationResultClass {
+    param([Parameter(Mandatory = $true)][ValidateSet('Success','NoChange','DeferredLock','Failed','Declined','TimedOut')][string] $Result)
+    switch ($Result) {
+        { $_ -in @('Success','NoChange') } { 'Complete'; break }
+        'DeferredLock' { 'DueDeferred'; break }
+        { $_ -in @('Declined','TimedOut') } { 'DueSnoozed'; break }
+        'Failed' { 'DueFailed'; break }
+    }
+}

@@ -72,4 +72,25 @@ Assert-True (Test-WslHomeNotificationRequired -Signature 'backup|new failure' `
 Assert-True (Test-WslHomeNotificationRequired -Signature 'backup|failed' `
     -PreviousSignature $null -PreviousAge ([timespan]::MaxValue)) 'first failure notified'
 
+$policyNow = [datetime]'2026-08-24T12:00:00'
+$threeDaysAgo = $policyNow.AddDays(-3)
+Assert-True (Test-WslHomeOperationDue -Now $policyNow -LastSuccess $threeDaysAgo -Interval ([timespan]::FromHours(72)) -SnoozeUntil $null) 'exact due boundary is due'
+Assert-True (Test-WslHomeOperationDue -Now $policyNow.AddTicks(1) -LastSuccess $threeDaysAgo -Interval ([timespan]::FromHours(72)) -SnoozeUntil $null) 'clock change remains due'
+Assert-True (-not (Test-WslHomeOperationDue -Now $policyNow -LastSuccess $threeDaysAgo -Interval ([timespan]::FromDays(1)) -SnoozeUntil $policyNow.AddHours(1))) 'snooze suppresses due work'
+Assert-True (Test-WslHomeOperationDue -Now $policyNow.AddHours(1) -LastSuccess $threeDaysAgo -Interval ([timespan]::FromDays(1)) -SnoozeUntil $policyNow.AddHours(1)) 'snooze exact boundary reoffers'
+Assert-True (-not (Test-WslHomeOperationDue -Now $policyNow -LastSuccess $threeDaysAgo -Interval ([timespan]::FromDays(4)) -SnoozeUntil $null -AwakeElapsed ([timespan]::Zero))) 'multi-day suspension does not invent awake time'
+Assert-True ((Get-WslHomeOperationResultClass -Result DeferredLock) -eq 'DueDeferred') 'lock deferral remains due'
+Assert-True ((Get-WslHomeOperationResultClass -Result Failed) -eq 'DueFailed') 'failed operation remains due'
+Assert-True ((Get-WslHomeExecutionPolicy -Operation backup -DurationSeconds 10 -Interactive $true -OnAc $false) -eq 'Automatic') 'short backup is automatic'
+Assert-True ((Get-WslHomeExecutionPolicy -Operation prune -DurationSeconds 10 -Interactive $true -OnAc $true) -eq 'ConsentRequired') 'prune requires consent'
+Assert-True ((Get-WslHomeExecutionPolicy -Operation check -DurationSeconds $null -Interactive $true -OnAc $true) -eq 'ConsentRequired') 'unknown duration requires consent'
+Assert-True ((Get-WslHomeExecutionPolicy -Operation check -DurationSeconds 10 -Interactive $false -OnAc $true) -eq 'Deferred') 'no interactive session defers'
+Assert-True ($null -eq (Get-WslHomeDurationEstimate -Durations @())) 'unknown duration has no estimate'
+Assert-True ((Get-WslHomeDurationEstimate -Durations @(10, 20, 30)) -eq 20) 'duration estimate is deterministic'
+$state = New-WslHomeCoordinatorState -Now $policyNow
+Assert-True (Assert-WslHomeCoordinatorState -State $state) 'state schema accepted'
+$unknown = New-WslHomeCoordinatorState
+$unknown.SchemaVersion = 99
+Expect-Throw { Assert-WslHomeCoordinatorState -State $unknown } 'Unsupported coordinator state schema'
+
 Write-Output "WslHomeWindows tests passed: $tests assertions"
