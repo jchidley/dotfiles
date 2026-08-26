@@ -42,6 +42,14 @@ The following mutations were executed one at a time and reverted. Each accepted 
 | Task registration decision | Missing-task/force logic changed from OR to AND | Task missing; force false | Killed after isolating the intended assertion |
 | Task trigger mapping | Backup interval unit changed from minutes to days | Backup specification with 15-minute interval | Killed |
 | Notification boundary | Six-hour comparison changed from `<` to `<=` | Same failure exactly six hours old | Killed |
+| Phase 2 suspension boundary | Shadow awake output included suspended days as awake minutes | Three suspended days; zero awake minutes | Shallow: detected an output change but did not prove due-time or health behavior |
+| Phase 2 lock result | Exit 75 deferral was marked complete | Linux exit 75 with explicit Lock result | Provisional: direct result assertion detected it, but repeated-deferral health remains uncovered |
+| Phase 2 no-change result | Explicit no-change was collapsed into changed success | Exit 0 with NoChange result | Provisional: direct result assertion detected it |
+| Phase 2 maintenance serialization | Selection allowed two overdue items | Two eligible overdue maintenance items | Rejected: the harness accepts an incidental exception as a kill |
+
+The uncommitted Phase 2 candidate test reported 18 passing assertions. Its fixture is explicit JSON and read-only; it does not invoke WSL, Restic, Scheduled Tasks, maintenance, notifications, or production state. The canonical fast lane then passed with 44 existing home assertions, 18 shadow assertions, 19 system assertions, and PSScriptAnalyzer 1.25.0 with no findings in 11 paths. `git diff --check` passed.
+
+Controller review rejected this evidence as the Phase 2 gate. The retained tests must directly prove elapsed awake time from the previous attempt, no immediate alert for one lock deferral, no maintenance after backup deferral/failure, and suspension-independent due and health decisions. Mutation trials must fail through the named retained assertion; an unrelated exception is not an accepted kill.
 
 The first scheduler trial was rejected as invalid because an adjacent force assertion failed before the intended missing-task assertion. The assertions were reordered, and the retry was killed at the intended seam. Mutation evidence covers guard, precedence, mapping, side-effect, and boundary classes. No mutation debt remains for the setup, operator-dispatch, task-registration, or notification boundaries audited in this pass.
 
