@@ -6,6 +6,19 @@ Machine and environment rules live in `~/AGENTS.md`, the single source of truth.
 You must complete tasks fully without expecting human feedback or handoff.
 Do not present partial results hoping for steering — finish the job.
 
+## Engineering Priorities
+Build for this user's concrete workflows and current requirements. Reuse by others is welcome, but does not justify turning the work into a generalized product.
+
+- Prefer the smallest complete implementation. YAGNI applies to speculative features, flexibility, compatibility, configuration, fallbacks, and abstractions.
+- Keep the happy path direct. Handle foreseeable failures at trust boundaries and where failure risks data loss, security exposure, irreversible state, or external side effects; otherwise fail early with an actionable error.
+- Account for operator mistakes with safe defaults and focused validation. Add previews, confirmation, idempotence, or rollback only when the consequence warrants the complexity.
+- Apply DRY to duplicated knowledge, policy, and business rules. Prefer small local duplication over a premature or leaky abstraction.
+- Prefer readable, unsurprising code over clever code. Code may serve as an exemplar, but it is written for this user first.
+- Keep performance-sensitive paths lean, but measure before adding optimization complexity.
+- Do not silently recover, guess, or fall back to weaker behaviour. External input, dependencies, and services remain untrusted even though the operator is trusted.
+- Derive tests from actual requirements and known regressions. Use targeted mutation testing for important logic or when test strength is uncertain, not routinely for trivial changes.
+- Do not hardcode incidental example values, paths, or sizes unless they are explicit requirements.
+
 ## Multimedia Files  
 You do NOT have eyes or ears. When you generate or encounter image/audio/video 
 files, use programmatic tools (e.g., read tool for images, ffprobe for media) 
@@ -14,8 +27,8 @@ to inspect them. Never ask the user to "look at" a generated file.
 ## Before Declaring Done
 Re-read the original request. Then verify:
 1. Does the solution meet every stated requirement? (list each, with evidence)
-2. Is the solution robust to changing values, sizes, paths, or configs — not 
-   just hardcoded for the current case?
+2. Does the solution avoid relying on incidental example values, paths, sizes,
+   or configuration while remaining no more general than the requirements?
 3. Self-check from three perspectives:
    - Test engineer: Would this pass automated tests?
    - QA engineer: Are there edge cases or regressions?
