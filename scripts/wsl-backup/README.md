@@ -77,7 +77,7 @@ See [`TESTING.md`](TESTING.md) for stable contracts, mutation evidence, and expl
 
 ## Laptop scheduling migration status
 
-Phase 1, the Phase 2 fixture-only shadow coordinator, and the reviewed production health-state adapter are committed; the adapter was integrated at `1e2b97a`. A reviewed Phase 3 source-only consent candidate now passes 55 retained assertions, seven attributed mutations, and the canonical fast lane, but remains uncommitted and undeployed. The existing six production tasks remain authoritative; source integration requires separate authorization, and task migration remains unapproved.
+Phase 1, the Phase 2 fixture-only shadow coordinator, the production health-state adapter, and the Phase 3 source-only consent candidate are committed; Phase 3 was integrated at `6a84654` after 55 retained assertions, seven attributed mutations, and the canonical fast lane passed. It remains undeployed and contains no production command adapter. The existing six production tasks remain authoritative; Phase 4 integration work and task migration require separate authorization.
 
 ## Documentation ownership
 

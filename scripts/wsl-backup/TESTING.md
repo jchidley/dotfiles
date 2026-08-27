@@ -108,7 +108,7 @@ The canonical fast lane passed with 44 existing home assertions, 38 shadow asser
 | Skip idle-sleep release | Idle-sleep inhibition is released after approved success |
 | Mark failed or interrupted work complete | Failed work remains due |
 
-The direct retained and mutation suites passed. The canonical exact-source WSL fast lane passed with 44 home assertions, 38 shadow assertions, 115 state-adapter assertions, 55 Phase 3 assertions, all eight state-adapter and seven Phase 3 mutations, 19 system assertions, and PSScriptAnalyzer 1.25.0 clean across 18 paths. The Phase 3 candidate contains no production command adapter and touched no WSL, Restic, Scheduled Task, credential, marker, deployed file, or production state.
+The direct retained and mutation suites passed. The canonical exact-source WSL fast lane passed with 44 home assertions, 38 shadow assertions, 115 state-adapter assertions, 55 Phase 3 assertions, all eight state-adapter and seven Phase 3 mutations, 19 system assertions, and PSScriptAnalyzer 1.25.0 clean across 18 paths. Commit `6a84654` integrates this source evidence. The Phase 3 candidate contains no production command adapter and touched no WSL, Restic, Scheduled Task, credential, marker, deployed file, or production state.
 
 ## Explicitly deferred scope
 

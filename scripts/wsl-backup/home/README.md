@@ -88,7 +88,7 @@ The Windows-local wrapper under `%LOCALAPPDATA%\WSLHomeRestic` records secret-fr
 
 Existing tasks and their next-run times are preserved by default. Use `-Force` to rebuild their definitions deliberately. Remove them with the same script's `-Remove` switch.
 
-A source-only scheduling state adapter and tracked policy implement the approved awake-time health-state contract in disposable tests. A separate reviewed Phase 3 candidate adds disposable long-job consent, snooze, power, duration, and idle-sleep-inhibition behavior with injected adapters. Neither source-only component is installed or called by these tasks. The six-task behavior above remains production truth until a later reversible migration is explicitly authorized and verified.
+A source-only scheduling state adapter and tracked policy implement the approved awake-time health-state contract in disposable tests. Commit `6a84654` integrates the reviewed Phase 3 source for disposable long-job consent, snooze, power, duration, and idle-sleep-inhibition behavior with injected adapters. Neither source-only component is installed or called by these tasks. The six-task behavior above remains production truth until a later reversible migration is explicitly authorized and verified.
 
 ## Tests
 
