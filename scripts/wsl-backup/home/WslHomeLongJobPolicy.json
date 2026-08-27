@@ -1,0 +1,31 @@
+{
+  "SchemaVersion": 1,
+  "SnoozeHours": 24,
+  "PromptTimeoutSeconds": 300,
+  "LongJobThresholdSeconds": 120,
+  "DurationHistoryLimit": 5,
+  "RequireAcPower": true,
+  "Operations": [
+    {
+      "Id": "prune",
+      "DisplayName": "Reclaim unused backup repository storage",
+      "CommandFile": "Invoke-WslHomeApprovedPrune.ps1",
+      "Effect": "Routine backup operations wait while repository maintenance runs",
+      "DueReason": "The reviewed prune interval is due"
+    },
+    {
+      "Id": "check-read-data",
+      "DisplayName": "Read and verify all backup repository data",
+      "CommandFile": "Invoke-WslHomeApprovedDataCheck.ps1",
+      "Effect": "Routine backup operations wait while repository verification runs",
+      "DueReason": "The reviewed full-data-check interval is due"
+    },
+    {
+      "Id": "system-export",
+      "DisplayName": "Create a complete WSL system export",
+      "CommandFile": "Invoke-WslHomeApprovedSystemExport.ps1",
+      "Effect": "The source distro stops during the reviewed export operation",
+      "DueReason": "A complete-system recovery generation is recommended"
+    }
+  ]
+}

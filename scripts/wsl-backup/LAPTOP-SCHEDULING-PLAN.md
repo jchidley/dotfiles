@@ -196,7 +196,9 @@ The implementation must verify which Task Scheduler trigger combination reliably
 - Add AC-power detection, idle-sleep inhibition, guaranteed cleanup, fixed-command dispatch, 24-hour snooze, and duration recording.
 - Test Yes, No, timeout, battery, interruption, duplicate prompt suppression, command-injection resistance, and failed long work remaining due.
 
-**Gate:** disposable operations prove that no long command can run without a current explicit approval.
+**Source candidate:** the uncommitted controller-reviewed candidate uses strict disposable policy/state plus injected interactive-session, power, prompt, monotonic-clock, command, and idle-sleep adapters. Its retained suite passed 55 assertions and seven attributed semantic mutations. The canonical fast lane passed with PSScriptAnalyzer 1.25.0 clean across 18 paths. It is not deployed and contains no production command adapter.
+
+**Gate:** disposable operations prove that no long command can run without a current explicit approval. The source candidate satisfies this disposable gate; Git integration and every production action remain separately authorized.
 
 ### Phase 4 — Reversible production migration
 
@@ -254,4 +256,4 @@ Those remain separate recovery-capability work after laptop scheduling is safe.
 
 Commit `1e2b97a` integrates the reviewed source-only production-state adapter from [`PRODUCTION-HEALTH-STATE-DECISION.md`](PRODUCTION-HEALTH-STATE-DECISION.md). It implements the tracked policy, durable projected counters and pending attempts, atomic replacement and interruption recovery, notification episodes, and strict disposable validation. It passed 115 retained assertions, eight attributed semantic mutations, the canonical fast lane, and controller review. Windows `HEAD`, `origin/main`, and WSL chezmoi `HEAD` are synchronized at that commit; production state and operations remain unchanged.
 
-The next bounded action requires separate controller authorization to implement Phase 3 consent and long-job execution as source-only disposable work. Completion must satisfy the Phase 3 gate above. Do not deploy the coordinator, alter production tasks, invoke WSL/Restic backup or maintenance, clear the failed full-data-check marker, or begin Phase 4.
+A reviewed Phase 3 source-only candidate now satisfies the disposable consent gate above. The next bounded action requires separate controller authorization to commit and push its source, policy, tests, fast-lane hook, and factual documentation, then fast-forward the WSL checkout through Git. Do not deploy the coordinator, alter production tasks, invoke WSL/Restic backup or maintenance, clear the failed full-data-check marker, or begin Phase 4.

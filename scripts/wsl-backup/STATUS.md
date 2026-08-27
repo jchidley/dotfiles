@@ -34,4 +34,12 @@ Commit `1e2b97a697e8952fbff25c9d414575cd9329f5c1` integrates the approved tracke
 
 Controller review accepted the source-only adapter. The direct retained suite passed 115 assertions. Eight structured semantic mutations were killed at their intended retained assertions. The exact Windows source passed the canonical WSL fast lane: 44 existing home assertions, 38 shadow assertions, 115 adapter assertions, eight adapter mutations, 19 system assertions, and PSScriptAnalyzer 1.25.0 clean across 14 paths. The adapter contains no WSL, Restic, Scheduled Task, message, marker, deployment, or maintenance adapter.
 
-No production state, task, WSL/Restic operation, deployment, credential, or marker changed. The existing six production tasks remain authoritative. Phase 3 source-only consent and long-job execution is the next controller authorization boundary; Phase 3 implementation and all deployment remain unauthorized.
+No production state, task, WSL/Restic operation, deployment, credential, or marker changed. The existing six production tasks remain authoritative.
+
+## Phase 3 source candidate
+
+A bounded, uncommitted Phase 3 candidate now implements strict source-only long-job policy/state, a timed PowerShell 7 Yes/No UI, no-session and AC-power deferral, exact 24-hour snooze boundaries, one-operation fixed dispatch, deterministic measured and conservative duration evidence, and idle-sleep-only inhibition acquired after approval and released in `finally`. Failed or interrupted work remains due; explicit sleep, lid-close, shutdown, and user intent are not inhibited.
+
+All execution seams were disposable and injected. The direct retained suite passed 55 assertions. Seven valid semantic mutations—removed consent, ignored snooze, changed dispatch, bypassed session or power gates, skipped sleep release, and marked failed/interrupted work complete—were killed at their named assertions. The canonical exact-source WSL fast lane passed with 44 home, 38 shadow, 115 state-adapter, 55 Phase 3, and 19 system assertions; all eight state-adapter and seven Phase 3 mutations passed; PSScriptAnalyzer 1.25.0 was clean across 18 paths.
+
+No WSL, Restic, Scheduled Task, credential, marker, deployed file, production state, or production command was touched. The existing six tasks remain authoritative. The next authorization boundary is source integration only; deployment and Phase 4 remain unauthorized.

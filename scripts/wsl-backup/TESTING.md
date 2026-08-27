@@ -92,6 +92,24 @@ The source-only adapter gate from [`PRODUCTION-HEALTH-STATE-DECISION.md`](PRODUC
 
 The canonical fast lane passed with 44 existing home assertions, 38 shadow assertions, 115 adapter assertions, all eight adapter mutations, 19 system assertions, and PSScriptAnalyzer 1.25.0 clean across 14 paths. These are disposable source-integration results, not deployment or production-operation evidence.
 
+## Phase 3 consent evidence
+
+`Test-WslHomeLongJobConsent.ps1` uses one unique temporary root, strict copied policy/state, fake fixed commands, and injected session, power, prompt, monotonic-clock, and idle-sleep adapters. Its 55 retained assertions prove exact fixed dispatch after Yes; no execution after No, timeout, ignored prompt, battery policy, or absent session; exact 24-hour snooze boundaries; overlap refusal; prompt-text injection resistance; idle-sleep-only acquisition after approval and release after success, failure, and interruption; due retention after failure/interruption; and deterministic measured plus conservative duration history.
+
+`Test-WslHomeLongJobConsentMutations.ps1` creates one parser-valid disposable source copy per mutation and accepts a kill only when the named retained assertion appears. Seven semantic mutations were killed:
+
+| Mutation | Retained assertion |
+|---|---|
+| Remove the consent check | No never runs the operation and keeps it due |
+| Ignore `SnoozeUntil` | Snooze suppresses prompts just before its exact boundary |
+| Dispatch a different command file | Fixed reviewed operation identity reaches the command unchanged |
+| Allow an absent interactive session | Absent session defers before prompting or running |
+| Allow battery-power execution | Battery policy prevents prompting and running |
+| Skip idle-sleep release | Idle-sleep inhibition is released after approved success |
+| Mark failed or interrupted work complete | Failed work remains due |
+
+The direct retained and mutation suites passed. The canonical exact-source WSL fast lane passed with 44 home assertions, 38 shadow assertions, 115 state-adapter assertions, 55 Phase 3 assertions, all eight state-adapter and seven Phase 3 mutations, 19 system assertions, and PSScriptAnalyzer 1.25.0 clean across 18 paths. The Phase 3 candidate contains no production command adapter and touched no WSL, Restic, Scheduled Task, credential, marker, deployed file, or production state.
+
 ## Explicitly deferred scope
 
 A full failure-injection state machine covering every stage of whole-system export was considered and deliberately deferred. Existing crash-journal tests, helper tests, recovery smoke tests, and the proven production export remain the evidence for that boundary. This test suite does not claim exhaustive stage-by-stage export fault injection.

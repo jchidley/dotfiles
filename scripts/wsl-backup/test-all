@@ -32,6 +32,8 @@ run_fast() {
   run_windows_test "$ROOT/home/Test-WslHomeSchedulingShadow.ps1"
   run_windows_test "$ROOT/home/Test-WslHomeSchedulingStateAdapter.ps1"
   run_windows_test "$ROOT/home/Test-WslHomeSchedulingStateAdapterMutations.ps1"
+  run_windows_test "$ROOT/home/Test-WslHomeLongJobConsent.ps1"
+  run_windows_test "$ROOT/home/Test-WslHomeLongJobConsentMutations.ps1"
   run_windows_test "$ROOT/system/Test-WslSystemBackup.ps1"
 
   local ps_lint='' ps_exec=''
