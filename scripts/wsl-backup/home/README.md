@@ -88,6 +88,8 @@ The Windows-local wrapper under `%LOCALAPPDATA%\WSLHomeRestic` records secret-fr
 
 Existing tasks and their next-run times are preserved by default. Use `-Force` to rebuild their definitions deliberately. Remove them with the same script's `-Remove` switch.
 
+A source-only scheduling state adapter and tracked policy now implement the approved awake-time health-state contract in disposable tests. They are not installed or called by these tasks. The six-task behavior above remains production truth until a later reversible migration is explicitly authorized and verified.
+
 ## Tests
 
 Use the umbrella runner from inside WSL:

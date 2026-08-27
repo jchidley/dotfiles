@@ -1,0 +1,7 @@
+{
+  "SchemaVersion": 1,
+  "PeriodicIntervalMinutes": 15,
+  "FailureWarningThreshold": 2,
+  "DeferralWarningThreshold": 2,
+  "NotificationSuppressionHours": 6
+}

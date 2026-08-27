@@ -30,6 +30,8 @@ run_fast() {
   "$ROOT/tests/test-setup-and-cli.sh"
   run_windows_test "$ROOT/home/Test-WslHomeWindows.ps1"
   run_windows_test "$ROOT/home/Test-WslHomeSchedulingShadow.ps1"
+  run_windows_test "$ROOT/home/Test-WslHomeSchedulingStateAdapter.ps1"
+  run_windows_test "$ROOT/home/Test-WslHomeSchedulingStateAdapterMutations.ps1"
   run_windows_test "$ROOT/system/Test-WslSystemBackup.ps1"
 
   local ps_lint='' ps_exec=''

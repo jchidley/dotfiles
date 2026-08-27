@@ -252,6 +252,6 @@ Those remain separate recovery-capability work after laptop scheduling is safe.
 
 ## Immediate bounded objective
 
-The controller approved the production-state contract in [`PRODUCTION-HEALTH-STATE-DECISION.md`](PRODUCTION-HEALTH-STATE-DECISION.md): warn on the second consecutive eligible failure or lock deferral, preserve counters unchanged across suspension of any duration, suppress duplicate same-episode notifications for six wall-clock hours, use one tracked policy, and require the documented atomic persistence/recovery and disposable acceptance tests.
+The approved production-state contract in [`PRODUCTION-HEALTH-STATE-DECISION.md`](PRODUCTION-HEALTH-STATE-DECISION.md) now has a reviewed source-only adapter candidate. It implements the tracked policy, durable projected counters and pending attempts, atomic replacement and interruption recovery, notification episodes, and strict disposable validation. The candidate passed 115 retained assertions, eight attributed semantic mutations, the canonical fast lane, and controller review without touching production state or operations.
 
-No implementation phase is authorized by that policy approval. The next bounded action requires separate controller authorization to implement and prove only the production-state adapter. Do not deploy the coordinator, alter production tasks, invoke backup or maintenance, clear the failed full-data-check marker, or begin Phase 3.
+The next bounded action requires separate controller authorization to integrate the reviewed source through commit/push and fast-forward the WSL checkout. Do not deploy the coordinator, alter production tasks, invoke backup or maintenance, clear the failed full-data-check marker, or begin Phase 3.

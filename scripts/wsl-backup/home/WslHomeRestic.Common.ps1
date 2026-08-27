@@ -95,21 +95,26 @@ function Test-WslHomeNotificationRequired {
     -not ($PreviousSignature -eq $Signature -and $PreviousAge -lt $SuppressionWindow)
 }
 
-$script:WslHomeStateSchemaVersion = 1
+$script:WslHomeStateSchemaVersion = 2
 
 function New-WslHomeCoordinatorState {
-    param([datetime] $Now = (Get-Date))
+    param([datetime] $Now = (Get-Date), [string] $PolicySha256 = ('0' * 64))
     [pscustomobject]@{
         SchemaVersion = $script:WslHomeStateSchemaVersion
+        Generation = 0
+        PolicySha256 = $PolicySha256
         LastCoordinatorAttempt = $null
         LastCoordinatorSuccess = $null
         LastPostResumeAttempt = $null
         LastPostResumeSuccess = $null
+        LastAttemptAwakeMinute = $null
         ConsecutiveBackupFailures = 0
         ConsecutiveBackupDeferrals = 0
+        PendingAttempt = $null
+        NotificationEpisode = [ordered]@{ Signature = $null; LastNotifiedAt = $null }
         Operations = [ordered]@{}
         ApprovedOperation = $null
-        Recovery = [ordered]@{ LastAtomicOperation = $null }
+        Recovery = [ordered]@{ LastAtomicOperation = $null; LastInterruptedAttemptId = $null }
     }
 }
 
@@ -118,8 +123,9 @@ function Assert-WslHomeCoordinatorState {
     if ($null -eq $State.SchemaVersion -or [int]$State.SchemaVersion -ne $script:WslHomeStateSchemaVersion) {
         throw "Unsupported coordinator state schema version: $($State.SchemaVersion)"
     }
-    foreach ($name in 'LastCoordinatorAttempt','LastCoordinatorSuccess','LastPostResumeAttempt','LastPostResumeSuccess',
-        'ConsecutiveBackupFailures','ConsecutiveBackupDeferrals','Operations','ApprovedOperation','Recovery') {
+    foreach ($name in 'Generation','PolicySha256','LastCoordinatorAttempt','LastCoordinatorSuccess',
+        'LastPostResumeAttempt','LastPostResumeSuccess','LastAttemptAwakeMinute','ConsecutiveBackupFailures',
+        'ConsecutiveBackupDeferrals','PendingAttempt','NotificationEpisode','Operations','ApprovedOperation','Recovery') {
         if (-not ($State.PSObject.Properties.Name -contains $name)) { throw "Missing coordinator state field: $name" }
     }
     return $true

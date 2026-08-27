@@ -77,7 +77,7 @@ See [`TESTING.md`](TESTING.md) for stable contracts, mutation evidence, and expl
 
 ## Laptop scheduling migration status
 
-Phase 1 state/policy support and the Phase 2 fixture-only shadow coordinator are committed; Phase 2 remains undeployed. The existing six production tasks therefore remain authoritative. Production threshold values, state persistence, task migration, and consent execution remain unapproved.
+Phase 1 and the Phase 2 fixture-only shadow coordinator are committed. The approved production health-state contract now has a reviewed, validated source-only adapter candidate pending Git integration. It remains undeployed, so the existing six production tasks remain authoritative. Task migration and consent execution remain unapproved.
 
 ## Documentation ownership
 

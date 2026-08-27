@@ -73,9 +73,24 @@ Retained cases additionally prove interval reset at awake minutes 15/16/29/30, s
 
 The first scheduler trial was rejected as invalid because an adjacent force assertion failed before the intended missing-task assertion. The assertions were reordered, and the retry was killed at the intended seam. Mutation evidence covers guard, precedence, mapping, side-effect, and boundary classes. No mutation debt remains for the setup, operator-dispatch, task-registration, or notification boundaries audited in this pass.
 
-## Planned production health-state adapter gate
+## Production health-state adapter evidence
 
-The exact disposable cross-process, atomic-write fault-injection, interrupted-attempt, strict-policy, notification-episode, production-isolation, and semantic-mutation requirements are defined in [`PRODUCTION-HEALTH-STATE-DECISION.md`](PRODUCTION-HEALTH-STATE-DECISION.md). They are acceptance criteria only: no production adapter exists and none of those future tests are claimed as passing.
+The source-only adapter gate from [`PRODUCTION-HEALTH-STATE-DECISION.md`](PRODUCTION-HEALTH-STATE-DECISION.md) now passes 115 retained assertions in `Test-WslHomeSchedulingStateAdapter.ps1`. Every adapter process uses a unique temporary state/policy directory and a fake fixed PowerShell command. The suite proves strict policy and schema-2 state validation, policy-hash drift refusal, separate-process counters, suspension lasting weeks without invented awake time, exact failure/deferral and six-hour notification boundaries, success resets, overlap refusal, strict exit/result classification, shared dry-run schema compatibility, pending-attempt retry without inferred success, complete old/new generations at atomic fault points, abandoned temporary cleanup, nested duplicate rejection, suppression-aware state diagnostics, and absence of production adapters.
+
+`Test-WslHomeSchedulingStateAdapterMutations.ps1` creates one disposable source copy per mutant and requires a nonzero retained-test result containing the named assertion. It rejects parser or harness failures. Eight mutations were killed at the intended seams:
+
+| Mutation | Retained assertion |
+|---|---|
+| Delay warning past the exact threshold | Second eligible failure warns even when attempts are weeks apart |
+| Run backup at an ineligible periodic event | Weeks of suspension do not create an awake-time attempt |
+| Preserve failure count after success | No-change resets both counters and opens the backup gate |
+| Accept an unknown state schema | Unknown state schema fails closed |
+| Infer success when recording a pending attempt | Interruption never infers backup success |
+| Remove the pre-replacement fault boundary | Pending pre-replacement termination leaves the old generation |
+| Preserve a notification episode after success | Success ends the notification episode |
+| Open the maintenance gate after failure | Failure blocks the backup-before-maintenance gate |
+
+The canonical fast lane passed with 44 existing home assertions, 38 shadow assertions, 115 adapter assertions, all eight adapter mutations, 19 system assertions, and PSScriptAnalyzer 1.25.0 clean across 14 paths. These are disposable source-integration results, not deployment or production-operation evidence.
 
 ## Explicitly deferred scope
 
