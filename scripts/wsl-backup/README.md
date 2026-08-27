@@ -77,13 +77,13 @@ See [`TESTING.md`](TESTING.md) for stable contracts, mutation evidence, and expl
 
 ## Laptop scheduling migration status
 
-Phase 1 and the Phase 2 fixture-only shadow coordinator are committed. The approved production health-state contract now has a reviewed, validated source-only adapter candidate pending Git integration. It remains undeployed, so the existing six production tasks remain authoritative. Task migration and consent execution remain unapproved.
+Phase 1, the Phase 2 fixture-only shadow coordinator, and the reviewed production health-state adapter are committed; the adapter was integrated at `1e2b97a`. It remains undeployed, so the existing six production tasks remain authoritative. Phase 3 source-only consent and long-job execution is the next authorization boundary; task migration remains unapproved.
 
 ## Documentation ownership
 
 - This README and component READMEs: current commands and operational behaviour.
 - [`LAPTOP-SCHEDULING-PLAN.md`](LAPTOP-SCHEDULING-PLAN.md): current implementation plan for awake-time scheduling, serialized due work, and informed consent for long operations.
-- [`PRODUCTION-HEALTH-STATE-DECISION.md`](PRODUCTION-HEALTH-STATE-DECISION.md): approved production health-state policy and acceptance contract; implementation and deployment remain unauthorized.
+- [`PRODUCTION-HEALTH-STATE-DECISION.md`](PRODUCTION-HEALTH-STATE-DECISION.md): approved production health-state policy and acceptance contract; source implementation is integrated, while deployment remains unauthorized.
 - Source code and tests: implementation truth.
 - `jchidley/tools/docs/wsl-backup.md`: clean cross-repository reference, capability status, and reading path.
 - `jchidley/tools/research/2026-08-15-wsl-debian-backup-and-home-recovery.md`: historical recovery evidence, measurements, decisions, and rejected alternatives.

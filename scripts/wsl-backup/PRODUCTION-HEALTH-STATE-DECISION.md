@@ -106,4 +106,4 @@ The controller approved, without amendment:
 - one tracked JSON policy deployed beside the Windows controller with strict validation and observable drift;
 - the atomic persistence, fail-closed recovery, disposable acceptance-test, and semantic-mutation contract above.
 
-Adapter implementation, Phase 3, deployment, production operations, commit, and push remain separate controller-owned actions.
+A later bounded authorization integrated the source-only adapter at commit `1e2b97a`, satisfying this contract's disposable evidence gate. Phase 3, deployment, and production operations remain separate controller-owned actions.
