@@ -5,6 +5,8 @@ root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 bootstrap="$root/debian-bootstrap-safe.sh"
 secret_helper="$root/migrate-ak-secrets.sh"
 template="$root/../../run_onchange_after_20-wsl-config.sh.tmpl"
+terminal_linux_template="$root/../../run_onchange_after_50-windows-terminal.sh.tmpl"
+terminal_windows_template="$root/../../run_onchange_after_50-windows-terminal.ps1.tmpl"
 
 bash -n "$bootstrap" "$secret_helper"
 if command -v shellcheck >/dev/null 2>&1; then
@@ -18,6 +20,8 @@ fi
 grep -q 'XDG_RUNTIME_DIR/fnm_multishells' "$bootstrap"
 grep -q 'native fnm-managed Pi is unavailable' "$bootstrap"
 grep -q 'DOTFILES_APPLY_WSL_INTEGRATION' "$template"
+grep -q 'DOTFILES_APPLY_WSL_INTEGRATION' "$terminal_linux_template"
+grep -q 'DOTFILES_APPLY_WSL_INTEGRATION' "$terminal_windows_template"
 grep -q 'https://github.com/${repository}.git' "$bootstrap"
 
 tmp=$(mktemp -d)

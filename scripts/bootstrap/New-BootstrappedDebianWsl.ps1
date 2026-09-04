@@ -55,7 +55,7 @@ $repositoryRoot = (& git.exe -C $PSScriptRoot rev-parse --show-toplevel | Out-St
 if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $repositoryRoot -PathType Container)) { throw 'Could not resolve the dotfiles repository root.' }
 $repositoryCommit = (& git.exe -C $repositoryRoot rev-parse HEAD | Out-String).Trim()
 if ($LASTEXITCODE -ne 0 -or $repositoryCommit -notmatch '^[0-9a-f]{40}$') { throw 'Could not resolve the committed dotfiles revision.' }
-& git.exe -C $repositoryRoot diff --quiet HEAD -- scripts/bootstrap run_onchange_after_20-wsl-config.sh.tmpl
+& git.exe -C $repositoryRoot diff --quiet HEAD -- scripts/bootstrap run_onchange_after_20-wsl-config.sh.tmpl run_onchange_after_50-windows-terminal.sh.tmpl run_onchange_after_50-windows-terminal.ps1.tmpl
 $bootstrapSourcesClean = $LASTEXITCODE -eq 0
 $foundation = @(
     [pscustomobject]@{ Name = 'dotfiles'; Source = $repositoryRoot; Destination = "/home/$User/.local/share/chezmoi"; Remote = 'https://github.com/jchidley/dotfiles.git' }

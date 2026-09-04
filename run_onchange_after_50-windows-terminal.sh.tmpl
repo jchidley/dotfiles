@@ -1,4 +1,4 @@
-{{- if eq .chezmoi.os "linux" -}}
+{{- if and (eq .chezmoi.os "linux") (eq (env "DOTFILES_APPLY_WSL_INTEGRATION") "1") -}}
 #!/bin/bash
 # Helper content fingerprint: {{ include "scripts/configure-windows-terminal.ps1" | sha256sum }}
 set -euo pipefail

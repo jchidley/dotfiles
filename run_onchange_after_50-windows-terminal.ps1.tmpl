@@ -1,4 +1,4 @@
-{{- if eq .chezmoi.os "windows" -}}
+{{- if and (eq .chezmoi.os "windows") (eq (env "DOTFILES_APPLY_WSL_INTEGRATION") "1") -}}
 #requires -Version 7.0
 # Helper content fingerprint: {{ include "scripts/configure-windows-terminal.ps1" | sha256sum }}
 # chezmoi run-on-change hook: apply the repository-only helper directly.
