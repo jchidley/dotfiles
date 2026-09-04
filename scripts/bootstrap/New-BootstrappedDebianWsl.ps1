@@ -5,16 +5,12 @@ param(
     [ValidatePattern('^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$')]
     [string]$Distribution,
 
-    [Parameter(Mandatory = $true)]
     [string]$InstallPath,
 
-    [Parameter(Mandatory = $true)]
-    [ValidateScript({ Test-Path -LiteralPath $_ -PathType Leaf })]
     [string]$RootfsPath,
 
-    [Parameter(Mandatory = $true)]
     [ValidatePattern('^[0-9a-fA-F]{64}$')]
-    [string]$ExpectedRootfsSha256,
+    [string]$ExpectedRootfsSha256 = '5ec7dc68216e75d1d4d4761474e99d8461a98d316537110314b137122a879e0f',
 
     [ValidatePattern('^[A-Za-z_][A-Za-z0-9_-]{0,31}$')]
     [string]$User = 'jack',
@@ -32,6 +28,13 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+if ([string]::IsNullOrWhiteSpace($RootfsPath)) {
+    $RootfsPath = Join-Path $env:LOCALAPPDATA 'ultra-minimal-wsl\cache\debian\13.5-store-1.26.0.0\debian-13.5-amd64-wsl-rootfs.tar.gz'
+}
+if ([string]::IsNullOrWhiteSpace($InstallPath)) {
+    $InstallPath = Join-Path 'C:\WSL' $Distribution
+}
+if (-not (Test-Path -LiteralPath $RootfsPath -PathType Leaf)) { throw "Rootfs not found: $RootfsPath" }
 $rootfs = (Resolve-Path -LiteralPath $RootfsPath -ErrorAction Stop).Path
 $install = [IO.Path]::GetFullPath($InstallPath)
 $expectedHash = $ExpectedRootfsSha256.ToLowerInvariant()

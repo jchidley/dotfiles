@@ -32,14 +32,10 @@ Updating a tool requires updating its version, URL, filename, and hash together 
 Do not paste a multi-step root setup or clone an existing VHDX. From PowerShell 7 in this repository, preview the complete retained build:
 
 ```powershell
-$Rootfs = Join-Path $env:LOCALAPPDATA 'ultra-minimal-wsl\cache\debian\13.5-store-1.26.0.0\debian-13.5-amd64-wsl-rootfs.tar.gz'
-
-./scripts/bootstrap/New-BootstrappedDebianWsl.ps1 `
-  -Distribution Debian3 `
-  -InstallPath C:\WSL\Debian3 `
-  -RootfsPath $Rootfs `
-  -ExpectedRootfsSha256 5ec7dc68216e75d1d4d4761474e99d8461a98d316537110314b137122a879e0f
+./scripts/bootstrap/New-BootstrappedDebianWsl.ps1 -Distribution Debian3
 ```
+
+The default Debian 13.5 profile owns the verified local rootfs cache path, its SHA-256, and `C:\WSL\<distribution>`. Advanced callers may override all three explicitly.
 
 After checking the plan, repeat with `-Execute`. The builder owns the pristine import, root and user setup, bootstrap, interactive verification, failure cleanup, and final stop. It retains a successful distribution and never copies secrets or enables host-wide WSL integration.
 
