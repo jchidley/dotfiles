@@ -18,6 +18,7 @@ prn
 {{ end }}
 
 # Repository-only programs and documentation (not rendered home state)
+./AGENTS.override.md
 scripts/
 docs/
 tests/

@@ -48,7 +48,7 @@ No WSL, Restic, Scheduled Task, credential, marker, deployed file, production st
 
 The undeployed Windows-driven Phase 4 candidate was rejected and removed. Routine Restic work now has a Linux-owned source candidate: `wsl-home-scheduler` serializes backup, health status, and due retention with Linux locks and atomic state; `wsl-home-scheduler.timer` starts after the distro starts naturally and repeats every 15 minutes only while Linux remains running. Setup installs these units and never registers Windows home-backup tasks.
 
-The repository `AGENTS.md` now makes the OS boundary explicit: Windows must not start WSL merely to inspect, poll, schedule, or run routine Linux-owned work. Windows remains available only for visible consent, AC-power state, idle-sleep inhibition, and whole-distro export.
+The repository `AGENTS.override.md` now makes the OS boundary explicit: Windows must not start WSL merely to inspect, poll, schedule, or run routine Linux-owned work. Windows remains available only for visible consent, AC-power state, idle-sleep inhibition, and whole-distro export.
 
 Disposable scheduler tests pass 30 assertions and five attributed semantic mutations covering backup gating, exact retention due boundaries, malformed-state refusal, overlap refusal, atomic state replacement, systemd unit shape, and absence of Windows execution boundaries. The reversible migration fixture passes 78 assertions and five attributed mutations covering inventory completeness/drift, durable rollback evidence, exact restoration, interruption recovery, explicit cutover, and the observation deletion gate. Final canonical fast-lane totals are recorded in [`TESTING.md`](TESTING.md).
 
