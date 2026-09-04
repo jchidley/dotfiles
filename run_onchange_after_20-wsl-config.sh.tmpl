@@ -1,7 +1,8 @@
-{{- if eq .chezmoi.os "linux" -}}
+{{- if and (eq .chezmoi.os "linux") (eq (env "DOTFILES_APPLY_WSL_INTEGRATION") "1") -}}
 #!/bin/bash
-# Ensure WSL interop, .wslconfig, and /etc/wsl.conf are correct.
-# Only runs inside WSL.
+# Explicit opt-in: modify WSL interop, Windows .wslconfig, and /etc/wsl.conf.
+# Bootstrap/chezmoi apply omits this host-wide integration unless
+# DOTFILES_APPLY_WSL_INTEGRATION=1 is present while rendering.
 
 set -euo pipefail
 

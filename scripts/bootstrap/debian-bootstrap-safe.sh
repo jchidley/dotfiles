@@ -1,15 +1,21 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Idempotent Debian/WSL bootstrap driven only by workspace-repos.tsv.
+# Rebuild the declared Debian/WSL workspace without relying on pre-existing tools,
+# credentials, shell state, or root-owned files in the user's home directory.
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 MANIFEST="${WORKSPACE_MANIFEST:-$SCRIPT_DIR/workspace-repos.tsv}"
+VERSION_LOCK="${BOOTSTRAP_VERSION_LOCK:-$SCRIPT_DIR/bootstrap-versions.env}"
 BOOTSTRAP_PROFILE="${BOOTSTRAP_PROFILE:-dev}"
 BOOTSTRAP_MODE="${BOOTSTRAP_MODE:-core}"
 BOOTSTRAP_GROUPS="${BOOTSTRAP_GROUPS:-}"
 BOOTSTRAP_DRY_RUN="${BOOTSTRAP_DRY_RUN:-0}"
+BOOTSTRAP_OFFLINE="${BOOTSTRAP_OFFLINE:-0}"
+BOOTSTRAP_CACHE="${BOOTSTRAP_CACHE:-$HOME/.cache/dotfiles-bootstrap}"
 SKIP_SYSTEM_PACKAGES="${SKIP_SYSTEM_PACKAGES:-0}"
 APPLY_CHEZMOI="${APPLY_CHEZMOI:-0}"
+DOTFILES_APPLY_WSL_INTEGRATION="${DOTFILES_APPLY_WSL_INTEGRATION:-0}"
+BOOTSTRAP_STATE_DIR="${BOOTSTRAP_STATE_DIR:-$HOME/.local/state/dotfiles-bootstrap}"
 
 run() {
   if [[ "$BOOTSTRAP_DRY_RUN" == 1 ]]; then
@@ -21,179 +27,168 @@ run() {
   fi
 }
 
-install_fnm() {
-  local fnm_dir fnm_bin asset tmp_dir default_version
-  fnm_dir="${XDG_DATA_HOME:-$HOME/.local/share}/fnm"
-  fnm_bin="$fnm_dir/fnm"
+fail() { echo "Bootstrap error: $*" >&2; exit 1; }
+marker() { printf 'bootstrap-check:%s:%s\n' "$1" "$2"; }
 
-  if [[ ! -x "$fnm_bin" ]]; then
-    case "$(uname -m)" in
-      x86_64|amd64) asset=fnm-linux.zip ;;
-      aarch64|arm64) asset=fnm-arm64.zip ;;
-      armv7l|armv6l) asset=fnm-arm32.zip ;;
-      *) echo "Unsupported architecture for fnm: $(uname -m)" >&2; return 1 ;;
-    esac
+[[ -r "$MANIFEST" ]] || fail "manifest not readable: $MANIFEST"
+[[ -r "$VERSION_LOCK" ]] || fail "version lock not readable: $VERSION_LOCK"
+# The caller may override this repository-owned lock path.
+# shellcheck disable=SC1090
+source "$VERSION_LOCK"
+[[ "${BOOTSTRAP_LOCK_SCHEMA:-}" == 1 ]] || fail "unsupported version-lock schema"
+[[ $BOOTSTRAP_DRY_RUN =~ ^[01]$ && $BOOTSTRAP_OFFLINE =~ ^[01]$ ]] || fail "boolean options must be 0 or 1"
+[[ $APPLY_CHEZMOI =~ ^[01]$ && $DOTFILES_APPLY_WSL_INTEGRATION =~ ^[01]$ ]] || fail "boolean options must be 0 or 1"
+[[ $EUID -ne 0 ]] || fail "run as the target user, not root; sudo is used only for system provisioning"
+[[ $(id -u) == "$(stat -c %u "$HOME")" ]] || fail "HOME is not owned by the target user: $HOME"
+case "$(uname -m)" in x86_64|amd64) ;; *) fail "the current lock supports only x86-64" ;; esac
 
-    if [[ "$BOOTSTRAP_DRY_RUN" == 1 ]]; then
-      echo "DRY-RUN: install latest fnm release ($asset) at $fnm_bin"
-      echo "DRY-RUN: install and select the latest Node.js LTS if no default exists"
-      return 0
-    fi
-
-    (
-      tmp_dir=$(mktemp -d)
-      trap 'rm -rf "$tmp_dir"' EXIT
-      curl -fL --retry 3 --connect-timeout 10 --max-time 120 \
-        "https://github.com/Schniz/fnm/releases/latest/download/$asset" \
-        -o "$tmp_dir/fnm.zip"
-      unzip -q "$tmp_dir/fnm.zip" -d "$tmp_dir/unpacked"
-      install -d -m 755 "$fnm_dir"
-      install -m 755 "$tmp_dir/unpacked/fnm" "$fnm_bin"
-    )
-  else
-    echo "  - fnm already installed: $($fnm_bin --version)"
+if [[ "$BOOTSTRAP_DRY_RUN" != 1 ]]; then
+  expected_runtime="/run/user/$(id -u)"
+  if [[ ! -d "$expected_runtime" ]]; then
+    sudo install -d -o "$(id -u)" -g "$(id -g)" -m 0700 "$expected_runtime"
   fi
+  [[ -O "$expected_runtime" && -w "$expected_runtime" ]] || fail "runtime directory is not owned and writable by the target user: $expected_runtime"
+  export XDG_RUNTIME_DIR="$expected_runtime"
+fi
 
-  [[ "$BOOTSTRAP_DRY_RUN" == 1 ]] && return 0
+fetch_locked() {
+  local name=$1 file=$2 url=$3 expected=$4 temporary
+  local destination="$BOOTSTRAP_CACHE/$file"
+  if [[ -f "$destination" ]] && printf '%s  %s\n' "$expected" "$destination" | sha256sum -c - >/dev/null 2>&1; then
+    marker "$name-cache" hit >&2
+    printf '%s\n' "$destination"
+    return 0
+  fi
+  [[ "$BOOTSTRAP_OFFLINE" != 1 ]] || fail "offline cache miss or hash mismatch: $destination"
+  if [[ "$BOOTSTRAP_DRY_RUN" == 1 ]]; then
+    echo "DRY-RUN: download $url -> $destination" >&2
+    printf '%s\n' "$destination"
+    return 0
+  fi
+  mkdir -p "$BOOTSTRAP_CACHE"
+  temporary=$(mktemp "$BOOTSTRAP_CACHE/.${file}.XXXXXX")
+  trap 'rm -f "${temporary:-}"' RETURN
+  curl -fL --retry 3 --connect-timeout 10 --max-time 300 "$url" -o "$temporary"
+  printf '%s  %s\n' "$expected" "$temporary" | sha256sum -c - >/dev/null
+  chmod 0644 "$temporary"
+  mv -f "$temporary" "$destination"
+  trap - RETURN
+  marker "$name-cache" downloaded >&2
+  printf '%s\n' "$destination"
+}
+
+install_chezmoi() {
+  local archive tmp binary="$HOME/.local/bin/chezmoi"
+  archive=$(fetch_locked chezmoi "$CHEZMOI_FILE" "$CHEZMOI_URL" "$CHEZMOI_SHA256")
+  if [[ "$BOOTSTRAP_DRY_RUN" == 1 ]]; then echo "DRY-RUN: install chezmoi $CHEZMOI_VERSION at $binary"; return; fi
+  if [[ -x "$binary" && $($binary --version) == "chezmoi version v$CHEZMOI_VERSION,"* ]]; then marker chezmoi "$CHEZMOI_VERSION"; return; fi
+  tmp=$(mktemp -d); trap 'rm -rf "${tmp:-}"' RETURN
+  tar -xzf "$archive" -C "$tmp"
+  install -m 0755 "$tmp/chezmoi" "$binary"
+  trap - RETURN; rm -rf "$tmp"
+  [[ $($binary --version) == "chezmoi version v$CHEZMOI_VERSION,"* ]] || fail "chezmoi version verification failed"
+  marker chezmoi "$CHEZMOI_VERSION"
+}
+
+install_fnm_and_node() {
+  local fnm_archive node_archive tmp fnm_dir="$HOME/.local/share/fnm" fnm_bin node_dir
+  fnm_bin="$fnm_dir/fnm"
+  node_dir="$fnm_dir/node-versions/v$NODE_VERSION/installation"
+  fnm_archive=$(fetch_locked fnm "$FNM_FILE" "$FNM_URL" "$FNM_SHA256")
+  node_archive=$(fetch_locked node "$NODE_FILE" "$NODE_URL" "$NODE_SHA256")
+  if [[ "$BOOTSTRAP_DRY_RUN" == 1 ]]; then echo "DRY-RUN: install fnm $FNM_VERSION and Node v$NODE_VERSION"; return; fi
+  mkdir -p "$fnm_dir"
+  if [[ ! -x "$fnm_bin" || $($fnm_bin --version) != "fnm $FNM_VERSION" ]]; then
+    tmp=$(mktemp -d); trap 'rm -rf "${tmp:-}"' RETURN
+    unzip -q "$fnm_archive" -d "$tmp"
+    install -m 0755 "$tmp/fnm" "$fnm_bin"
+    trap - RETURN; rm -rf "$tmp"
+  fi
+  if [[ ! -x "$node_dir/bin/node" || $("$node_dir/bin/node" --version) != "v$NODE_VERSION" ]]; then
+    rm -rf "$node_dir"
+    mkdir -p "$node_dir"
+    tar -xJf "$node_archive" --strip-components=1 -C "$node_dir"
+  fi
   export PATH="$fnm_dir:$PATH"
   eval "$("$fnm_bin" env --shell bash)"
-  default_version=$(fnm default 2>/dev/null || true)
-  if [[ -z "$default_version" ]]; then
-    fnm install --lts --use --progress never
-    fnm default "$(fnm current)"
-  else
-    fnm use "$default_version"
-  fi
+  "$fnm_bin" default "v$NODE_VERSION" >/dev/null
+  "$fnm_bin" use "v$NODE_VERSION" >/dev/null
+  [[ $(fnm --version) == "fnm $FNM_VERSION" ]] || fail "fnm version verification failed"
+  [[ $(node --version) == "v$NODE_VERSION" ]] || fail "Node version verification failed"
+  marker fnm "$FNM_VERSION"
+  marker node "$NODE_VERSION"
 }
 
 install_mcfly() {
-  local version=v0.9.4 asset url tmp_dir
-
-  if [[ -x "$HOME/.local/bin/mcfly" ]]; then
-    echo "  - McFly already installed: $("$HOME/.local/bin/mcfly" --version)"
-    return 0
+  local archive tmp binary="$HOME/.local/bin/mcfly"
+  archive=$(fetch_locked mcfly "$MCFLY_FILE" "$MCFLY_URL" "$MCFLY_SHA256")
+  if [[ "$BOOTSTRAP_DRY_RUN" == 1 ]]; then echo "DRY-RUN: install McFly $MCFLY_VERSION at $binary"; return; fi
+  if [[ ! -x "$binary" || $($binary --version) != "mcfly $MCFLY_VERSION" ]]; then
+    tmp=$(mktemp -d); trap 'rm -rf "${tmp:-}"' RETURN
+    tar -xzf "$archive" -C "$tmp"
+    install -m 0755 "$tmp/mcfly" "$binary"
+    trap - RETURN; rm -rf "$tmp"
   fi
-
-  case "$(uname -m)" in
-    x86_64|amd64) asset="mcfly-$version-x86_64-unknown-linux-musl.tar.gz" ;;
-    aarch64|arm64) asset="mcfly-$version-aarch64-unknown-linux-musl.tar.gz" ;;
-    *) echo "Unsupported architecture for McFly: $(uname -m)" >&2; return 1 ;;
-  esac
-  url="https://github.com/cantino/mcfly/releases/download/$version/$asset"
-
-  if [[ "$BOOTSTRAP_DRY_RUN" == 1 ]]; then
-    echo "DRY-RUN: install McFly $version ($asset) at $HOME/.local/bin/mcfly"
-    return 0
-  fi
-
-  (
-    tmp_dir=$(mktemp -d)
-    trap 'rm -rf "$tmp_dir"' EXIT
-    curl -fL --retry 3 --connect-timeout 10 --max-time 120 "$url" -o "$tmp_dir/mcfly.tar.gz"
-    tar -xzf "$tmp_dir/mcfly.tar.gz" -C "$tmp_dir"
-    install -d -m 755 "$HOME/.local/bin"
-    install -m 755 "$tmp_dir/mcfly" "$HOME/.local/bin/mcfly"
-  )
-  echo "  - installed McFly: $("$HOME/.local/bin/mcfly" --version)"
+  [[ $($binary --version) == "mcfly $MCFLY_VERSION" ]] || fail "McFly version verification failed"
+  marker mcfly "$MCFLY_VERSION"
 }
 
 install_pi() {
-  local package="@earendil-works/pi-coding-agent"
-
-  if [[ "$BOOTSTRAP_DRY_RUN" == 1 ]]; then
-    echo "DRY-RUN: install native WSL Pi package ($package) when absent"
-    return 0
+  local archive package='@earendil-works/pi-coding-agent'
+  archive=$(fetch_locked pi "$PI_FILE" "$PI_URL" "$PI_SHA256")
+  if [[ "$BOOTSTRAP_DRY_RUN" == 1 ]]; then echo "DRY-RUN: install Pi $PI_VERSION from $archive"; return; fi
+  case "$(command -v node 2>/dev/null || true)" in /mnt/c/*|"") fail "native fnm-managed Node.js is unavailable" ;; esac
+  if ! command -v pi >/dev/null 2>&1 || [[ $(pi --version) != "$PI_VERSION" ]]; then
+    npm install -g "$archive"
   fi
-
-  case "$(command -v node 2>/dev/null || true)" in
-    /mnt/c/*|"")
-      echo "Native fnm-managed Node.js is unavailable; refusing to install Pi with Windows npm." >&2
-      return 1
-      ;;
-  esac
-
-  if npm list -g --depth=0 "$package" >/dev/null 2>&1; then
-    echo "  - Pi already installed: $(pi --version)"
-  else
-    npm install -g "$package"
-    echo "  - installed Pi: $(pi --version)"
-  fi
+  [[ $(pi --version) == "$PI_VERSION" ]] || fail "Pi version verification failed"
+  npm list -g --depth=0 "$package" >/dev/null
+  marker npm "$(npm --version)"
+  marker pi "$PI_VERSION"
 }
 
 case "${BOOTSTRAP_MODE,,}" in
-  core) default_groups="foundation" ;;
-  full) default_groups="foundation,active,references,optional" ;;
-  *) echo "Invalid BOOTSTRAP_MODE: $BOOTSTRAP_MODE (expected core or full)" >&2; exit 2 ;;
+  core) default_groups=foundation ;;
+  full) default_groups=foundation,active,references,optional ;;
+  *) fail "invalid BOOTSTRAP_MODE: $BOOTSTRAP_MODE (expected core or full)" ;;
 esac
 BOOTSTRAP_GROUPS="${BOOTSTRAP_GROUPS:-$default_groups}"
-
-[[ -r "$MANIFEST" ]] || { echo "Manifest not readable: $MANIFEST" >&2; exit 2; }
-
-group_selected() {
-  [[ ",${BOOTSTRAP_GROUPS}," == *",$1,"* ]]
-}
-
-profile_selected() {
-  [[ "$1" == all || ",$1," == *",${BOOTSTRAP_PROFILE},"* ]]
-}
-
-expand_destination() {
-  case "$1" in
-    \~) printf '%s\n' "$HOME" ;;
-    \~/*) printf '%s/%s\n' "$HOME" "${1:2}" ;;
-    *) printf '%s\n' "$1" ;;
-  esac
-}
+group_selected() { [[ ",${BOOTSTRAP_GROUPS}," == *",$1,"* ]]; }
+profile_selected() { [[ "$1" == all || ",$1," == *",${BOOTSTRAP_PROFILE},"* ]]; }
+expand_destination() { case "$1" in \~) printf '%s\n' "$HOME" ;; \~/*) printf '%s/%s\n' "$HOME" "${1:2}" ;; *) printf '%s\n' "$1" ;; esac; }
 
 if [[ "$SKIP_SYSTEM_PACKAGES" != 1 ]]; then
-  run sudo apt update
-  run sudo apt install -y ca-certificates curl direnv dirmngr git gnupg2 jq openssh-client pinentry-curses restic shellcheck sqlite3 tmux unzip zoxide
+  run sudo apt-get update
+  run sudo apt-get install -y ca-certificates curl direnv dirmngr git gnupg2 jq openssh-client pinentry-curses restic shellcheck sqlite3 sudo tmux unzip xz-utils zoxide
 fi
-
-run mkdir -p "$HOME/git" "$HOME/tools" "$HOME/work" "$HOME/.local/bin"
-install_fnm
+run mkdir -p "$HOME/git" "$HOME/work" "$HOME/.local/bin" "$BOOTSTRAP_STATE_DIR"
+install_chezmoi
+install_fnm_and_node
 install_mcfly
 install_pi
 
 RESTIC_HOME_INSTALLER="$SCRIPT_DIR/../wsl-backup/home/install.sh"
-if [[ -x "$RESTIC_HOME_INSTALLER" ]]; then
-  run "$RESTIC_HOME_INSTALLER"
-fi
-
+[[ ! -x "$RESTIC_HOME_INSTALLER" ]] || run "$RESTIC_HOME_INSTALLER"
 WSL_SYSTEM_BACKUP_INSTALLER="$SCRIPT_DIR/../wsl-backup/system/install.sh"
-if [[ -x "$WSL_SYSTEM_BACKUP_INSTALLER" ]]; then
-  run "$WSL_SYSTEM_BACKUP_INSTALLER"
-fi
+[[ ! -x "$WSL_SYSTEM_BACKUP_INSTALLER" ]] || run "$WSL_SYSTEM_BACKUP_INSTALLER"
 
 echo "==> Repository manifest: profile=$BOOTSTRAP_PROFILE groups=$BOOTSTRAP_GROUPS"
-while IFS=$'\t' read -r group kind repository destination profiles extra; do
+while IFS=$'\t' read -r group _kind repository destination profiles extra; do
   [[ -z "${group:-}" || "$group" == \#* ]] && continue
-  [[ -z "${extra:-}" ]] || { echo "Invalid manifest row for $repository" >&2; exit 2; }
+  [[ -z "${extra:-}" ]] || fail "invalid manifest row for $repository"
   group_selected "$group" || continue
   profile_selected "$profiles" || continue
   destination="$(expand_destination "$destination")"
-
-  case "$kind" in
-    chezmoi)
-      if [[ -d "$destination/.git" ]]; then
-        echo "  - $repository already initialised at $destination"
-      else
-        run chezmoi init "$repository"
-      fi
-      ;;
-    git)
-      if [[ -d "$destination/.git" ]]; then
-        echo "  - $repository already exists at $destination"
-      elif [[ -e "$destination" ]]; then
-        echo "Refusing to replace non-Git destination: $destination" >&2
-        exit 1
-      else
-        run mkdir -p "$(dirname -- "$destination")"
-        run git clone "git@github.com:${repository}.git" "$destination"
-      fi
-      ;;
-    *) echo "Unknown manifest kind '$kind' for $repository" >&2; exit 2 ;;
-  esac
+  case "$_kind" in chezmoi|git) ;; *) fail "unknown manifest kind: $_kind" ;; esac
+  if [[ -d "$destination/.git" ]]; then
+    echo "  - $repository already exists at $destination"
+  elif [[ -e "$destination" ]]; then
+    fail "refusing to replace non-Git destination: $destination"
+  else
+    run mkdir -p "$(dirname -- "$destination")"
+    run git clone "https://github.com/${repository}.git" "$destination"
+  fi
+  [[ "$BOOTSTRAP_DRY_RUN" == 1 ]] || marker "repository-$repository" "$(git -C "$destination" rev-parse HEAD)"
 done < "$MANIFEST"
 
 AK_REPO="$HOME/git/ak"
@@ -203,15 +198,38 @@ if [[ -x "$AK_REPO/bin/ak" ]]; then
   run mkdir -p "$HOME/.config/direnv/lib"
   run ln -sfn "$AK_REPO/integrations/direnv.sh" "$HOME/.config/direnv/lib/ak.sh"
 fi
-
 if [[ -x "$HOME/git/agent-skills/install.sh" ]]; then
   run "$HOME/git/agent-skills/install.sh" install pi
+  if [[ "$BOOTSTRAP_DRY_RUN" != 1 ]]; then
+    pi list | grep -F "$HOME/git/agent-skills" >/dev/null || fail "Pi agent-skills package registration is absent"
+    marker pi-package "$HOME/git/agent-skills"
+  fi
 fi
 
 if [[ "$APPLY_CHEZMOI" == 1 ]]; then
-  run chezmoi apply
+  export DOTFILES_APPLY_WSL_INTEGRATION
+  run "$HOME/.local/bin/chezmoi" apply
 else
   echo "  - chezmoi apply deferred; inspect with: chezmoi diff"
 fi
 
-echo "Bootstrap complete. 'full' means every explicitly declared manifest group, never every GitHub repository."
+if [[ "$BOOTSTRAP_DRY_RUN" != 1 ]]; then
+  repositories=$(while IFS=$'\t' read -r group _ repository destination profiles extra; do
+    [[ -z "${group:-}" || "$group" == \#* || -n "${extra:-}" ]] && continue
+    if ! group_selected "$group" || ! profile_selected "$profiles"; then continue; fi
+    destination="$(expand_destination "$destination")"
+    jq -nc --arg repository "$repository" --arg path "$destination" --arg commit "$(git -C "$destination" rev-parse HEAD)" '{repository:$repository,path:$path,commit:$commit}'
+  done < "$MANIFEST" | jq -s .)
+  jq -n \
+    --arg createdUtc "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+    --arg profile "$BOOTSTRAP_PROFILE" --arg groups "$BOOTSTRAP_GROUPS" \
+    --arg chezmoi "$("$HOME/.local/bin/chezmoi" --version)" --arg fnm "$(fnm --version)" \
+    --arg node "$(node --version)" --arg npm "$(npm --version)" --arg pi "$(pi --version)" \
+    --arg mcfly "$("$HOME/.local/bin/mcfly" --version)" --argjson repositories "$repositories" \
+    '{schema:1,createdUtc:$createdUtc,profile:$profile,groups:$groups,chezmoi:$chezmoi,fnm:$fnm,node:$node,npm:$npm,pi:$pi,mcfly:$mcfly,repositories:$repositories,secrets:"not-copied"}' \
+    >"$BOOTSTRAP_STATE_DIR/installed-manifest.json"
+  chmod 0600 "$BOOTSTRAP_STATE_DIR/installed-manifest.json"
+  marker manifest "$BOOTSTRAP_STATE_DIR/installed-manifest.json"
+fi
+
+echo "Bootstrap complete. Secrets and host-wide WSL integration are separate explicit operations."
