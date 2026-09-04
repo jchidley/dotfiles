@@ -27,9 +27,11 @@ not preserve nested quotes or choose which shell expands variables. Transport
 nontrivial destination scripts with the skill's stdin/encoded helpers and
 verify cross-boundary writes independently.
 
-Pi 0.84+ built-in file tools accept relative paths, `C:/...`, and supported
-Git Bash/Cygwin/WSL drive aliases. Commands still use their actual shell's path
-namespace. Keep builds, clones, installs, and file watchers on WSL ext4 rather
+Pi 0.85+ built-in file tools accept relative paths, `C:/...`, and supported
+Git Bash/Cygwin/WSL drive aliases, and execute against the active session
+`ctx.cwd`. Pi also owns terminal hyperlink, image, and truecolor capability
+overrides. Commands still use their actual shell's path namespace. Keep builds,
+clones, installs, and file watchers on WSL ext4 rather
 than `/mnt/c`. Use `~/git` as the normal repository checkout root in each OS;
 for WSL-targeted work, use the distro's `~/git`, not `/mnt/c/...`.
 
