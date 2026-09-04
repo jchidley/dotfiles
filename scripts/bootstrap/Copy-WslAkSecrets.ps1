@@ -30,6 +30,10 @@ $MigrationScript = Join-Path $PSScriptRoot 'migrate-ak-secrets.sh'
 if (-not (Test-Path -LiteralPath $MigrationScript -PathType Leaf)) {
     throw "Migration helper is missing: $MigrationScript"
 }
+$WslExecutable = Join-Path $env:WINDIR 'System32\wsl.exe'
+if (-not (Test-Path -LiteralPath $WslExecutable -PathType Leaf)) {
+    throw "System WSL executable is missing: $WslExecutable"
+}
 
 Write-Output 'AK/GnuPG secret migration plan:'
 Write-Output "  source: $SourceDistribution ($SourceUser)"
@@ -55,7 +59,7 @@ function Get-WslScriptPath {
 function Invoke-WslPipeProcess {
     param([string[]]$Arguments, [bool]$RedirectInput)
     $start = [System.Diagnostics.ProcessStartInfo]::new()
-    $start.FileName = (Get-Command wsl.exe -ErrorAction Stop).Source
+    $start.FileName = $WslExecutable
     $start.UseShellExecute = $false
     $start.RedirectStandardInput = $RedirectInput
     $start.RedirectStandardOutput = $true

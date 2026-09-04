@@ -51,6 +51,8 @@ elseif (Test-Path -LiteralPath $install) { throw "Install path already exists: $
 
 $bootstrapWindows = Join-Path $PSScriptRoot 'debian-bootstrap-safe.sh'
 if (-not (Test-Path -LiteralPath $bootstrapWindows -PathType Leaf)) { throw "Bootstrap script is missing: $bootstrapWindows" }
+$wslExecutable = Join-Path $env:WINDIR 'System32\wsl.exe'
+if (-not (Test-Path -LiteralPath $wslExecutable -PathType Leaf)) { throw "System WSL executable is missing: $wslExecutable" }
 
 Write-Output "Bootstrapped Debian WSL plan:"
 Write-Output "  distribution: $Distribution"
@@ -76,17 +78,18 @@ if (-not $Execute) {
 function Invoke-WslCommand {
     param(
         [Parameter(Mandatory = $true)][string[]]$Arguments,
-        [AllowNull()][string]$InputText
+        [AllowNull()][string]$InputText,
+        [Text.Encoding]$OutputEncoding = [Text.UTF8Encoding]::new($false)
     )
     $start = [Diagnostics.ProcessStartInfo]::new()
-    $start.FileName = (Get-Command wsl.exe -CommandType Application -ErrorAction Stop).Source
+    $start.FileName = $wslExecutable
     $start.UseShellExecute = $false
     $start.CreateNoWindow = $true
     $start.RedirectStandardOutput = $true
     $start.RedirectStandardError = $true
     $start.RedirectStandardInput = $null -ne $InputText
-    $start.StandardOutputEncoding = [Text.UTF8Encoding]::new($false)
-    $start.StandardErrorEncoding = [Text.UTF8Encoding]::new($false)
+    $start.StandardOutputEncoding = $OutputEncoding
+    $start.StandardErrorEncoding = $OutputEncoding
     foreach ($argument in $Arguments) { [void]$start.ArgumentList.Add($argument) }
     $process = [Diagnostics.Process]::new()
     $process.StartInfo = $start
@@ -115,7 +118,7 @@ function Assert-WslSuccess {
     if (-not [string]::IsNullOrWhiteSpace($Result.Stderr)) { Write-Warning $Result.Stderr.TrimEnd() }
 }
 
-$list = Invoke-WslCommand -Arguments @('--list', '--quiet')
+$list = Invoke-WslCommand -Arguments @('--list', '--quiet') -OutputEncoding ([Text.Encoding]::Unicode)
 Assert-WslSuccess -Result $list -Stage 'WSL registration inspection'
 $registered = @($list.Stdout -split "`r?`n" | ForEach-Object { $_.Trim([char]0).Trim() } | Where-Object { $_ })
 if ($ResumeExisting) {

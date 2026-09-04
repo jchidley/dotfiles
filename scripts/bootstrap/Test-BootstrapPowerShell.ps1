@@ -30,6 +30,19 @@ try {
         throw 'Retained-distro builder preview contract failed.'
     }
 
+    foreach ($launcher in @('New-BootstrappedDebianWsl.ps1', 'Copy-WslAkSecrets.ps1')) {
+        $launcherText = Get-Content -LiteralPath (Join-Path $PSScriptRoot $launcher) -Raw
+        if ($launcherText -match 'Get-Command\s+wsl\.exe') {
+            throw "$launcher uses ambiguous Get-Command resolution for wsl.exe."
+        }
+        if ($launcherText -notmatch "System32\\wsl\.exe") {
+            throw "$launcher does not bind the System32 WSL executable."
+        }
+        if ($launcher -eq 'New-BootstrappedDebianWsl.ps1' -and $launcherText -notmatch "--list', '--quiet'\) -OutputEncoding \(\[Text\.Encoding\]::Unicode\)") {
+            throw 'The retained builder does not decode redirected WSL registration output as UTF-16LE.'
+        }
+    }
+
     $copyScript = Join-Path $PSScriptRoot 'Copy-WslAkSecrets.ps1'
     $copyPreview = & $copyScript -SourceDistribution Source -SourceUser jack -TargetDistribution Target -TargetUser jack | Out-String
     if ($copyPreview -notmatch 'Preview only' -or $copyPreview -notmatch 'no archive is written to Windows') {
