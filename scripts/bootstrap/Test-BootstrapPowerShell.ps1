@@ -49,6 +49,9 @@ try {
             if ($launcherText -match "'wslpath'" -or $launcherText -notmatch 'bundle create') {
                 throw 'The retained builder does not stage its committed bootstrap onto target ext4.'
             }
+            if ($launcherText -notmatch 'status --porcelain' -or $launcherText -notmatch 'checkout -B main FETCH_HEAD') {
+                throw 'The retained builder cannot safely resume a clean older dotfiles checkout.'
+            }
         }
     }
 
