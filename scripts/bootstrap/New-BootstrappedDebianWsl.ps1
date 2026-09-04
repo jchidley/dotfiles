@@ -112,7 +112,12 @@ function Assert-WslSuccess {
         [Parameter(Mandatory = $true)][string]$Stage,
         [switch]$Quiet
     )
-    if ($Result.ExitCode -ne 0) { throw "$Stage failed with exit $($Result.ExitCode): $($Result.Stderr.Trim())" }
+    if ($Result.ExitCode -ne 0) {
+        $details = @("$Stage failed with exit $($Result.ExitCode).")
+        if (-not [string]::IsNullOrWhiteSpace($Result.Stdout)) { $details += "stdout:`n$($Result.Stdout.TrimEnd())" }
+        if (-not [string]::IsNullOrWhiteSpace($Result.Stderr)) { $details += "stderr:`n$($Result.Stderr.TrimEnd())" }
+        throw ($details -join "`n")
+    }
     if (-not $Quiet -and -not [string]::IsNullOrWhiteSpace($Result.Stdout)) { Write-Output $Result.Stdout.TrimEnd() }
     if (-not [string]::IsNullOrWhiteSpace($Result.Stderr)) { Write-Warning $Result.Stderr.TrimEnd() }
 }

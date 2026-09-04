@@ -49,6 +49,7 @@ if [[ "$BOOTSTRAP_DRY_RUN" != 1 ]]; then
   fi
   [[ -O "$expected_runtime" && -w "$expected_runtime" ]] || fail "runtime directory is not owned and writable by the target user: $expected_runtime"
   export XDG_RUNTIME_DIR="$expected_runtime"
+  install -d -m 0700 "$XDG_RUNTIME_DIR/fnm_multishells"
 fi
 
 fetch_locked() {
@@ -68,7 +69,7 @@ fetch_locked() {
   mkdir -p "$BOOTSTRAP_CACHE"
   temporary=$(mktemp "$BOOTSTRAP_CACHE/.${file}.XXXXXX")
   trap 'rm -f "${temporary:-}"' RETURN
-  curl -fL --retry 3 --connect-timeout 10 --max-time 300 "$url" -o "$temporary"
+  curl --fail --location --silent --show-error --retry 3 --connect-timeout 10 --max-time 300 "$url" -o "$temporary"
   printf '%s  %s\n' "$expected" "$temporary" | sha256sum -c - >/dev/null
   chmod 0644 "$temporary"
   mv -f "$temporary" "$destination"
