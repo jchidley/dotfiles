@@ -25,7 +25,8 @@ try {
     [IO.File]::WriteAllText($rootfs, 'preview-only-rootfs', [Text.UTF8Encoding]::new($false))
     $rootfsHash = (Get-FileHash -LiteralPath $rootfs -Algorithm SHA256).Hash
     $builder = Join-Path $PSScriptRoot 'New-BootstrappedDebianWsl.ps1'
-    $buildPreview = & $builder -Distribution Debian3 -InstallPath (Join-Path $temp 'Debian3') -RootfsPath $rootfs -ExpectedRootfsSha256 $rootfsHash | Out-String
+    $previewDistribution = "Dotfiles-Builder-Preview-$([Guid]::NewGuid().ToString('N').Substring(0, 8))"
+    $buildPreview = & $builder -Distribution $previewDistribution -InstallPath (Join-Path $temp $previewDistribution) -RootfsPath $rootfs -ExpectedRootfsSha256 $rootfsHash | Out-String
     if ($buildPreview -notmatch 'Preview only' -or $buildPreview -notmatch 'secrets: not copied') {
         throw 'Retained-distro builder preview contract failed.'
     }
@@ -34,6 +35,9 @@ try {
         $launcherText = Get-Content -LiteralPath (Join-Path $PSScriptRoot $launcher) -Raw
         if ($launcherText -match 'Get-Command\s+wsl\.exe') {
             throw "$launcher uses ambiguous Get-Command resolution for wsl.exe."
+        }
+        if ($launcherText -match '(?m)^\s*(elif|then|fi)\b') {
+            throw "$launcher contains a Bash control-flow keyword in PowerShell code."
         }
         if ($launcherText -notmatch "System32\\wsl\.exe") {
             throw "$launcher does not bind the System32 WSL executable."

@@ -70,11 +70,6 @@ if ($ResumeExisting) {
 else {
     Write-Output '  failure behavior: unregister the new distribution and remove only its new install path'
 }
-if (-not $Execute) {
-    Write-Output 'Preview only. Re-run with -Execute to complete the retained physical-host WSL distribution.'
-    return
-}
-
 function Invoke-WslCommand {
     param(
         [Parameter(Mandatory = $true)][string[]]$Arguments,
@@ -112,19 +107,28 @@ function Invoke-WslCommand {
 }
 
 function Assert-WslSuccess {
-    param([Parameter(Mandatory = $true)]$Result, [Parameter(Mandatory = $true)][string]$Stage)
+    param(
+        [Parameter(Mandatory = $true)]$Result,
+        [Parameter(Mandatory = $true)][string]$Stage,
+        [switch]$Quiet
+    )
     if ($Result.ExitCode -ne 0) { throw "$Stage failed with exit $($Result.ExitCode): $($Result.Stderr.Trim())" }
-    if (-not [string]::IsNullOrWhiteSpace($Result.Stdout)) { Write-Output $Result.Stdout.TrimEnd() }
+    if (-not $Quiet -and -not [string]::IsNullOrWhiteSpace($Result.Stdout)) { Write-Output $Result.Stdout.TrimEnd() }
     if (-not [string]::IsNullOrWhiteSpace($Result.Stderr)) { Write-Warning $Result.Stderr.TrimEnd() }
 }
 
 $list = Invoke-WslCommand -Arguments @('--list', '--quiet') -OutputEncoding ([Text.Encoding]::Unicode)
-Assert-WslSuccess -Result $list -Stage 'WSL registration inspection'
+Assert-WslSuccess -Result $list -Stage 'WSL registration inspection' -Quiet
 $registered = @($list.Stdout -split "`r?`n" | ForEach-Object { $_.Trim([char]0).Trim() } | Where-Object { $_ })
 if ($ResumeExisting) {
     if ($registered -notcontains $Distribution) { throw "Resume distribution is not registered: $Distribution" }
 }
-elif ($registered -contains $Distribution) { throw "Distribution is already registered: $Distribution" }
+elseif ($registered -contains $Distribution) { throw "Distribution is already registered: $Distribution" }
+if (-not $Execute) {
+    Write-Output 'Read-only WSL registration preflight passed.'
+    Write-Output 'Preview only. Re-run with -Execute to complete the retained physical-host WSL distribution.'
+    return
+}
 
 $newImport = $false
 $completed = $false
