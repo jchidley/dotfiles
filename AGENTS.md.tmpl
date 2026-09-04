@@ -3,6 +3,14 @@
 
 Use concise `AGENTS.md` files as the only active startup instructions. `CLAUDE.md` is deprecated; migrate unique current rules into the applicable `AGENTS.md` and remove the vendor-specific file.
 
+## Project working directory and Pi sessions
+
+Run Pi and project commands from the canonical root of the relevant project checkout by default. Pi stores and resumes sessions by exact working directory, so cwd is part of project memory; an incidental parent, subdirectory, home directory, or duplicate checkout fragments that history.
+
+- Before substantive work, confirm the intended project and checkout root. Changing directory inside a shell command does not rebind the Pi session; restart Pi from the correct root if it was launched elsewhere.
+- Use a stable component directory instead only when that component is intentionally treated as an independent project with its own records and instructions.
+- Run genuinely cross-project work from its documented coordinator project, such as `agent-skills` for Project Portfolio, and treat target-project sessions as separate evidence.
+
 ## Native shell and Windows / WSL boundaries
 
 Choose the destination OS's built-in shell first:
