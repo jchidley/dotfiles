@@ -27,7 +27,25 @@ Updating a tool requires updating its version, URL, filename, and hash together 
 
 `BOOTSTRAP_MODE=core` selects `foundation`. `BOOTSTRAP_MODE=full` selects all declared groups for the selected profile; it does **not** mean every GitHub repository. The script creates repository parent directories, never a manifest-owned destination such as `~/tools`.
 
-## Run
+## Build a retained WSL distribution
+
+Do not paste a multi-step root setup or clone an existing VHDX. From PowerShell 7 in this repository, preview the complete retained build:
+
+```powershell
+$Rootfs = Join-Path $env:LOCALAPPDATA 'ultra-minimal-wsl\cache\debian\13.5-store-1.26.0.0\debian-13.5-amd64-wsl-rootfs.tar.gz'
+
+./scripts/bootstrap/New-BootstrappedDebianWsl.ps1 `
+  -Distribution Debian3 `
+  -InstallPath C:\WSL\Debian3 `
+  -RootfsPath $Rootfs `
+  -ExpectedRootfsSha256 5ec7dc68216e75d1d4d4761474e99d8461a98d316537110314b137122a879e0f
+```
+
+After checking the plan, repeat with `-Execute`. The builder owns the pristine import, root and user setup, bootstrap, interactive verification, failure cleanup, and final stop. It retains a successful distribution and never copies secrets or enables host-wide WSL integration.
+
+If a prior manual command imported the exact distribution at the exact install path but did not complete setup, add `-ResumeExisting`. Preview verifies the registry path first. A resumed distribution is never unregistered automatically if setup fails; this avoids deleting an adopted VHDX.
+
+## Run inside an existing Debian installation
 
 From the authoritative chezmoi source checkout:
 

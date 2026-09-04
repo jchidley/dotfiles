@@ -21,6 +21,15 @@ try {
         throw 'Route execution did not preserve exactly one valid backup.'
     }
 
+    $rootfs = Join-Path $temp 'rootfs.tar.gz'
+    [IO.File]::WriteAllText($rootfs, 'preview-only-rootfs', [Text.UTF8Encoding]::new($false))
+    $rootfsHash = (Get-FileHash -LiteralPath $rootfs -Algorithm SHA256).Hash
+    $builder = Join-Path $PSScriptRoot 'New-BootstrappedDebianWsl.ps1'
+    $buildPreview = & $builder -Distribution Debian3 -InstallPath (Join-Path $temp 'Debian3') -RootfsPath $rootfs -ExpectedRootfsSha256 $rootfsHash | Out-String
+    if ($buildPreview -notmatch 'Preview only' -or $buildPreview -notmatch 'secrets: not copied') {
+        throw 'Retained-distro builder preview contract failed.'
+    }
+
     $copyScript = Join-Path $PSScriptRoot 'Copy-WslAkSecrets.ps1'
     $copyPreview = & $copyScript -SourceDistribution Source -SourceUser jack -TargetDistribution Target -TargetUser jack | Out-String
     if ($copyPreview -notmatch 'Preview only' -or $copyPreview -notmatch 'no archive is written to Windows') {
