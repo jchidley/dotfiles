@@ -55,6 +55,19 @@ $repositoryRoot = (& git.exe -C $PSScriptRoot rev-parse --show-toplevel | Out-St
 if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $repositoryRoot -PathType Container)) { throw 'Could not resolve the dotfiles repository root.' }
 $repositoryCommit = (& git.exe -C $repositoryRoot rev-parse HEAD | Out-String).Trim()
 if ($LASTEXITCODE -ne 0 -or $repositoryCommit -notmatch '^[0-9a-f]{40}$') { throw 'Could not resolve the committed dotfiles revision.' }
+& git.exe -C $repositoryRoot diff --quiet HEAD -- scripts/bootstrap run_onchange_after_20-wsl-config.sh.tmpl
+$bootstrapSourcesClean = $LASTEXITCODE -eq 0
+$foundation = @(
+    [pscustomobject]@{ Name = 'dotfiles'; Source = $repositoryRoot; Destination = "/home/$User/.local/share/chezmoi"; Remote = 'https://github.com/jchidley/dotfiles.git' }
+    [pscustomobject]@{ Name = 'ak'; Source = (Join-Path $HOME 'git\ak'); Destination = "/home/$User/git/ak"; Remote = 'https://github.com/jchidley/ak.git' }
+    [pscustomobject]@{ Name = 'agent-skills'; Source = (Join-Path $HOME 'git\agent-skills'); Destination = "/home/$User/git/agent-skills"; Remote = 'https://github.com/jchidley/agent-skills.git' }
+    [pscustomobject]@{ Name = 'tools'; Source = (Join-Path $HOME 'git\tools'); Destination = "/home/$User/tools"; Remote = 'https://github.com/jchidley/tools.git' }
+)
+foreach ($item in $foundation) {
+    if (-not (Test-Path -LiteralPath (Join-Path $item.Source '.git') -PathType Container)) { throw "Local foundation repository is missing: $($item.Source)" }
+    $item | Add-Member -NotePropertyName Commit -NotePropertyValue ((& git.exe -C $item.Source rev-parse HEAD | Out-String).Trim())
+    if ($LASTEXITCODE -ne 0 -or $item.Commit -notmatch '^[0-9a-f]{40}$') { throw "Could not resolve foundation revision: $($item.Name)" }
+}
 $wslExecutable = Join-Path $env:WINDIR 'System32\wsl.exe'
 if (-not (Test-Path -LiteralPath $wslExecutable -PathType Leaf)) { throw "System WSL executable is missing: $wslExecutable" }
 
@@ -66,7 +79,8 @@ Write-Output "  rootfs SHA-256: $actualHash"
 Write-Output "  default user: $User"
 Write-Output "  import mode: $(if ($ResumeExisting) { 'resume exact registered path' } else { 'new pristine import' })"
 Write-Output "  bootstrap: mode=$BootstrapMode profile=$BootstrapProfile, chezmoi apply enabled"
-Write-Output "  dotfiles revision: $repositoryCommit, streamed into target ext4"
+foreach ($item in $foundation) { Write-Output "  foundation: $($item.Name) $($item.Commit), streamed into target ext4" }
+Write-Output "  bootstrap sources committed: $bootstrapSourcesClean"
 Write-Output '  host-wide WSL integration: disabled'
 Write-Output '  secrets: not copied; use Copy-WslAkSecrets.ps1 only after this build passes'
 if ($ResumeExisting) {
@@ -177,6 +191,7 @@ if (-not $Execute) {
     Write-Output 'Preview only. Re-run with -Execute to complete the retained physical-host WSL distribution.'
     return
 }
+if (-not $bootstrapSourcesClean) { throw 'Bootstrap sources have uncommitted changes; commit and test them before building a distribution.' }
 
 $newImport = $false
 $completed = $false
@@ -208,22 +223,24 @@ try {
     Assert-WslSuccess -Result $setup -Stage 'Root and target-user setup'
     Write-Output 'build-check:user-setup:passed'
 
-    $bundleWindows = Join-Path ([IO.Path]::GetTempPath()) "dotfiles-$repositoryCommit-$([Guid]::NewGuid().ToString('N')).bundle"
-    & git.exe -C $repositoryRoot bundle create $bundleWindows HEAD
-    if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $bundleWindows -PathType Leaf)) { throw 'Could not create the committed dotfiles bundle.' }
-    & git.exe -C $repositoryRoot bundle verify $bundleWindows | Out-Null
-    if ($LASTEXITCODE -ne 0) { throw 'Committed dotfiles bundle verification failed.' }
-    $bundleHash = (Get-FileHash -LiteralPath $bundleWindows -Algorithm SHA256).Hash.ToLowerInvariant()
-    $bundleLinux = "/home/$User/.local/state/dotfiles-bootstrap/dotfiles-$repositoryCommit.bundle"
-    $copy = Copy-FileToWsl -Source $bundleWindows -Target $bundleLinux -TargetUser $User
-    Assert-WslSuccess -Result $copy -Stage 'Dotfiles bundle transfer'
-    Write-Output "build-check:dotfiles-bundle:$bundleHash"
-
-    $dotfilesLinux = "/home/$User/.local/share/chezmoi"
-    $stageScript = 'set -euo pipefail; bundle=$1; destination=$2; expected=$3; if [ -e "$destination" ]; then [ -d "$destination/.git" ] || { echo "Non-Git dotfiles destination exists: $destination" >&2; exit 1; }; actual=$(git -C "$destination" rev-parse HEAD); if [ "$actual" != "$expected" ]; then [ -z "$(git -C "$destination" status --porcelain)" ] || { echo "Existing dotfiles checkout is modified; refusing to replace it" >&2; exit 1; }; git -C "$destination" fetch "$bundle" HEAD; git -C "$destination" checkout -B main FETCH_HEAD; fi; else git clone "$bundle" "$destination"; fi; git -C "$destination" remote set-url origin https://github.com/jchidley/dotfiles.git; actual=$(git -C "$destination" rev-parse HEAD); [ "$actual" = "$expected" ]; rm -f "$bundle"; printf "staged-dotfiles=%s\n" "$actual"'
-    $stage = Invoke-WslCommand -Arguments @('--distribution', $Distribution, '--user', $User, '--exec', 'bash', '-c', $stageScript, 'bootstrap-stage', $bundleLinux, $dotfilesLinux, $repositoryCommit)
-    Assert-WslSuccess -Result $stage -Stage 'Dotfiles ext4 staging'
-    $bootstrapLinux = "$dotfilesLinux/scripts/bootstrap/debian-bootstrap-safe.sh"
+    $stageScript = 'set -euo pipefail; bundle=$1; destination=$2; expected=$3; remote=$4; if [ -e "$destination" ]; then [ -d "$destination/.git" ] || { echo "Non-Git foundation destination exists: $destination" >&2; exit 1; }; actual=$(git -C "$destination" rev-parse HEAD); if [ "$actual" != "$expected" ]; then [ -z "$(git -C "$destination" status --porcelain)" ] || { echo "Existing foundation checkout is modified; refusing to replace it: $destination" >&2; exit 1; }; git -C "$destination" fetch "$bundle" HEAD; git -C "$destination" checkout -B main FETCH_HEAD; fi; else git clone "$bundle" "$destination"; fi; git -C "$destination" remote set-url origin "$remote"; actual=$(git -C "$destination" rev-parse HEAD); [ "$actual" = "$expected" ]; rm -f "$bundle"; printf "staged-foundation=%s:%s\n" "$destination" "$actual"'
+    foreach ($item in $foundation) {
+        $bundleWindows = Join-Path ([IO.Path]::GetTempPath()) "$($item.Name)-$($item.Commit)-$([Guid]::NewGuid().ToString('N')).bundle"
+        & git.exe -C $item.Source bundle create $bundleWindows HEAD
+        if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $bundleWindows -PathType Leaf)) { throw "Could not create committed foundation bundle: $($item.Name)" }
+        & git.exe -C $item.Source bundle verify $bundleWindows | Out-Null
+        if ($LASTEXITCODE -ne 0) { throw "Foundation bundle verification failed: $($item.Name)" }
+        $bundleHash = (Get-FileHash -LiteralPath $bundleWindows -Algorithm SHA256).Hash.ToLowerInvariant()
+        $bundleLinux = "/home/$User/.local/state/dotfiles-bootstrap/$($item.Name)-$($item.Commit).bundle"
+        $copy = Copy-FileToWsl -Source $bundleWindows -Target $bundleLinux -TargetUser $User
+        Assert-WslSuccess -Result $copy -Stage "$($item.Name) bundle transfer"
+        $stage = Invoke-WslCommand -Arguments @('--distribution', $Distribution, '--user', $User, '--exec', 'bash', '-c', $stageScript, 'bootstrap-stage', $bundleLinux, $item.Destination, $item.Commit, $item.Remote)
+        Assert-WslSuccess -Result $stage -Stage "$($item.Name) ext4 staging"
+        Write-Output "build-check:foundation-$($item.Name):$($item.Commit):$bundleHash"
+        Remove-Item -LiteralPath $bundleWindows -Force
+        $bundleWindows = $null
+    }
+    $bootstrapLinux = "/home/$User/.local/share/chezmoi/scripts/bootstrap/debian-bootstrap-safe.sh"
 
     $bootstrap = Invoke-WslCommand -Arguments @(
         '--distribution', $Distribution, '--user', $User, '--exec',
