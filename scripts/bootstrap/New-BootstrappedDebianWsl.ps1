@@ -203,8 +203,8 @@ try {
     else {
         [void](New-Item -ItemType Directory -Path $install -ErrorAction Stop)
         $newImport = $true
-        $import = Invoke-WslCommand -Arguments @('--import', $Distribution, $install, $rootfs, '--version', '2')
-        Assert-WslSuccess -Result $import -Stage 'Pristine rootfs import'
+        $import = Invoke-WslCommand -Arguments @('--import', $Distribution, $install, $rootfs, '--version', '2') -OutputEncoding ([Text.Encoding]::Unicode)
+        Assert-WslSuccess -Result $import -Stage 'Pristine rootfs import' -Quiet
         Write-Output 'build-check:import:passed'
     }
 
@@ -251,8 +251,8 @@ try {
     Assert-WslSuccess -Result $bootstrap -Stage 'User bootstrap'
     Write-Output 'build-check:bootstrap:passed'
 
-    $terminate = Invoke-WslCommand -Arguments @('--terminate', $Distribution)
-    Assert-WslSuccess -Result $terminate -Stage 'Default-user restart'
+    $terminate = Invoke-WslCommand -Arguments @('--terminate', $Distribution) -OutputEncoding ([Text.Encoding]::Unicode)
+    Assert-WslSuccess -Result $terminate -Stage 'Default-user restart' -Quiet
     $defaultUser = Invoke-WslCommand -Arguments @('--distribution', $Distribution, '--exec', 'id', '-un')
     Assert-WslSuccess -Result $defaultUser -Stage 'Default-user verification'
     if ($defaultUser.Stdout.Trim() -ne $User) { throw "Default user is '$($defaultUser.Stdout.Trim())', expected '$User'." }
@@ -271,8 +271,8 @@ try {
     $verify = Invoke-WslCommand -Arguments @('--distribution', $Distribution, '--user', $User, '--exec', 'bash', '-lic', $verifyScript)
     Assert-WslSuccess -Result $verify -Stage 'Interactive login verification'
 
-    $finalStop = Invoke-WslCommand -Arguments @('--terminate', $Distribution)
-    Assert-WslSuccess -Result $finalStop -Stage 'Final distribution stop'
+    $finalStop = Invoke-WslCommand -Arguments @('--terminate', $Distribution) -OutputEncoding ([Text.Encoding]::Unicode)
+    Assert-WslSuccess -Result $finalStop -Stage 'Final distribution stop' -Quiet
     $completed = $true
     Write-Output "Bootstrapped distribution '$Distribution' is retained and stopped at $install."
 }
@@ -280,7 +280,7 @@ finally {
     if ($null -ne $bundleWindows) { Remove-Item -LiteralPath $bundleWindows -Force -ErrorAction SilentlyContinue }
     if (-not $completed -and $newImport) {
         Write-Warning "Build failed; unregistering incomplete distribution $Distribution."
-        $cleanup = Invoke-WslCommand -Arguments @('--unregister', $Distribution)
+        $cleanup = Invoke-WslCommand -Arguments @('--unregister', $Distribution) -OutputEncoding ([Text.Encoding]::Unicode)
         if ($cleanup.ExitCode -ne 0) {
             Write-Warning "Automatic unregister failed: $($cleanup.Stderr.Trim())"
         }
