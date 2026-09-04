@@ -16,6 +16,7 @@ fi
 ! grep -q 'git@github.com' "$bootstrap"
 ! grep -q 'mkdir -p .*HOME/tools' "$bootstrap"
 grep -q 'XDG_RUNTIME_DIR/fnm_multishells' "$bootstrap"
+grep -q 'native fnm-managed Pi is unavailable' "$bootstrap"
 grep -q 'DOTFILES_APPLY_WSL_INTEGRATION' "$template"
 grep -q 'https://github.com/${repository}.git' "$bootstrap"
 

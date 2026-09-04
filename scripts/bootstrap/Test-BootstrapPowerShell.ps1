@@ -42,8 +42,13 @@ try {
         if ($launcherText -notmatch "System32\\wsl\.exe") {
             throw "$launcher does not bind the System32 WSL executable."
         }
-        if ($launcher -eq 'New-BootstrappedDebianWsl.ps1' -and $launcherText -notmatch "--list', '--quiet'\) -OutputEncoding \(\[Text\.Encoding\]::Unicode\)") {
-            throw 'The retained builder does not decode redirected WSL registration output as UTF-16LE.'
+        if ($launcher -eq 'New-BootstrappedDebianWsl.ps1') {
+            if ($launcherText -notmatch "--list', '--quiet'\) -OutputEncoding \(\[Text\.Encoding\]::Unicode\)") {
+                throw 'The retained builder does not decode redirected WSL registration output as UTF-16LE.'
+            }
+            if ($launcherText -match "'wslpath'" -or $launcherText -notmatch 'bundle create') {
+                throw 'The retained builder does not stage its committed bootstrap onto target ext4.'
+            }
         }
     }
 

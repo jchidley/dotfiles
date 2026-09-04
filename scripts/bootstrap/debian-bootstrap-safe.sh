@@ -135,14 +135,17 @@ install_mcfly() {
 }
 
 install_pi() {
-  local archive package='@earendil-works/pi-coding-agent'
+  local archive pi_path package='@earendil-works/pi-coding-agent'
   archive=$(fetch_locked pi "$PI_FILE" "$PI_URL" "$PI_SHA256")
   if [[ "$BOOTSTRAP_DRY_RUN" == 1 ]]; then echo "DRY-RUN: install Pi $PI_VERSION from $archive"; return; fi
   case "$(command -v node 2>/dev/null || true)" in /mnt/c/*|"") fail "native fnm-managed Node.js is unavailable" ;; esac
-  if ! command -v pi >/dev/null 2>&1 || [[ $(pi --version) != "$PI_VERSION" ]]; then
+  pi_path=$(command -v pi 2>/dev/null || true)
+  if [[ -z "$pi_path" || "$pi_path" == /mnt/c/* ]] || [[ $("$pi_path" --version) != "$PI_VERSION" ]]; then
     npm install -g "$archive"
   fi
-  [[ $(pi --version) == "$PI_VERSION" ]] || fail "Pi version verification failed"
+  pi_path=$(command -v pi 2>/dev/null || true)
+  case "$pi_path" in /mnt/c/*|"") fail "native fnm-managed Pi is unavailable" ;; esac
+  [[ $("$pi_path" --version) == "$PI_VERSION" ]] || fail "Pi version verification failed"
   npm list -g --depth=0 "$package" >/dev/null
   marker npm "$(npm --version)"
   marker pi "$PI_VERSION"

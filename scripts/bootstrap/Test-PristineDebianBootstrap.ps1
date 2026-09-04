@@ -41,9 +41,7 @@ $built = $false
 try {
     & $builder @arguments -Execute
     $built = $true
-    $bootstrapWindows = Join-Path $PSScriptRoot 'debian-bootstrap-safe.sh'
-    $bootstrapLinux = (& wsl.exe --distribution $Distribution --user root --exec wslpath -a $bootstrapWindows | Out-String).Trim()
-    if ($LASTEXITCODE -ne 0 -or -not $bootstrapLinux.StartsWith('/')) { throw 'Could not map the bootstrap path for the offline rerun.' }
+    $bootstrapLinux = "/home/$User/.local/share/chezmoi/scripts/bootstrap/debian-bootstrap-safe.sh"
     & wsl.exe --distribution $Distribution --user $User --exec env `
         BOOTSTRAP_MODE=core BOOTSTRAP_PROFILE=dev APPLY_CHEZMOI=1 `
         DOTFILES_APPLY_WSL_INTEGRATION=0 BOOTSTRAP_OFFLINE=1 SKIP_SYSTEM_PACKAGES=1 `
