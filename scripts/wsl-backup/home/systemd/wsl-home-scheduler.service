@@ -1,0 +1,9 @@
+[Unit]
+Description=Coordinate WSL home backup while Linux is running
+After=local-fs.target
+ConditionPathExists=/etc/restic/home.password
+ConditionPathExists=/var/lib/restic/home/config
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/wsl-home-scheduler

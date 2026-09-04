@@ -106,4 +106,6 @@ The controller approved, without amendment:
 - one tracked JSON policy deployed beside the Windows controller with strict validation and observable drift;
 - the atomic persistence, fail-closed recovery, disposable acceptance-test, and semantic-mutation contract above.
 
-A later bounded authorization integrated the source-only adapter at commit `1e2b97a`, satisfying this contract's disposable evidence gate. Phase 3 source-only consent was subsequently integrated at commit `6a84654`. Production integration, deployment, and production operations remain separate controller-owned actions.
+A later bounded authorization integrated the source-only adapter at commit `1e2b97a`, satisfying this contract's disposable evidence gate. Phase 3 source-only consent was subsequently integrated at commit `6a84654`.
+
+The later OS-ownership correction supersedes this Windows adapter as the routine production scheduler target: backup opportunity, health, due state, and routine Restic execution belong inside Linux and must not be polled by Windows. This document remains the approved behavioral evidence for counters, atomic state, and notification episodes; those contracts must be translated deliberately into Linux rather than deploying the Windows adapter unchanged. Windows remains eligible only for visible consent, power, idle-sleep inhibition, and whole-system export. Production migration and operations remain separately authorized.

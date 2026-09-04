@@ -21,17 +21,23 @@ else
   ownership=(-o root -g root)
 fi
 
-"${privilege[@]}" install -d -m 755 "$DESTDIR/etc/restic" "$DESTDIR/usr/local/sbin"
+"${privilege[@]}" install -d -m 755 "$DESTDIR/etc/restic" "$DESTDIR/usr/local/sbin" "$DESTDIR/etc/systemd/system"
 "${privilege[@]}" install -d -m 700 \
   "$DESTDIR/var/lib/restic" "$DESTDIR/var/lib/restic/staging" \
   "$DESTDIR/var/cache/restic-home" "$DESTDIR/var/log/restic-home"
 "${privilege[@]}" install "${ownership[@]}" -m 755 "$SCRIPT_DIR/backup-wsl-home" \
   "$DESTDIR/usr/local/sbin/backup-wsl-home"
+"${privilege[@]}" install "${ownership[@]}" -m 755 "$SCRIPT_DIR/wsl-home-scheduler" \
+  "$DESTDIR/usr/local/sbin/wsl-home-scheduler"
 "${privilege[@]}" install "${ownership[@]}" -m 644 "$SCRIPT_DIR/home.conf" \
   "$DESTDIR/etc/restic/home.conf"
+"${privilege[@]}" install "${ownership[@]}" -m 644 \
+  "$SCRIPT_DIR/systemd/wsl-home-scheduler.service" \
+  "$SCRIPT_DIR/systemd/wsl-home-scheduler.timer" "$DESTDIR/etc/systemd/system/"
 
 cat <<'EOF'
-Installed the local Restic home-backup program and non-secret configuration.
-The installer deliberately does not create credentials, initialize a repository,
-or register Windows tasks. See scripts/wsl-backup/README.md.
+Installed the Linux-owned Restic home-backup program, scheduler, systemd units,
+and non-secret configuration. The installer deliberately does not create
+credentials, initialize a repository, enable timers, or register Windows home
+backup tasks. See scripts/wsl-backup/README.md.
 EOF

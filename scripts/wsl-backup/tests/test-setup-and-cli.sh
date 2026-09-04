@@ -61,8 +61,13 @@ assert_file "$install_root/usr/local/bin/wsl-backup"
 assert_file "$install_root/usr/local/sbin/backup-wsl-home"
 assert_file "$install_root/usr/local/sbin/validate-wsl-system-restore"
 assert_file "$install_root/etc/restic/home.conf"
+assert_file "$install_root/usr/local/sbin/wsl-home-scheduler"
+assert_file "$install_root/etc/systemd/system/wsl-home-scheduler.service"
+assert_file "$install_root/etc/systemd/system/wsl-home-scheduler.timer"
+[[ ! -e "$ROOT/home/Register-WindowsTasks.ps1" ]] || fail 'obsolete Register-WindowsTasks.ps1 remains in active source'
+! grep -Eq 'systemctl +(enable|start)|enable +--now' "$ROOT/setup.sh" || fail 'ordinary setup implicitly enables Linux scheduling'
 
-# Windows controller installation occurs, but tasks wait for repository readiness.
+# Windows controller installation is independent; routine scheduling remains Linux-owned.
 : > "$CALL_LOG"
 PATH="$FAKEBIN:$PATH" WSL_BACKUP_DESTDIR=$install_root \
   WSL_BACKUP_POWERSHELL="$FAKEBIN/fake-powershell" \
@@ -71,7 +76,7 @@ PATH="$FAKEBIN:$PATH" WSL_BACKUP_DESTDIR=$install_root \
 assert_file "$install_root/etc/wsl-backup/windows-system-script"
 assert_log 'Install-Windows.ps1'
 assert_not_log 'Register-WindowsTasks.ps1'
-grep -F 'were not registered' "$TMP/setup-warning" >/dev/null || fail 'missing repository warning'
+grep -F 'timer was installed but not enabled' "$TMP/setup-warning" >/dev/null || fail 'missing repository warning'
 
 # One repository landmark is insufficient; both are required.
 printf 'fixture\n' > "$install_root/etc/restic/home.password"
@@ -82,7 +87,7 @@ PATH="$FAKEBIN:$PATH" WSL_BACKUP_DESTDIR=$install_root \
   "$ROOT/setup.sh" --distro 'Fixture Distro' >/dev/null 2> /dev/null
 assert_not_log 'Register-WindowsTasks.ps1'
 
-# Once both repository landmarks exist, registration is requested; force is explicit.
+# Once both repository landmarks exist, setup still never registers Windows home tasks.
 mkdir -p "$install_root/var/lib/restic/home"
 printf '{}\n' > "$install_root/var/lib/restic/home/config"
 : > "$CALL_LOG"
@@ -90,14 +95,13 @@ PATH="$FAKEBIN:$PATH" WSL_BACKUP_DESTDIR=$install_root \
   WSL_BACKUP_POWERSHELL="$FAKEBIN/fake-powershell" \
   WSL_BACKUP_WSLPATH="$FAKEBIN/fake-wslpath" \
   "$ROOT/setup.sh" --distro 'Fixture Distro' >/dev/null
-assert_log 'Register-WindowsTasks.ps1'
-assert_not_log '<-Force>'
-: > "$CALL_LOG"
-PATH="$FAKEBIN:$PATH" WSL_BACKUP_DESTDIR=$install_root \
-  WSL_BACKUP_POWERSHELL="$FAKEBIN/fake-powershell" \
-  WSL_BACKUP_WSLPATH="$FAKEBIN/fake-wslpath" \
-  "$ROOT/setup.sh" --distro 'Fixture Distro' --force-windows-tasks >/dev/null
-assert_log '<-Force>'
+assert_not_log 'Register-WindowsTasks.ps1'
+if PATH="$FAKEBIN:$PATH" WSL_BACKUP_DESTDIR=$install_root \
+    WSL_BACKUP_POWERSHELL="$FAKEBIN/fake-powershell" \
+    WSL_BACKUP_WSLPATH="$FAKEBIN/fake-wslpath" \
+    "$ROOT/setup.sh" --distro 'Fixture Distro' --force-windows-tasks >/dev/null 2>&1; then
+  fail 'retired Windows task force option was accepted'
+fi
 
 if PATH="$FAKEBIN:$PATH" WSL_BACKUP_DESTDIR=$TMP/bad \
     "$ROOT/setup.sh" --no-windows-tasks --distro 'bad"name' >/dev/null 2>&1; then

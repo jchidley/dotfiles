@@ -12,7 +12,7 @@ cd ~/.local/share/chezmoi
 wsl-backup status
 ```
 
-`setup.sh` is idempotent and non-destructive. It installs or updates the Linux programs and Windows system-export controller. When an existing Restic repository and password file are present, it also registers any missing Windows tasks while preserving existing schedules. Use `--force-windows-tasks` only when task definitions must be rebuilt. Setup never creates credentials, initializes a repository, deletes snapshots, or creates a whole-system export.
+`setup.sh` is idempotent and non-destructive. It installs or updates the Linux programs, Linux `systemd` scheduler files, and Windows system-export controller, but never enables the timer or registers Windows tasks for routine Linux work. Timer enablement belongs only to the explicit reversible migration in [`home/MIGRATION.md`](home/MIGRATION.md). Setup never creates credentials, initializes a repository, deletes snapshots, or creates a whole-system export.
 
 For a distro whose registered name is not `Debian-Recovered`:
 
@@ -51,15 +51,15 @@ wsl-backup home restore latest /var/tmp/restic-home-restore
 
 | Path | Responsibility |
 |---|---|
-| [`home/`](home/README.md) | Frequent encrypted Restic snapshots, retention, checks, staged restore, scheduler wrapper, and Windows task registration |
+| [`home/`](home/README.md) | Frequent encrypted Restic snapshots, Linux-owned systemd scheduling, retention, checks, and staged restore |
 | [`system/`](system/README.md) | Cold complete-distro export, disposable-import validation, manifests, retention, crash recovery, and cleanup |
-| `setup.sh` | One-command non-destructive installation and Windows integration |
+| `setup.sh` | Non-destructive Linux installation/timer setup plus whole-system Windows integration |
 | `wsl-backup` | Installed operator command for home and system operations |
 | `Install-Windows.ps1` | Installs the system-export controller outside the distro so it remains available while the source is stopped |
 
 ## Initialization boundary
 
-A fresh machine needs a separately escrowed Restic password and explicit repository initialization. Setup intentionally stops before this security boundary. Follow [`home/README.md`](home/README.md#initialize-explicitly), test the Bitwarden recovery value, then rerun `setup.sh` to register scheduling.
+A fresh machine needs a separately escrowed Restic password and explicit repository initialization. Setup intentionally stops before this security boundary. Follow [`home/README.md`](home/README.md#initialize-explicitly) and test the Bitwarden recovery value. Scheduling is enabled only through the reviewed migration after its preflight passes.
 
 ## Validation
 
@@ -71,13 +71,13 @@ Run the unified test command inside WSL:
 ./scripts/wsl-backup/test-all all          # both lanes
 ```
 
-The fast lane does not modify production repositories or tasks. It covers isolated setup, command dispatch and exit propagation, task policy, notification suppression, manifest/task helpers, Bash syntax, ShellCheck, and PSScriptAnalyzer under PowerShell 7. The integration lane creates and removes a disposable Restic repository under `/var/tmp`; its production interaction is read-only status inspection.
+The fast lane does not modify production repositories or tasks. It covers isolated Linux scheduler/setup, command dispatch and exit propagation, retained legacy-task policy, notification suppression, manifest/task helpers, Bash syntax, ShellCheck, and PSScriptAnalyzer under PowerShell 7. The integration lane creates and removes a disposable Restic repository under `/var/tmp`; its production interaction is read-only status inspection.
 
 See [`TESTING.md`](TESTING.md) for stable contracts, mutation evidence, and explicitly deferred scope.
 
 ## Laptop scheduling migration status
 
-Phase 1, the Phase 2 fixture-only shadow coordinator, the production health-state adapter, and the Phase 3 source-only consent candidate are committed; Phase 3 was integrated at `6a84654` after 55 retained assertions, seven attributed mutations, and the canonical fast lane passed. It remains undeployed and contains no production command adapter. The existing six production tasks remain authoritative; Phase 4 integration work and task migration require separate authorization.
+Phase 1 through Phase 3 remain committed source evidence. The undeployed Windows-driven Phase 4 candidate was removed and replaced by an uncommitted Linux-owned `systemd` scheduler candidate. It runs only while the distro is already active and contains no Windows or `wsl.exe` routine-work boundary. The existing six Windows tasks remain authoritative—and can still restart WSL—until a separately authorized migration enables and verifies the Linux timer, then disables those tasks with rollback retained.
 
 ## Documentation ownership
 

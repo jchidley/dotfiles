@@ -68,27 +68,32 @@ Retention keeps every snapshot for 24 hours, hourly snapshots for seven days, an
 
 ## Scheduling
 
-Windows Task Scheduler owns wake-up because a Linux timer cannot start a stopped WSL distro. Run from PowerShell 7 (`pwsh.exe`); Windows PowerShell 5.1 is unsupported:
+Routine home-backup scheduling belongs to Linux. The source candidate installs:
 
-```powershell
-pwsh.exe -NoLogo -NoProfile -File `
-  "\\wsl.localhost\Debian-Recovered\home\jack\.local\share\chezmoi\scripts\wsl-backup\home\Register-WindowsTasks.ps1"
-```
+| Path | Purpose |
+|---|---|
+| `/usr/local/sbin/wsl-home-scheduler` | Linux backup-first coordinator and retention due state |
+| `/etc/systemd/system/wsl-home-scheduler.service` | One-shot coordinator service |
+| `/etc/systemd/system/wsl-home-scheduler.timer` | Start after natural distro boot and repeat every 15 minutes while running |
 
-The registered tasks run as the current Windows user and ask WSL to execute the root-owned program as Linux root:
+The timer uses `Persistent=true` to reconcile once when the distro next starts naturally. It cannot start WSL, does not keep Windows from honoring `wsl --shutdown`, and contains no `wsl.exe` or PowerShell call. Backup, status, retention, locks, state, Restic, configuration, and credentials all remain inside Linux.
 
-- backup every 15 minutes;
-- freshness monitoring every 30 minutes;
-- retention daily;
-- prune weekly;
-- structural check weekly;
-- full data read every 30 days.
+`setup.sh` installs the units but never enables the timer. [`MIGRATION.md`](MIGRATION.md) owns the explicit inventory, Linux preflight, cutover, rollback, observation, and later deletion procedure. Windows integration remains limited to whole-system export and future visible-consent/power boundaries.
 
-The Windows-local wrapper under `%LOCALAPPDATA%\WSLHomeRestic` records secret-free operation status and notifies the interactive user with `msg.exe` if an operation fails. The monitor fails when the newest matching snapshot is more than 30 minutes old. Duplicate notices are suppressed for six hours.
+### Current deployed legacy tasks
 
-Existing tasks and their next-run times are preserved by default. Use `-Force` to rebuild their definitions deliberately. Remove them with the same script's `-Remove` switch.
+Production has not migrated yet. These six Windows tasks remain authoritative:
 
-A source-only scheduling state adapter and tracked policy implement the approved awake-time health-state contract in disposable tests. Commit `6a84654` integrates the reviewed Phase 3 source for disposable long-job consent, snooze, power, duration, and idle-sleep-inhibition behavior with injected adapters. Neither source-only component is installed or called by these tasks. The six-task behavior above remains production truth until a later reversible migration is explicitly authorized and verified.
+- `WSL Home Restic - Backup`;
+- `WSL Home Restic - Monitor`;
+- `WSL Home Restic - Retention`;
+- `WSL Home Restic - Prune`;
+- `WSL Home Restic - Check`;
+- `WSL Home Restic - Read Data Check`.
+
+They invoke `wsl.exe -d Debian-Recovered` and can restart a manually stopped distro. Do not delete them before replacement: the authorized migration must preserve their exact definitions, enable and verify the Linux timer, then disable all six. Keep them disabled for rollback through the observation period; delete them only after that gate.
+
+Prune and full-data-check scheduling remain pending the Linux-origin request/Windows-visible-consent bridge. The Linux timer does not run either operation automatically.
 
 ## Tests
 

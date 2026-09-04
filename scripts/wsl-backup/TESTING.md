@@ -12,7 +12,7 @@ This page defines the local test strategy. Tests deliberately run from WSL and u
 
 | Lane | Coverage | Production effects |
 |---|---|---|
-| `fast` | Bash syntax, ShellCheck, isolated setup and CLI contracts, Windows task/notification policy, system helper contracts, PSScriptAnalyzer | None |
+| `fast` | Bash syntax, ShellCheck, isolated Linux scheduler/setup/CLI contracts, retained legacy Windows policy tests, system helper contracts, PSScriptAnalyzer | None |
 | `integration` | Real disposable Restic repository, backup, retention, structural/full-data checks, staged restore, and read-only production status | Creates and removes only `/var/tmp/restic-home-test.*`; production inspection is read-only |
 | `all` | `fast` followed by `integration` | Same as `integration` |
 
@@ -21,11 +21,12 @@ The setup tests use `WSL_BACKUP_DESTDIR` plus fake PowerShell 7, `wslpath`, `sud
 ## Stable contracts tested
 
 - Setup never needs root when installing into a disposable `DESTDIR`.
-- Both the password file and repository config must exist before task registration.
-- Existing task schedules are preserved unless force is explicit, while legacy PowerShell 5.1 actions migrate to PowerShell 7.
+- Ordinary setup installs Linux systemd units but never enables the timer.
+- Setup never registers Windows tasks for routine home-backup work; enablement belongs only to the explicit migration cutover.
+- The Linux scheduler runs backup first, blocks later work after failure/deferral, and owns retention due state atomically.
 - Operator commands forward exact home arguments and system modes.
 - Adapter failures propagate through the operator command.
-- Windows tasks use PowerShell 7 and retain the six intended schedules.
+- Retained legacy-task helpers still describe and validate the six deployed schedules for rollback; setup no longer calls them.
 - Duplicate notifications are suppressed for less than six hours and resume at the boundary.
 - Existing system manifest, journal, task rollback, artifact, and retention contracts remain covered by the system suite.
 
@@ -35,8 +36,6 @@ The following mutations were executed one at a time and reverted. Each accepted 
 
 | Boundary | Injected bug | Distinguishing case | Result |
 |---|---|---|---|
-| Setup registration gate | Repository password **or** config was sufficient | Password exists; config absent | Killed |
-| Setup force policy | Default and forced task rebuilding were inverted | Ready repository, default then explicit force | Killed |
 | Operator system dispatch | Every system command became `Status` | Requested `Preflight` | Killed |
 | Operator failure propagation | Home adapter status 7 was converted to success | Fake home adapter exits 7 | Killed |
 | Task registration decision | Missing-task/force logic changed from OR to AND | Task missing; force false | Killed after isolating the intended assertion |
@@ -109,6 +108,30 @@ The canonical fast lane passed with 44 existing home assertions, 38 shadow asser
 | Mark failed or interrupted work complete | Failed work remains due |
 
 The direct retained and mutation suites passed. The canonical exact-source WSL fast lane passed with 44 home assertions, 38 shadow assertions, 115 state-adapter assertions, 55 Phase 3 assertions, all eight state-adapter and seven Phase 3 mutations, 19 system assertions, and PSScriptAnalyzer 1.25.0 clean across 18 paths. Commit `6a84654` integrates this source evidence. The Phase 3 candidate contains no production command adapter and touched no WSL, Restic, Scheduled Task, credential, marker, deployed file, or production state.
+
+## Phase 4 Linux-scheduler evidence
+
+`test-scheduler.sh` uses only a temporary Linux state directory, lock, fake fixed home command, and injected clock. Its 30 retained assertions prove backup-before-health-before-retention ordering, no later work after backup or status failure, exact daily retention boundaries, lock deferral propagation, strict state validation, atomic state replacement, overlap refusal, systemd service/timer shape, and absence of `wsl.exe`, PowerShell, or Scheduled Task execution from the Linux scheduler.
+
+`test-scheduler-mutations.sh` makes one parser-valid disposable source copy per mutation and requires failure at its named retained assertion:
+
+| Mutation | Retained assertion |
+|---|---|
+| Ignore backup failure | Backup failure propagates and blocks all later Linux-owned work |
+| Run retention before its exact due boundary | Retention remains not due before its exact Linux-owned boundary |
+| Accept an unknown state schema | Malformed scheduler state fails closed before backup |
+| Ignore the coordinator lock | Overlap refusal runs no second Linux coordinator |
+| Copy state non-atomically | Atomic scheduler state writes leave no temporary file |
+
+The setup/CLI fixture additionally proves that setup installs the scheduler and systemd units under a disposable `DESTDIR`, never enables the timer, never calls `Register-WindowsTasks.ps1`, and rejects the retired `--force-windows-tasks` option. No scheduler test invokes real Restic, systemd, WSL, Windows Task Scheduler, credentials, markers, or deployed state.
+
+## Reversible migration evidence
+
+`Test-WslHomeSchedulingMigration.ps1` uses disposable task and Linux adapters. Its 78 retained assertions prove exact six-task inventory and SHA-256 retention; rejection of missing, duplicate, renamed, unexpected, and drifted tasks; durable inventory before cutover; Linux installation without implicit enablement; independent disable and restore read-back; exact XML/enabled-state rollback after five injected interruption points; explicit timer enablement; stable-state verification; refusal to delete without a matching true observation record; absence of routine setup registration; and removal of `Register-WindowsTasks.ps1` from active source.
+
+`Test-WslHomeSchedulingMigrationMutations.ps1` creates parser-valid source copies and requires each to die at its named retained assertion. Five attributed mutations were killed: accepting an incomplete inventory, ignoring task-definition drift, losing enabled state during rollback, skipping automatic rollback, and accepting a false observation record.
+
+The Linux migration helper additionally fails closed unless systemd is active, verifies units with `systemd-analyze`, compares installed files with reviewed source hashes, rejects Windows execution boundaries, and keeps installation separate from explicit timer enablement.
 
 ## Explicitly deferred scope
 

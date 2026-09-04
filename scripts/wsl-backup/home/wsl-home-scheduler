@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+HOME_COMMAND=${WSL_HOME_SCHEDULER_COMMAND:-/usr/local/sbin/backup-wsl-home}
+STATE_DIR=${WSL_HOME_SCHEDULER_STATE_DIR:-/var/lib/restic/scheduler}
+STATE_PATH=$STATE_DIR/state
+LOCK_PATH=${WSL_HOME_SCHEDULER_LOCK_PATH:-/run/lock/wsl-home-scheduler.lock}
+NOW_EPOCH=${WSL_HOME_SCHEDULER_NOW_EPOCH:-$(date +%s)}
+RETENTION_INTERVAL_SECONDS=${WSL_HOME_RETENTION_INTERVAL_SECONDS:-86400}
+
+[[ $NOW_EPOCH =~ ^[0-9]+$ ]] || { echo 'scheduler time must be a nonnegative integer' >&2; exit 2; }
+[[ $RETENTION_INTERVAL_SECONDS =~ ^[1-9][0-9]*$ ]] || { echo 'retention interval must be a positive integer' >&2; exit 2; }
+[[ -x $HOME_COMMAND ]] || { echo "home backup command is not executable: $HOME_COMMAND" >&2; exit 1; }
+
+mkdir -p "$(dirname -- "$LOCK_PATH")" "$STATE_DIR"
+chmod 700 "$STATE_DIR"
+exec 9>"$LOCK_PATH"
+if ! flock -n 9; then
+  echo 'scheduler overlap refused' >&2
+  exit 75
+fi
+
+last_retention=''
+if [[ -e $STATE_PATH ]]; then
+  mapfile -t state_lines < "$STATE_PATH"
+  if [[ ${#state_lines[@]} -ne 2 || ${state_lines[0]} != 'schema_version=1' ||
+        ! ${state_lines[1]} =~ ^last_retention_success_epoch=([0-9]+)$ ]]; then
+    echo "scheduler state is malformed: $STATE_PATH" >&2
+    exit 1
+  fi
+  last_retention=${BASH_REMATCH[1]}
+  ((NOW_EPOCH >= last_retention)) || { echo 'scheduler time precedes retained state' >&2; exit 1; }
+fi
+
+# Linux owns all routine decisions. Failure or lock deferral blocks later work.
+"$HOME_COMMAND" backup
+"$HOME_COMMAND" status
+
+retention_due=0
+if [[ -z $last_retention ]] || ((NOW_EPOCH - last_retention >= RETENTION_INTERVAL_SECONDS)); then
+  retention_due=1
+fi
+if ((retention_due)); then
+  "$HOME_COMMAND" retention
+  temporary=$(mktemp "$STATE_DIR/.state.XXXXXX")
+  trap 'rm -f -- "${temporary:-}"' EXIT
+  printf 'schema_version=1\nlast_retention_success_epoch=%s\n' "$NOW_EPOCH" > "$temporary"
+  chmod 600 "$temporary"
+  mv -f -- "$temporary" "$STATE_PATH"
+  temporary=''
+  trap - EXIT
+fi

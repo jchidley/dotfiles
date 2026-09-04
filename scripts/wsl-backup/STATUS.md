@@ -42,4 +42,16 @@ Commit `6a84654246f1c8861c44e78f7a4de7af6b637319` integrates strict source-only 
 
 All execution seams were disposable and injected. The direct retained suite passed 55 assertions. Seven valid semantic mutations—removed consent, ignored snooze, changed dispatch, bypassed session or power gates, skipped sleep release, and marked failed/interrupted work complete—were killed at their named assertions. The canonical exact-source WSL fast lane passed with 44 home, 38 shadow, 115 state-adapter, 55 Phase 3, and 19 system assertions; all eight state-adapter and seven Phase 3 mutations passed; PSScriptAnalyzer 1.25.0 was clean across 18 paths.
 
-No WSL, Restic, Scheduled Task, credential, marker, deployed file, production state, or production command was touched. The existing six tasks remain authoritative. The next authorization boundary is preparation of a source-only, disposable Phase 4 production-integration candidate; deployment and production migration remain unauthorized.
+No WSL, Restic, Scheduled Task, credential, marker, deployed file, production state, or production command was touched. The existing six tasks remain authoritative.
+
+## Phase 4 Linux-scheduling architecture correction
+
+The undeployed Windows-driven Phase 4 candidate was rejected and removed. Routine Restic work now has a Linux-owned source candidate: `wsl-home-scheduler` serializes backup, health status, and due retention with Linux locks and atomic state; `wsl-home-scheduler.timer` starts after the distro starts naturally and repeats every 15 minutes only while Linux remains running. Setup installs these units and never registers Windows home-backup tasks.
+
+The repository `AGENTS.md` now makes the OS boundary explicit: Windows must not start WSL merely to inspect, poll, schedule, or run routine Linux-owned work. Windows remains available only for visible consent, AC-power state, idle-sleep inhibition, and whole-distro export.
+
+Disposable scheduler tests pass 30 assertions and five attributed semantic mutations covering backup gating, exact retention due boundaries, malformed-state refusal, overlap refusal, atomic state replacement, systemd unit shape, and absence of Windows execution boundaries. The reversible migration fixture passes 78 assertions and five attributed mutations covering inventory completeness/drift, durable rollback evidence, exact restoration, interruption recovery, explicit cutover, and the observation deletion gate. Final canonical fast-lane totals are recorded in [`TESTING.md`](TESTING.md).
+
+A production migration preflight on 28 August 2026 atomically captured and revalidated all six enabled deployed task definitions outside Git. Linux installation then failed closed before copying files because Debian-Recovered was not booted with systemd (`systemctl is-system-running` reported `offline`; PID 1 was WSL init). No Windows task was disabled or deleted, no Linux timer was installed or enabled, and no coordinator, Restic operation, credential, or marker was changed. The migration remains at the stable `Inventoried` state; enabling systemd requires a separately reviewed distro-boot configuration change before preflight can continue.
+
+All six deployed Windows tasks therefore remain enabled and authoritative, and can still invoke WSL unconditionally. Delete them only after a successful later cutover and observation gate.

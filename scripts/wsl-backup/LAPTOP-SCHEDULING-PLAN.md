@@ -22,14 +22,15 @@ The first natural 30-day production full-data check demonstrated the collision o
 
 Measure routine protection against time when the laptop is awake, not elapsed wall-clock time.
 
-- Run a backup shortly after login, unlock, or resume.
-- Repeat at most every 15 minutes while the laptop remains awake.
+- Reconcile shortly after the distro starts naturally and every 15 minutes while it remains running; after Windows resume, the Linux timer continues only if the distro was already active.
+- Never start a stopped distro from scheduling. A stopped distro cannot have accumulated Linux-side work, so there is no backup opportunity to record and `wsl --shutdown` remains authoritative.
+- Do not use Windows login, unlock, resume, or periodic triggers to start WSL for routine work.
 - Use Restic's unchanged-data behaviour deliberately; add `--skip-if-unchanged` if fixture and production tests confirm that it preserves the required status and retention semantics.
 - Record a successful attempt even when no new snapshot is needed.
 - Do not replay every missed interval after suspension.
 - Do not depend on a pre-suspend hook. A best-effort lock/suspend trigger may be evaluated later, but Windows cannot guarantee enough time for Restic to finish before sleep.
 
-The post-resume run closes the short interval in which work may have changed and the laptop suspended before the next periodic backup. Loss of the laptop while suspended is outside the protection boundary of the current same-disk repository and requires independent replication.
+If the distro was running across Windows suspend, its resumed Linux timer closes the short interval in which work may have changed before suspend. If the distro was stopped, there was no Linux-side change opportunity and scheduling must not start it. Loss of the laptop while suspended is outside the protection boundary of the current same-disk repository and requires independent replication.
 
 ### Monitoring
 
@@ -158,18 +159,18 @@ The schema must include at least:
 
 Do not infer success from a missing process. Every state transition must be explicit and crash-safe. Reject unknown schema versions rather than guessing.
 
-## Task Scheduler shape
+## Scheduling ownership
 
-Target one normal coordinator task rather than six independently due operational tasks.
+Routine home-backup work belongs to Linux because its data, Restic repository, credentials, locks, and commands are Linux-owned. Use one Linux `systemd` timer and coordinator:
 
-- Trigger after logon/unlock/resume, with a short stabilization delay.
-- Repeat every 15 minutes while Windows is awake.
-- Use `StartWhenAvailable` only to create one reconciliation run, not to replay missed work.
-- Use `MultipleInstances IgnoreNew` or the equivalent coordinator lock.
-- Run as the interactive user under PowerShell 7 (`pwsh.exe`).
-- Keep long-operation consent visible only in an interactive session.
+- start two minutes after the distro starts naturally;
+- repeat every 15 minutes while the distro remains running;
+- use `Persistent=true` only to reconcile once after the distro next starts naturally;
+- serialize backup, health evaluation, and bounded automatic maintenance with Linux locks and state;
+- never use Windows Task Scheduler, background PowerShell, or `wsl.exe -d` to poll or run routine Linux-owned work;
+- allow WSL idle teardown and preserve `wsl --shutdown` indefinitely.
 
-The implementation must verify which Task Scheduler trigger combination reliably represents resume and unlock on this Windows/WSL installation before changing production tasks. Event-trigger XML is acceptable only with fixture tests and read-back validation.
+Windows remains responsible only for capabilities Linux cannot own: visible desktop consent, AC-power state, temporary Windows idle-sleep inhibition, and whole-distro export. A Windows bridge may enter WSL only after current explicit consent for one fixed operation; it must never wake WSL to check whether work is due.
 
 ## Implementation phases
 
@@ -200,15 +201,23 @@ The implementation must verify which Task Scheduler trigger combination reliably
 
 **Gate:** disposable operations prove that no long command can run without a current explicit approval. The integrated source satisfies this disposable gate; every production action remains separately authorized.
 
-### Phase 4 — Reversible production migration
+### Phase 4 — Linux-owned scheduling and reversible migration
 
-- Install the coordinator while leaving existing task definitions recoverable.
-- Disable, rather than immediately delete, the six old tasks.
-- Register and read back the new trigger/action/settings.
-- Run a post-resume production backup exercise.
-- Successfully rerun the currently failed full-data check with consent and clear its marker only on success.
-- Observe retention and at least one due maintenance decision.
-- Retain a documented rollback command until the observation period completes.
+**Architecture corrected; source and reversible migration prepared:** `wsl-home-scheduler` and `wsl-home-scheduler.timer` keep routine backup, status, retention due logic, locking, and atomic state inside Linux. The timer runs only while the distro exists naturally; neither setup nor the scheduler registers or invokes a Windows home-backup task. Ordinary setup installs units without enabling them. Disposable scheduler and migration tests prove backup-first ordering, exact retention boundaries, fail-closed state, overlap refusal, atomic replacement, complete task inventory, interruption recovery, exact rollback, explicit cutover, and the observation deletion gate.
+
+The earlier uncommitted Windows coordinator candidate was removed rather than deployed. The integrated Phase 1–3 Windows source remains historical/disposable evidence and a possible basis for genuinely Windows-owned consent UI only; it is not the routine scheduler deployment target.
+
+A production attempt retained and revalidated the exact six-task inventory, then stopped safely because Debian-Recovered was not booted with systemd. It changed no task, installed no Linux file, and ran no coordinator or Restic operation. Continuing requires a separately reviewed systemd boot-configuration change and distro restart.
+
+The remaining production migration work is:
+
+- make systemd active under a separately reviewed authorization, then install and verify the Linux service and timer without routine Windows wake-up;
+- inventory and preserve all six legacy Windows task definitions;
+- enable the Linux timer, verify a natural backup while the distro is already running, then disable all six legacy tasks rather than deleting them;
+- verify `wsl --shutdown` remains authoritative and no Windows task restarts WSL;
+- retain exact rollback definitions and enabled states through the observation period;
+- design the Linux-origin request/Windows-consent bridge before resuming prune or full-data-check scheduling;
+- successfully rerun the currently failed full-data check with consent and clear its marker only on success.
 
 **Gate:** no catch-up storm, no suspension-only stale warning, routine snapshots remain healthy, and a declined long operation never runs.
 
@@ -233,8 +242,9 @@ At minimum, tests must prove:
 - battery policy prevents accidental heavy work;
 - idle-sleep inhibition is always released;
 - interruption retains recoverable state;
-- PowerShell 5.1 is rejected and every task action uses `pwsh.exe`;
-- setup is idempotent and migration rollback preserves the original task definitions;
+- routine scheduler source and systemd units contain no Windows or `wsl.exe` invocation;
+- setup never registers Windows routine-work tasks and installs the Linux timer idempotently;
+- migration rollback preserves the original six Windows task definitions;
 - notification and output normalization remain intact.
 
 Use semantic mutations for the consequential policies: remove consent, invert due logic, treat sleep as awake time, mark deferral successful, ignore snooze, run two maintenance jobs, or dispatch a different operation. Every mutation must be killed at its intended assertion.
@@ -256,4 +266,4 @@ Those remain separate recovery-capability work after laptop scheduling is safe.
 
 Commit `1e2b97a` integrated the reviewed source-only production-state adapter from [`PRODUCTION-HEALTH-STATE-DECISION.md`](PRODUCTION-HEALTH-STATE-DECISION.md). It implements the tracked policy, durable projected counters and pending attempts, atomic replacement and interruption recovery, notification episodes, and strict disposable validation. It passed 115 retained assertions, eight attributed semantic mutations, the canonical fast lane, and controller review without changing production state or operations.
 
-Commit `6a84654` integrates the reviewed Phase 3 source-only candidate. Windows `HEAD`, `origin/main`, and WSL chezmoi `HEAD` are synchronized at that commit; tools documentation is integrated at `9145e24`. The next bounded action requires separate controller authorization to prepare the Phase 4 production-integration candidate as source-only disposable work, including real-adapter boundaries and reversible task migration tests. Do not deploy the coordinator, alter production tasks, invoke WSL/Restic backup or maintenance, clear the failed full-data-check marker, or perform a production migration.
+Commit `6a84654` integrates the reviewed Phase 3 source-only candidate. The current uncommitted Phase 4 candidate replaces the rejected Windows-driven routine coordinator with Linux `systemd` scheduling and records the OS-ownership boundary in repository `AGENTS.md`. Its disposable evidence must remain green before integration. It adds no deployment authority. The next explicit authorization boundary is the reversible production migration: install and verify the Linux timer, preserve then disable the six Windows tasks, and observe natural in-distro scheduling. Do not alter production tasks, enable the timer, invoke production maintenance, clear the failed full-data-check marker, or perform that migration without separate authorization.

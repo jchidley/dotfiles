@@ -21,19 +21,26 @@ run_fast() {
 
   local shell_files=(
     "$ROOT/setup.sh" "$ROOT/test-all" "$ROOT/wsl-backup"
-    "$ROOT/home/backup-wsl-home" "$ROOT/home/install.sh" "$ROOT/home/test.sh"
+    "$ROOT/home/backup-wsl-home" "$ROOT/home/wsl-home-scheduler"
+    "$ROOT/home/migrate-linux-scheduler.sh"
+    "$ROOT/home/install.sh" "$ROOT/home/test.sh" "$ROOT/home/test-scheduler.sh"
+    "$ROOT/home/test-scheduler-mutations.sh"
     "$ROOT/system/install.sh" "$ROOT/system/validate-wsl-system-restore"
     "$ROOT/tests/test-setup-and-cli.sh"
   )
   bash -n "${shell_files[@]}"
   shellcheck "${shell_files[@]}"
   "$ROOT/tests/test-setup-and-cli.sh"
+  "$ROOT/home/test-scheduler.sh"
+  "$ROOT/home/test-scheduler-mutations.sh"
   run_windows_test "$ROOT/home/Test-WslHomeWindows.ps1"
   run_windows_test "$ROOT/home/Test-WslHomeSchedulingShadow.ps1"
   run_windows_test "$ROOT/home/Test-WslHomeSchedulingStateAdapter.ps1"
   run_windows_test "$ROOT/home/Test-WslHomeSchedulingStateAdapterMutations.ps1"
   run_windows_test "$ROOT/home/Test-WslHomeLongJobConsent.ps1"
   run_windows_test "$ROOT/home/Test-WslHomeLongJobConsentMutations.ps1"
+  run_windows_test "$ROOT/home/Test-WslHomeSchedulingMigration.ps1"
+  run_windows_test "$ROOT/home/Test-WslHomeSchedulingMigrationMutations.ps1"
   run_windows_test "$ROOT/system/Test-WslSystemBackup.ps1"
 
   local ps_lint='' ps_exec=''
