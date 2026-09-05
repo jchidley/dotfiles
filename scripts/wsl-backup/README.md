@@ -1,6 +1,8 @@
 # WSL backup and recovery
 
-This directory is the canonical implementation and operational entry point for backing up `Debian-Recovered`. It does not own recovery history or benchmark evidence; those live in the `jchidley/tools` WSL backup reference.
+This directory owns the WSL backup implementation and local operational records. Debian3 is the recovery-assurance target; Debian-Recovered and Debian-Backup remain preserved recovery sources. Historical research and benchmark evidence also live in the `jchidley/tools` WSL backup reference.
+
+Start with [`STATUS.md`](STATUS.md) for verified evidence, [`TASKS.md`](TASKS.md) for incomplete work, and [`RECOVERY-PLAN.md`](RECOVERY-PLAN.md) for the active bounded plan. Setup and operation examples below describe interfaces, not authorization to change an existing installation. Debian3's whole-system export path still needs adaptation; do not run the legacy export examples against it unchanged.
 
 ## Quick start
 
@@ -75,15 +77,20 @@ The fast lane does not modify production repositories or tasks. It covers isolat
 
 See [`TESTING.md`](TESTING.md) for stable contracts, mutation evidence, and explicitly deferred scope.
 
-## Laptop scheduling migration status
+## Scheduling and recovery status
 
-Phase 1 through Phase 3 remain committed source evidence. The undeployed Windows-driven Phase 4 candidate was removed and replaced by an uncommitted Linux-owned `systemd` scheduler candidate. It runs only while the distro is already active and contains no Windows or `wsl.exe` routine-work boundary. The existing six Windows tasks remain authoritative—and can still restart WSL—until a separately authorized migration enables and verifies the Linux timer, then disables those tasks with rollback retained.
+Linux-owned scheduler source is integrated at `f41a315`; Windows must not wake or poll WSL for routine Linux work. The 5 September inspection verified Debian3's enabled timer, Debian-Recovered's disabled timer, and zero legacy Windows Restic tasks. See `STATUS.md` for timestamps and limits rather than treating this summary as a live health check.
+
+Independent password recovery and a validated Debian3 whole-distro backup remain open. The old six-task migration is not the next action; follow `RECOVERY-PLAN.md`. The retained Windows Phase 1–3 source is fixture/design evidence, not the routine production scheduler.
 
 ## Documentation ownership
 
 - This README and component READMEs: current commands and operational behaviour.
-- [`LAPTOP-SCHEDULING-PLAN.md`](LAPTOP-SCHEDULING-PLAN.md): current implementation plan for awake-time scheduling, serialized due work, and informed consent for long operations.
-- [`PRODUCTION-HEALTH-STATE-DECISION.md`](PRODUCTION-HEALTH-STATE-DECISION.md): approved production health-state policy and acceptance contract; source implementation is integrated, while deployment remains unauthorized.
+- [`STATUS.md`](STATUS.md): canonical local evidence, current limitations, and historical integration outcomes.
+- [`TASKS.md`](TASKS.md): incomplete work only.
+- [`RECOVERY-PLAN.md`](RECOVERY-PLAN.md): active bounded recovery objective, sequence, approval boundaries, and acceptance gates.
+- [`LAPTOP-SCHEDULING-PLAN.md`](LAPTOP-SCHEDULING-PLAN.md): historical scheduling design and deferred long-job requirements, not an active deployment plan.
+- [`PRODUCTION-HEALTH-STATE-DECISION.md`](PRODUCTION-HEALTH-STATE-DECISION.md): retained policy/fixture acceptance contract; the Windows routine-controller deployment design is superseded.
 - Source code and tests: implementation truth.
 - `jchidley/tools/docs/wsl-backup.md`: clean cross-repository reference, capability status, and reading path.
 - `jchidley/tools/research/2026-08-15-wsl-debian-backup-and-home-recovery.md`: historical recovery evidence, measurements, decisions, and rejected alternatives.

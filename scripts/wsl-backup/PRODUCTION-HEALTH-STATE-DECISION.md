@@ -1,12 +1,14 @@
 # Production backup-health state decision packet
 
-**Status:** approved production-state contract. The controller approved all recommended values and clauses. This approval settles policy documentation only; it does not authorize implementation, deployment, state writes, task changes, backup execution, commit, or push.
+**Status:** retained approved policy and fixture acceptance contract, not a current Windows deployment plan. The later OS-ownership correction superseded its Windows routine-controller paths and triggers. Linux owns routine health and due-state decisions; this contract is not evidence that the deployed Linux scheduler implements every behavior below. The active objective is [`RECOVERY-PLAN.md`](RECOVERY-PLAN.md), with current evidence in [`STATUS.md`](STATUS.md).
+
+The original controller approval settled policy documentation only; it did not authorize implementation, deployment, state writes, task changes, backup execution, commit, or push. Subsequent source integration is recorded at the end of this document.
 
 ## Evidence and fixed constraints
 
 The Phase 2 shadow coordinator proves projected consecutive counters, exact threshold crossings, success resets, awake-time interval handling, lock deferral, and backup-gated maintenance in disposable fixtures. It does not persist state or invoke production adapters. See [`TESTING.md`](TESTING.md).
 
-The Phase 1 state helper already provides a versioned secret-free state shape, rejects unknown schema versions, and writes a same-directory temporary JSON file before replacement. The production adapter still needs stricter field validation, durable cross-process tests, and fault-injection evidence; the existing helper alone is not acceptance evidence for this contract.
+The Phase 1 state helper already provides a versioned secret-free state shape, rejects unknown schema versions, and writes a same-directory temporary JSON file before replacement. At the decision baseline, the production adapter still needed stricter field validation, durable cross-process tests, and fault-injection evidence; the existing helper alone was not acceptance evidence. The later source-only adapter satisfied that fixture gate, as recorded below.
 
 The following constraints are already settled by [`LAPTOP-SCHEDULING-PLAN.md`](LAPTOP-SCHEDULING-PLAN.md):
 

@@ -38,7 +38,9 @@ chezmoi update
 
 ### WSL backup and recovery
 
-On the recovered Debian WSL installation, install or update the complete backup toolset with:
+For current Debian3 recovery work, start with the [verified status](scripts/wsl-backup/STATUS.md) and [active recovery plan](scripts/wsl-backup/RECOVERY-PLAN.md). Preserve Debian-Recovered and Debian-Backup until the recovery gates pass and retirement is separately authorized.
+
+For an explicitly approved installation/update of the backup toolset (not a recovery-verification command):
 
 ```bash
 cd ~/.local/share/chezmoi

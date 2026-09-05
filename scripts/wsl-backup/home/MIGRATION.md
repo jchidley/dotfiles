@@ -1,6 +1,8 @@
 # Migrate routine scheduling to Linux
 
-This how-to moves the six deployed `WSL Home Restic - *` tasks to the Linux `systemd` timer without using generated task definitions as rollback evidence. It does not authorize prune, full-data checks, task deletion, marker clearing, or whole-system export.
+This how-to applies only to an installation that still has all six legacy `WSL Home Restic - *` tasks. It moves them to the Linux `systemd` timer without using generated task definitions as rollback evidence. It does not authorize prune, full-data checks, task deletion, marker clearing, or whole-system export.
+
+**Not the current Debian3 next step:** the 5 September inspection found zero legacy tasks and an enabled Debian3 timer. Do not recreate tasks, restore legacy scheduling, or replay this procedure to satisfy its preconditions. Follow [`../RECOVERY-PLAN.md`](../RECOVERY-PLAN.md); current evidence is in [`../STATUS.md`](../STATUS.md).
 
 Run the PowerShell commands from the canonical Windows checkout with PowerShell 7. The tool writes machine-specific evidence under `%LOCALAPPDATA%\WSLHomeRestic\migration`; keep that directory out of Git and preserve it through the observation period.
 

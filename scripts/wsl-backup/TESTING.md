@@ -26,7 +26,7 @@ The setup tests use `WSL_BACKUP_DESTDIR` plus fake PowerShell 7, `wslpath`, `sud
 - The Linux scheduler runs backup first, blocks later work after failure/deferral, and owns retention due state atomically.
 - Operator commands forward exact home arguments and system modes.
 - Adapter failures propagate through the operator command.
-- Retained legacy-task helpers still describe and validate the six deployed schedules for rollback; setup no longer calls them.
+- Retained legacy-task helpers describe and validate the six historical schedule shapes for rollback fixtures; they are not evidence of currently deployed tasks. Setup no longer calls them.
 - Duplicate notifications are suppressed for less than six hours and resume at the boundary.
 - Existing system manifest, journal, task rollback, artifact, and retention contracts remain covered by the system suite.
 

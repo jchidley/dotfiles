@@ -4,6 +4,8 @@ This component implements the complete-system stream. Start with the [umbrella R
 
 It is separate from the frequent Restic `/home/jack` snapshots.
 
+> **Debian3 recovery is not yet covered by this legacy runbook.** The exporter requires six Windows Restic tasks, while the restore validator assumes legacy paths including `/home/jack/boat-data-platform`. Do not recreate Windows tasks or run the examples against Debian3 unchanged. See [`../STATUS.md`](../STATUS.md) for current operational evidence, [`../TASKS.md`](../TASKS.md) for incomplete work, and [`../RECOVERY-PLAN.md`](../RECOVERY-PLAN.md) for adaptation and recovery gates. Exporting a distro containing private keys requires approval of protected storage and downtime before execution.
+
 `Backup-WslSystem.ps1` creates a cold compressed export locally, validates it by importing it under a disposable WSL name, and only then promotes it from `.partial` to `.tar.gz`. It writes a SHA-256 JSON manifest and retains the newest two validated local generations. During an export it transactionally disables the six `WSL Home Restic - *` tasks so none can restart the source, then restores only the tasks that were enabled before the run.
 
 ## Install the restore validator

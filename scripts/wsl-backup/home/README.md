@@ -28,7 +28,9 @@ The installer is intentionally non-destructive. It does not generate a password,
 
 ## Initialize explicitly
 
-Generate the runtime password without printing it, record it manually in Bitwarden through a trusted local workflow, then initialize:
+**Fresh, uninitialized installations only.** Do not run these password-generation commands on Debian3 or any existing backup repository: they overwrite the runtime password. For the existing recovery-verification task, follow [`../RECOVERY-PLAN.md`](../RECOVERY-PLAN.md) without regenerating credentials or reinitializing storage.
+
+For a fresh installation, generate the runtime password without printing it, record it manually in Bitwarden through a trusted local workflow, then initialize:
 
 ```bash
 sudo install -o root -g root -m 600 /dev/null /etc/restic/home.password
@@ -64,11 +66,11 @@ sudo backup-wsl-home restore latest /var/tmp/restic-home-restore
 
 `backup` validates source size, file count, ownership, Pi sessions, SSH key mode, expected landmarks, and McFly SQLite integrity before writing a snapshot. It creates a consistent SQLite recovery copy before invoking Restic. All modifying and checking operations share a non-blocking mutex.
 
-Retention keeps every snapshot for 24 hours, hourly snapshots for seven days, and daily snapshots for 30 days. The daily retention task changes snapshot metadata without reclaiming packs; the weekly prune task reclaims unreferenced storage.
+Retention keeps every snapshot for 24 hours, hourly snapshots for seven days, and daily snapshots for 30 days. The Linux coordinator runs due retention without reclaiming packs; prune reclaims unreferenced storage but is not scheduled by this coordinator.
 
 ## Scheduling
 
-Routine home-backup scheduling belongs to Linux. The source candidate installs:
+Routine home-backup scheduling belongs to Linux. The integrated source installs:
 
 | Path | Purpose |
 |---|---|
@@ -80,9 +82,9 @@ The timer uses `Persistent=true` to reconcile once when the distro next starts n
 
 `setup.sh` installs the units but never enables the timer. [`MIGRATION.md`](MIGRATION.md) owns the explicit inventory, Linux preflight, cutover, rollback, observation, and later deletion procedure. Windows integration remains limited to whole-system export and future visible-consent/power boundaries.
 
-### Current deployed legacy tasks
+### Historical Windows task set
 
-Production has not migrated yet. These six Windows tasks remain authoritative:
+The 5 September inspection found no legacy Windows tasks and verified Debian3's enabled timer and Debian-Recovered's disabled timer. [`../STATUS.md`](../STATUS.md) owns the timestamped evidence. The retained migration fixtures and rollback helpers refer to this historical task set:
 
 - `WSL Home Restic - Backup`;
 - `WSL Home Restic - Monitor`;
@@ -91,7 +93,7 @@ Production has not migrated yet. These six Windows tasks remain authoritative:
 - `WSL Home Restic - Check`;
 - `WSL Home Restic - Read Data Check`.
 
-They invoke `wsl.exe -d Debian-Recovered` and can restart a manually stopped distro. Do not delete them before replacement: the authorized migration must preserve their exact definitions, enable and verify the Linux timer, then disable all six. Keep them disabled for rollback through the observation period; delete them only after that gate.
+Those legacy definitions invoke `wsl.exe -d Debian-Recovered` and can restart a manually stopped distro. Do not recreate them or replay migration for Debian3. If migrating a different installation where they still exist, preserve exact definitions, disable before deleting, and require the observation gate in `MIGRATION.md`. Current absence alone does not prove how the historical deletion gate was satisfied.
 
 Prune and full-data-check scheduling remain pending the Linux-origin request/Windows-visible-consent bridge. The Linux timer does not run either operation automatically.
 

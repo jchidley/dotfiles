@@ -1,12 +1,14 @@
-# Laptop-aware WSL backup scheduling plan
+# Historical laptop-aware WSL backup scheduling design
 
-This is the canonical implementation plan for replacing fixed-time WSL backup maintenance with scheduling that reflects real backup opportunities on a suspending laptop. It covers routine `/home/jack` snapshots, monitoring, retention, repository checks, pruning, and consent for long-running work. It does not redesign Restic storage, combined recovery, or independent replication.
+**Not the active implementation plan.** The active bounded objective is [`RECOVERY-PLAN.md`](RECOVERY-PLAN.md); current operational evidence is [`STATUS.md`](STATUS.md), and incomplete work is [`TASKS.md`](TASKS.md).
 
-The current commands and deployed behaviour remain documented in [`README.md`](README.md), [`home/README.md`](home/README.md), and [`system/README.md`](system/README.md) until each phase below is deployed and verified.
+This document preserves the scheduling requirements, rejected Windows-coordinator assumptions, phase evidence, and deferred long-job design. Its Windows state paths, event triggers, six-task migration steps, and acceptance targets are historical design context, not a description of today's Linux scheduler or authority to deploy a Windows controller. The OS-ownership boundary under Scheduling ownership remains binding.
+
+The Linux scheduler source was integrated at `f41a315`. The 5 September inspection found Debian3's timer enabled and no legacy Windows tasks; the August migration blocker below is superseded. Remaining consent-bridge and richer health-policy work is deferred, not a prerequisite for recovery assurance.
 
 ## Problem to solve
 
-The current six Windows tasks use fixed or repeating wall-clock schedules with `StartWhenAvailable`. The laptop does not run them while suspended. On resume, missed tasks can start together even though the intended work did not become more urgent while the machine was asleep.
+At the original design baseline, six Windows tasks used fixed or repeating wall-clock schedules with `StartWhenAvailable`. The laptop does not run them while suspended. On resume, missed tasks can start together even though the intended work did not become more urgent while the machine was asleep.
 
 This creates three incorrect behaviours:
 
@@ -209,7 +211,7 @@ The earlier uncommitted Windows coordinator candidate was removed rather than de
 
 A production attempt retained and revalidated the exact six-task inventory, then stopped safely because Debian-Recovered was not booted with systemd. It changed no task, installed no Linux file, and ran no coordinator or Restic operation. Continuing requires a separately reviewed systemd boot-configuration change and distro restart.
 
-The remaining production migration work is:
+The historical migration checklist was (not the current queue; do not recreate absent tasks to replay it):
 
 - make systemd active under a separately reviewed authorization, then install and verify the Linux service and timer without routine Windows wake-up;
 - inventory and preserve all six legacy Windows task definitions;
@@ -262,8 +264,8 @@ This plan does not yet:
 
 Those remain separate recovery-capability work after laptop scheduling is safe.
 
-## Immediate bounded objective
+## Historical source closeout and superseded next step
 
 Commit `1e2b97a` integrated the reviewed source-only production-state adapter from [`PRODUCTION-HEALTH-STATE-DECISION.md`](PRODUCTION-HEALTH-STATE-DECISION.md). It implements the tracked policy, durable projected counters and pending attempts, atomic replacement and interruption recovery, notification episodes, and strict disposable validation. It passed 115 retained assertions, eight attributed semantic mutations, the canonical fast lane, and controller review without changing production state or operations.
 
-Commit `6a84654` integrates the reviewed Phase 3 source-only candidate. The integrated Phase 4 source replaces the rejected Windows-driven routine coordinator with Linux `systemd` scheduling and records the OS-ownership boundary in repository `AGENTS.override.md`. Its disposable evidence must remain green before integration. It adds no deployment authority. The next explicit authorization boundary is the reversible production migration: install and verify the Linux timer, preserve then disable the six Windows tasks, and observe natural in-distro scheduling. Do not alter production tasks, enable the timer, invoke production maintenance, clear the failed full-data-check marker, or perform that migration without separate authorization.
+Commit `6a84654` integrates the reviewed Phase 3 source-only candidate. The integrated Phase 4 source replaces the rejected Windows-driven routine coordinator with Linux `systemd` scheduling and records the OS-ownership boundary in repository `AGENTS.override.md`. Its source was subsequently integrated at `f41a315`. The then-proposed next step was reversible production migration; that is no longer the current queue. See `STATUS.md` for the later migration and inspection evidence, including zero legacy Windows tasks. Do not infer a successful historical task-deletion observation gate solely from their current absence. Future production actions remain separately authorized; follow `RECOVERY-PLAN.md` rather than replaying this migration.
