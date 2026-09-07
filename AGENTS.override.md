@@ -4,8 +4,8 @@
 
 | Task | Command |
 |---|---|
-| Fast, side-effect-free gate | `./scripts/wsl-backup/test-all fast` (from WSL) |
-| Disposable Restic integration | `./scripts/wsl-backup/test-all integration` (from WSL) |
+| Fast, side-effect-free gate | `bash scripts/wsl-backup/test-all fast` (from WSL) |
+| Restic integration (requires approval: uses sudo and may query production status) | `bash scripts/wsl-backup/test-all integration` (from WSL) |
 | PowerShell lint | Use the canonical fast lane; it runs pinned PSScriptAnalyzer 1.25.0 |
 
 ## OS ownership boundary
@@ -22,4 +22,4 @@
 - Tests must use disposable repositories, state directories, commands, and scheduler fixtures.
 - Do not read or change real Scheduled Tasks, production Restic state, credentials, markers, or deployed files unless the user explicitly authorizes that production action.
 - Preserve task definitions for rollback: disable legacy tasks before deleting them, and delete only after the replacement has passed its observation gate.
-- `NEXT-SESSION.md` is relay-owned metadata; do not modify it outside an active `/relay` builder.
+- Relay preparation and execution use machine-local run records and immutable run artifacts. Do not create or edit Relay `draft.md` or `contract.md` files outside an active `/relay` builder.

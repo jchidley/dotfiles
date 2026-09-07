@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-exec "$HOME/.pi/agent/skills/web-search/web-search" "$@"
+exec node "$HOME/git/agent-skills/skills/web-search/web-search.mjs" "$@"

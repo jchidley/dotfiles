@@ -85,6 +85,11 @@ _mcfly_data_dir="${XDG_DATA_HOME:-$HOME/.local/share}/mcfly"
 mkdir -p "$_mcfly_data_dir"
 chmod 700 "$_mcfly_data_dir" 2>/dev/null || true
 [ ! -f "$_mcfly_data_dir/history.db" ] || chmod 600 "$_mcfly_data_dir/history.db" 2>/dev/null || true
+# McFly imports HISTFILE during initialization and warns when a fresh profile
+# has no history file. Create only the missing file; never truncate history.
+if [[ ! -e ${HISTFILE:-$HOME/.bash_history} ]]; then
+  install -m 0600 /dev/null "${HISTFILE:-$HOME/.bash_history}"
+fi
 unset _mcfly_data_dir
 
 # Fall back to an equivalent per-prompt file flush when McFly is unavailable,

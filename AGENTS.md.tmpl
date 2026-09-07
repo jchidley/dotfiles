@@ -29,11 +29,9 @@ MSYS, WSL, PowerShell, or SSH—or path ownership is unclear—load the globally
 discovered `windows-env` skill at
 `{{ $windowsEnv }}/SKILL.md` and use its tested helper.
 
-Run `{{ $windowsEnv }}/detect-env` only when shell identity affects
-the operation. `MSYS_NO_PATHCONV=1` controls argument conversion only; it does
-not preserve nested quotes or choose which shell expands variables. Transport
-nontrivial destination scripts with the skill's stdin/encoded helpers and
-verify cross-boundary writes independently.
+Agent-facing script commands must name their runtime: use `node <script>` for Node, `bash <script>` for Bash, and native `.ps1` entrypoints for direct Windows operations. Never invoke an extensionless script directly from PowerShell; Windows may open the app picker and report misleading success.
+
+Run environment detection only when shell identity affects the operation. Transport nontrivial destination scripts with `windows-env` helpers and verify cross-boundary writes independently; argument-conversion flags do not solve script quoting.
 
 Pi 0.85+ built-in file tools accept relative paths, `C:/...`, and supported
 Git Bash/Cygwin/WSL drive aliases, and execute against the active session
@@ -53,25 +51,14 @@ configuration may change it). Never use the default WSL distro implicitly,
 search other distros, fall back to Windows Credential Manager, or automate
 Bitwarden access.
 
-{{ if eq .chezmoi.os "windows" -}}
-On Windows (Git Bash/MSYS2), use the `windows-env` wrappers. They route only to
-the configured named distro and fail closed when it is unavailable:
+On Windows, use the native PowerShell 7 entrypoint. It routes only to the configured named distro and fails closed when it is unavailable:
 
-```bash
-{{ $windowsEnv }}/ak-get brave
-{{ $windowsEnv }}/ak-get --list
+```powershell
+# List service names only; this does not retrieve values.
+& {{ $windowsEnv }}/Get-AkSecret.ps1 -List
 ```
-{{ else -}}
-Inside the configured authoritative distro, use `ak` directly:
-
-```bash
-ak get brave
-ak list
-```
-{{ end -}}
-
-Across an environment boundary, use
-`{{ $windowsEnv }}/ak-get`. The managed `~/.envrc`
+Prefer the consuming skill's managed launcher, which captures credentials internally. If manual loading is necessary, load `windows-env` and capture the approved helper's value inside the consuming command, without printing it. From Bash the helper is `bash {{ $windowsEnv }}/ak-get <SERVICE>`; from PowerShell 7 it is `Get-AkSecret.ps1 -Service <SERVICE>`. Never invoke value-returning helpers alone in an agent tool call.
+The managed `~/.envrc`
 is the reviewed export profile; import only its explicit service allowlist. Do
 not use no-argument bulk loading or add `export: false` credentials. Never store
 keys in plaintext dotfiles, and retrieve them only when explicitly required.
@@ -80,5 +67,6 @@ keys in plaintext dotfiles, and retrieve them only when explicitly required.
 
 ## Other machine rules
 
-- Use `{{ $windowsEnv }}/win-open`, not `xdg-open`.
+- On Windows use `& {{ $windowsEnv }}/Invoke-WinOpen.ps1 <TARGET>`.
+  From WSL or Git Bash use `bash {{ $windowsEnv }}/win-open <TARGET>`, not `xdg-open`.
 - USB devices require Windows-side `usbipd attach` before WSL can see them.

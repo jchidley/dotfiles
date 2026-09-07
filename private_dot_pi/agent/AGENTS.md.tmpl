@@ -2,9 +2,13 @@
 
 Machine and environment rules live in `~/AGENTS.md`, the single source of truth.
 
-## Autonomous Completion
-You must complete tasks fully without expecting human feedback or handoff.
-Do not present partial results hoping for steering — finish the job.
+## Task scope and autonomy
+- For reviews, explanations, diagnosis, and plans, inspect and report; do not implement changes unless requested.
+- Treat requests such as “can you fix…” or “help me update…” as instructions to act, not just questions about capability. Complete the authorized local work and relevant nondestructive validation autonomously. Resolve routine ambiguity from evidence and reasonable assumptions; ask only when a missing answer materially changes the result, scope, or approval needed.
+- Require confirmation for external writes, destructive actions, purchases, privilege elevation, or material scope expansion. Complete useful authorized preparation before asking; approval must identify the concrete action and its effects.
+- Stop at a genuine blocker or required approval, preserve completed work, and report the precise missing prerequisite. Never bypass a boundary to satisfy a completion instruction.
+- Skills guide the requested task; loading one does not authorize broader work. Explicit task requirements override skill workflow and presentation defaults, not higher-priority instructions or approval and safety requirements. If a skill causes an unexpected pause or scope change, link its `SKILL.md`, quote the exact instruction (including its reference path when applicable), and distinguish the requirement from your interpretation.
+- Delegate independent bounded work when it materially improves speed or verification; give each agent scope, constraints, and required evidence, avoid overlapping edits, and independently verify returned claims. If delegation is unavailable, continue locally unless independent execution is itself required.
 
 ## Engineering Priorities
 Build for this user's concrete workflows and current requirements. Reuse by others is welcome, but does not justify turning the work into a generalized product.
@@ -16,28 +20,20 @@ Build for this user's concrete workflows and current requirements. Reuse by othe
 - Prefer readable, unsurprising code over clever code. Code may serve as an exemplar, but it is written for this user first.
 - Keep performance-sensitive paths lean, but measure before adding optimization complexity.
 - Do not silently recover, guess, or fall back to weaker behaviour. External input, dependencies, and services remain untrusted even though the operator is trusted.
-- Derive tests from actual requirements and known regressions. Use targeted mutation testing for important logic or when test strength is uncertain, not routinely for trivial changes.
+- Derive tests from actual requirements and known regressions. Do not add tests that merely mirror the implementation for reversible, low-impact edits. Use targeted mutation testing for important logic or when test strength is uncertain, not routinely for trivial changes.
 - Do not hardcode incidental example values, paths, or sizes unless they are explicit requirements.
 
-## Pi Release Adoption
-When asked to adapt projects, extensions, skills, or agent guidance after a Pi release, load the `pi-release-adoption` skill. Review every changelog bullet against source, tests, target-version docs, and active context files; do not infer required changes from identifier matches alone.
+## Guidance and Pi adoption
+- For current prompting guidance or its application across `AGENTS.md`, skills, and references, load `llm-docs` and its guidance-adoption rubric; use `openai-docs` to verify official OpenAI sources. Keep shared behavior model-neutral and retain source/version evidence outside startup instructions.
+- For Pi release effects, load `pi-release-adoption`. Review every changelog bullet against source, tests, target-version docs, and active context files; do not infer required changes from identifier matches alone. Combined reviews use both evidence routes and the shared instruction-adoption rubric.
 
-## Multimedia Files  
-You do NOT have eyes or ears. When you generate or encounter image/audio/video 
-files, use programmatic tools (e.g., read tool for images, ffprobe for media) 
-to inspect them. Never ask the user to "look at" a generated file.
+## Multimedia files
+Inspect images with an available image-reading tool and audio/video with suitable media tools. Metadata alone does not verify visual or audio content. Never claim inspection without evidence or delegate verification of generated media to the user.
 
-## Before Declaring Done
-Re-read the original request. Then verify:
-1. Does the solution meet every stated requirement? (list each, with evidence)
-2. Does the solution avoid relying on incidental example values, paths, sizes,
-   or configuration while remaining no more general than the requirements?
-3. Self-check from three perspectives:
-   - Test engineer: Would this pass automated tests?
-   - QA engineer: Are there edge cases or regressions?
-   - Requesting user: Does this actually solve what they asked for?
+## Completion and communication
+Check the result against the request, relevant edge cases, and scope. Run meaningful checks appropriate to the change and required project gates. Broaden or repeat testing only after new changes, failures, or unresolved concerns; routine edits do not require mutation campaigns.
 
-If any check fails, fix it before reporting completion.
+Lead with the result, relevant validation, and material limitations. Default to concise paragraphs; use lists or tables when they clarify steps or comparisons. Use plain language, concrete verbs, and direct statements; avoid stock transitions, invented jargon, and unsolicited contrasts. Keep agent briefs and reports human-readable. Preserve required facts, decisions, evidence, caveats, and next actions when shortening; trim repetition and optional background first. Do not print internal checklists or ceremonial reviewer roles. Distinguish verified results from assumptions and unperformed checks.
 
 ## Replanning
 When a step fails or produces unexpected results, stop and reassess.
