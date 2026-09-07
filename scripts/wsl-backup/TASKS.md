@@ -19,7 +19,7 @@ Completed on 7 September: boat-data-platform's 19 commits are pushed at `d18e28d
 - Preserve Linux/systemd ownership of routine backup scheduling and whole-distro coordination.
 - Resolve the [Debian4 backup contract's candidate findings](../../docs/DEBIAN4-BACKUP-CONTRACT.md): stale home/source landmarks, unchecked destructive cleanup, unproven first-boot isolation, journal/mutex identity mismatch, and insufficient controller behavioral tests.
 - Remove Debian3-specific recovery landmarks from the unfinished exporter/validator candidate; PostgreSQL remains undecided.
-- Record the canonical fast-gate result and demonstrate isolated disposable-import behavior before deployment; fixture success does not establish restore safety.
+- Demonstrate isolated disposable-import behavior before deployment. The exact-source canonical fast lane passed and is recorded in STATUS; fixture success does not establish restore safety.
 - Finalize the contract's proposed Debian4 contents after capability/data selection.
 - Use a new repository and independently recoverable password; never initialize over surviving Restic history.
 
