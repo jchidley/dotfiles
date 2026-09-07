@@ -44,7 +44,7 @@ try {
     $bootstrapLinux = "/home/$User/.local/share/chezmoi/scripts/bootstrap/debian-bootstrap-safe.sh"
     & wsl.exe --distribution $Distribution --user $User --exec env `
         BOOTSTRAP_MODE=core BOOTSTRAP_PROFILE=dev APPLY_CHEZMOI=1 `
-        DOTFILES_APPLY_WSL_INTEGRATION=0 BOOTSTRAP_OFFLINE=1 SKIP_SYSTEM_PACKAGES=1 `
+        DOTFILES_APPLY_WSL_INTEGRATION=0 BOOTSTRAP_SETUP_AK=0 BOOTSTRAP_OFFLINE=1 SKIP_SYSTEM_PACKAGES=1 `
         bash $bootstrapLinux
     if ($LASTEXITCODE -ne 0) { throw 'Offline idempotent bootstrap rerun failed.' }
     Write-Output 'Pristine Debian bootstrap and offline idempotence test passed.'

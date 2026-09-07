@@ -78,7 +78,7 @@ Write-Output "  rootfs: $rootfs"
 Write-Output "  rootfs SHA-256: $actualHash"
 Write-Output "  default user: $User"
 Write-Output "  import mode: $(if ($ResumeExisting) { 'resume exact registered path' } else { 'new pristine import' })"
-Write-Output "  bootstrap: mode=$BootstrapMode profile=$BootstrapProfile, chezmoi apply enabled"
+Write-Output "  bootstrap: mode=$BootstrapMode profile=$BootstrapProfile, chezmoi apply enabled, interactive AK identity deferred"
 foreach ($item in $foundation) { Write-Output "  foundation: $($item.Name) $($item.Commit), streamed into target ext4" }
 Write-Output "  bootstrap sources committed: $bootstrapSourcesClean"
 Write-Output '  host-wide WSL integration: disabled'
@@ -245,7 +245,7 @@ try {
     $bootstrap = Invoke-WslCommand -Arguments @(
         '--distribution', $Distribution, '--user', $User, '--exec',
         'env', "BOOTSTRAP_MODE=$BootstrapMode", "BOOTSTRAP_PROFILE=$BootstrapProfile",
-        'APPLY_CHEZMOI=1', 'DOTFILES_APPLY_WSL_INTEGRATION=0',
+        'APPLY_CHEZMOI=1', 'DOTFILES_APPLY_WSL_INTEGRATION=0', 'BOOTSTRAP_SETUP_AK=0',
         'bash', $bootstrapLinux
     )
     Assert-WslSuccess -Result $bootstrap -Stage 'User bootstrap'

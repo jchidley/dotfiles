@@ -15,6 +15,7 @@ BOOTSTRAP_CACHE="${BOOTSTRAP_CACHE:-$HOME/.cache/dotfiles-bootstrap}"
 SKIP_SYSTEM_PACKAGES="${SKIP_SYSTEM_PACKAGES:-0}"
 APPLY_CHEZMOI="${APPLY_CHEZMOI:-0}"
 DOTFILES_APPLY_WSL_INTEGRATION="${DOTFILES_APPLY_WSL_INTEGRATION:-0}"
+BOOTSTRAP_SETUP_AK="${BOOTSTRAP_SETUP_AK:-1}"
 BOOTSTRAP_STATE_DIR="${BOOTSTRAP_STATE_DIR:-$HOME/.local/state/dotfiles-bootstrap}"
 
 run() {
@@ -37,7 +38,7 @@ marker() { printf 'bootstrap-check:%s:%s\n' "$1" "$2"; }
 source "$VERSION_LOCK"
 [[ "${BOOTSTRAP_LOCK_SCHEMA:-}" == 1 ]] || fail "unsupported version-lock schema"
 [[ $BOOTSTRAP_DRY_RUN =~ ^[01]$ && $BOOTSTRAP_OFFLINE =~ ^[01]$ ]] || fail "boolean options must be 0 or 1"
-[[ $APPLY_CHEZMOI =~ ^[01]$ && $DOTFILES_APPLY_WSL_INTEGRATION =~ ^[01]$ ]] || fail "boolean options must be 0 or 1"
+[[ $APPLY_CHEZMOI =~ ^[01]$ && $DOTFILES_APPLY_WSL_INTEGRATION =~ ^[01]$ && $BOOTSTRAP_SETUP_AK =~ ^[01]$ ]] || fail "boolean options must be 0 or 1"
 [[ $EUID -ne 0 ]] || fail "run as the target user, not root; sudo is used only for system provisioning"
 [[ $(id -u) == "$(stat -c %u "$HOME")" ]] || fail "HOME is not owned by the target user: $HOME"
 case "$(uname -m)" in x86_64|amd64) ;; *) fail "the current lock supports only x86-64" ;; esac
@@ -166,6 +167,34 @@ install_pi() {
   marker pi "$PI_VERSION"
 }
 
+setup_ak() {
+  local ak="$HOME/git/ak/bin/ak" key_file="$HOME/git/ak/.gpg-key-id"
+  local uid='Jack Chidley <jack@chidley.org>' selected_key
+  [[ "$BOOTSTRAP_SETUP_AK" == 1 && -x "$ak" ]] || return 0
+  if [[ "$BOOTSTRAP_DRY_RUN" == 1 ]]; then
+    echo "DRY-RUN: create the standard passphrase-protected GPG identity if needed, then run ak init"
+    return
+  fi
+  if [[ -s "$key_file" ]]; then
+    selected_key=$(<"$key_file")
+    if gpg --batch --list-secret-keys -- "$selected_key" >/dev/null 2>&1; then
+      marker ak "$selected_key"
+      return
+    fi
+  fi
+  if ! gpg --batch --with-colons --list-secret-keys 2>/dev/null | grep -q '^sec:'; then
+    [[ -t 0 && -t 1 ]] || fail "AK setup needs an interactive terminal for the GPG passphrase; rerun interactively or set BOOTSTRAP_SETUP_AK=0"
+    export GPG_TTY
+    GPG_TTY=$(tty)
+    echo "==> Creating standard GPG identity: $uid"
+    echo "    Ed25519/Cv25519, no expiry. Enter and confirm its passphrase in pinentry."
+    gpg --quick-generate-key "$uid" future-default default 0
+  fi
+  "$ak" init
+  [[ -s "$key_file" ]] || fail "ak init did not record a GPG key"
+  marker ak "$(<"$key_file")"
+}
+
 case "${BOOTSTRAP_MODE,,}" in
   core) default_groups=foundation ;;
   full) default_groups=foundation,active,references,optional ;;
@@ -233,6 +262,7 @@ if [[ -x "$AK_REPO/bin/ak" ]]; then
   run mkdir -p "$HOME/.config/direnv/lib"
   run ln -sfn "$AK_REPO/integrations/direnv.sh" "$HOME/.config/direnv/lib/ak.sh"
 fi
+setup_ak
 if [[ -x "$HOME/git/agent-skills/install.sh" ]]; then
   run "$HOME/git/agent-skills/install.sh" install pi
   if [[ "$BOOTSTRAP_DRY_RUN" != 1 ]]; then
@@ -267,4 +297,4 @@ if [[ "$BOOTSTRAP_DRY_RUN" != 1 ]]; then
   marker manifest "$BOOTSTRAP_STATE_DIR/installed-manifest.json"
 fi
 
-echo "Bootstrap complete. Secrets and host-wide WSL integration are separate explicit operations."
+echo "Bootstrap complete. Credential population and host-wide WSL integration are separate explicit operations."

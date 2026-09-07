@@ -4,11 +4,13 @@ set -euo pipefail
 root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 bootstrap="$root/debian-bootstrap-safe.sh"
 secret_helper="$root/migrate-ak-secrets.sh"
+bash_custom="$root/../../dot_bashrc_custom"
+web_search="$root/../../bin/executable_web-search"
 template="$root/../../run_onchange_after_20-wsl-config.sh.tmpl"
 terminal_linux_template="$root/../../run_onchange_after_50-windows-terminal.sh.tmpl"
 terminal_windows_template="$root/../../run_onchange_after_50-windows-terminal.ps1.tmpl"
 
-bash -n "$bootstrap" "$secret_helper" "$root/setup-rust.sh"
+bash -n "$bootstrap" "$secret_helper" "$bash_custom" "$web_search" "$root/setup-rust.sh"
 if command -v shellcheck >/dev/null 2>&1; then
   shellcheck -x "$bootstrap" "$secret_helper" "$root/setup-rust.sh"
 fi
@@ -28,10 +30,14 @@ for package in build-essential mold rustup fd-find gh git-delta neovim ripgrep; 
 done
 grep -q 'install_uv' "$bootstrap"
 grep -q 'DOTFILES_WORKSPACE=.*git/dotfiles' "$bootstrap"
+grep -q 'BOOTSTRAP_SETUP_AK=0' "$root/New-BootstrappedDebianWsl.ps1"
+grep -q 'BOOTSTRAP_SETUP_AK=0' "$root/Test-PristineDebianBootstrap.ps1"
 
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
-mkdir -p "$tmp/home/.local/share/chezmoi/.git"
+mkdir -p "$tmp/home/git/ak/bin" "$tmp/home/.local/share/chezmoi/.git"
+printf '#!/usr/bin/env bash\nexit 0\n' >"$tmp/home/git/ak/bin/ak"
+chmod 0755 "$tmp/home/git/ak/bin/ak"
 manifest="$tmp/workspace-repos.tsv"
 cat >"$manifest" <<'EOF'
 # group	kind	repository	destination	profiles
@@ -55,10 +61,25 @@ for output in "$first" "$second"; do
   grep -q 'configure native Cargo mold default' <<<"$output"
   grep -q 'ln -sfn /usr/bin/fdfind .*\.local/bin/fd' <<<"$output"
   grep -q 'git clone https://github.com/example/tools.git' <<<"$output"
+  grep -q 'standard passphrase-protected GPG identity' <<<"$output"
   grep -q 'ln -sfn .*\.local/share/chezmoi .*git/dotfiles' <<<"$output"
   grep -q 'Bootstrap complete' <<<"$output"
 done
 [[ ! -e "$tmp/home/tools" ]]
+
+# Exercise the actual top-level set -e caller, not setup_ak in a conditional
+# (which would suppress errexit inside the function). Both skips must finish.
+BOOTSTRAP_SETUP_AK=0 run_clean_home >"$tmp/ak-disabled.log" 2>&1
+grep -q 'Bootstrap complete' "$tmp/ak-disabled.log"
+! grep -q 'standard passphrase-protected GPG identity' "$tmp/ak-disabled.log"
+chmod 0644 "$tmp/home/git/ak/bin/ak"
+BOOTSTRAP_SETUP_AK=1 run_clean_home >"$tmp/ak-not-executable.log" 2>&1
+grep -q 'Bootstrap complete' "$tmp/ak-not-executable.log"
+! grep -q 'standard passphrase-protected GPG identity' "$tmp/ak-not-executable.log"
+rm "$tmp/home/git/ak/bin/ak"
+BOOTSTRAP_SETUP_AK=1 run_clean_home >"$tmp/ak-missing.log" 2>&1
+grep -q 'Bootstrap complete' "$tmp/ak-missing.log"
+! grep -q 'standard passphrase-protected GPG identity' "$tmp/ak-missing.log"
 
 # Never replace operator Cargo settings, including the legacy config filename.
 mkdir -p "$tmp/home/.cargo"
@@ -71,6 +92,7 @@ mv "$tmp/home/.cargo/config.toml" "$tmp/home/.cargo/config"
 if HOME="$tmp/home" BOOTSTRAP_DRY_RUN=1 bash "$root/setup-rust.sh"; then
   echo 'Rust setup accepted legacy Cargo configuration.' >&2; exit 1
 fi
+
 grep -qx 'operator config' "$tmp/home/.cargo/config"
 
 # Exercise Rust setup with disposable state and commands, never real rustup.
@@ -123,6 +145,34 @@ if HOME="$rust_home" CARGO_HOME="$tmp/custom-cargo" BOOTSTRAP_DRY_RUN=1 \
     bash "$root/setup-rust.sh"; then
   echo 'Rust setup accepted a custom CARGO_HOME.' >&2; exit 1
 fi
+
+# A fresh shell profile must create, but never truncate, Bash history before
+# McFly initialization. Stub only the path helpers supplied by dot_bashrc.tmpl.
+shell_home="$tmp/shell-home"
+mkdir -p "$shell_home"
+(
+  HOME="$shell_home"
+  HISTFILE="$shell_home/.bash_history"
+  export XDG_DATA_HOME="$shell_home/.local/share"
+  path_prepend() { :; }
+  path_append() { :; }
+  # shellcheck source=../../dot_bashrc_custom
+  source "$bash_custom"
+)
+[[ -f "$shell_home/.bash_history" ]]
+[[ $(stat -c %a "$shell_home/.bash_history") == 600 ]]
+printf 'retained-history\n' >"$shell_home/.bash_history"
+(
+  HOME="$shell_home"
+  HISTFILE="$shell_home/.bash_history"
+  export XDG_DATA_HOME="$shell_home/.local/share"
+  path_prepend() { :; }
+  path_append() { :; }
+  # shellcheck source=../../dot_bashrc_custom
+  source "$bash_custom"
+)
+grep -qx 'retained-history' "$shell_home/.bash_history"
+grep -Fqx 'exec node "$HOME/git/agent-skills/skills/web-search/web-search.mjs" "$@"' "$web_search"
 
 # Exercise the secret-transfer allowlist and target backup without real secrets.
 mkdir -p "$tmp/bin" "$tmp/source/.gnupg/private-keys-v1.d" "$tmp/source/.config/ak" \
