@@ -13,7 +13,7 @@ This page defines the local test strategy. Tests deliberately run from WSL and u
 | Lane | Coverage | Production effects |
 |---|---|---|
 | `fast` | Bash syntax, ShellCheck, isolated Linux scheduler/setup/CLI contracts, retained legacy Windows policy tests, system helper contracts, PSScriptAnalyzer | None |
-| `integration` | Real disposable Restic repository, backup, retention, structural/full-data checks, staged restore, and read-only production status | Creates and removes only `/var/tmp/restic-home-test.*`; production inspection is read-only |
+| `integration` | Disposable recovery-password PTY tests, real disposable Restic repository, backup, retention, structural/full-data checks, staged restore, and read-only production status | Creates/removes `/var/tmp/restic-home-test.*` and `/var/tmp/restic-password-test.*`; production inspection is read-only |
 | `all` | `fast` followed by `integration` | Same as `integration` |
 
 The setup tests use `WSL_BACKUP_DESTDIR` plus fake PowerShell 7, `wslpath`, `sudo`, Restic, and SQLite adapters. The operator tests inject command paths through `WSL_BACKUP_HOME_COMMAND`, `WSL_BACKUP_SUDO`, `WSL_BACKUP_POWERSHELL`, and `WSL_BACKUP_SYSTEM_SCRIPT_CONFIG`. These are test seams, not alternate production configuration interfaces.
@@ -29,6 +29,14 @@ The setup tests use `WSL_BACKUP_DESTDIR` plus fake PowerShell 7, `wslpath`, `sud
 - Retained legacy-task helpers describe and validate the six historical schedule shapes for rollback fixtures; they are not evidence of currently deployed tasks. Setup no longer calls them.
 - Duplicate notifications are suppressed for less than six hours and resume at the boundary.
 - Existing system manifest, journal, task rollback, artifact, and retention contracts remain covered by the system suite.
+
+## Process deadlines and failure diagnostics
+
+`tests/TestProcess.Common.ps1` is shared by the state-adapter and long-job retained/mutation test runners. Both redirected streams drain concurrently while the deadline runs. Each child reports its name, PID, elapsed time and result; jobs still running report progress every ten seconds. Timeout terminates that child's process tree, not unrelated processes. Nonzero exits and timeouts retain stdout/stderr under Windows `%TEMP%/wsl-test-process-*`; failed mutation fixtures are preserved separately. Output-pipe closure has its own bounded wait.
+
+The fast gate runs `tests/Test-TestProcess.ps1`: a stderr-heavy child verifies concurrent draining and exit-code propagation; deliberate hangs verify deadline enforcement, descendant termination and retained diagnostics. These tests use disposable processes, never production backup operations.
+
+`home/test.sh` additionally injects failed `du` and source/session `find` commands that still emit plausible output. Both direct retention and prune must fail before any Restic forget/prune call, create a persistent hold, and remain blocked after measurements recover until explicit clearance. The same suite covers missing/malformed baseline state, landmark/session loss, repository identity and latest-snapshot selection across one-off path groups.
 
 ## Semantic mutation evidence
 

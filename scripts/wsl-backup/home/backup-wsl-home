@@ -16,10 +16,12 @@ fail() {
 source "$CONFIG"
 
 required_vars=(
-  SOURCE RESTIC_REPOSITORY RESTIC_PASSWORD_FILE RECOVERY_CONFIRMATION_FILE LOG_DIR
-  LOG_RETENTION_DAYS STAGING_DIR RESTIC_CACHE_DIR BACKUP_HOST EXPECTED_UID EXPECTED_GID
-  MIN_BYTES MIN_FILES MIN_SESSIONS MAX_SNAPSHOT_AGE_SECONDS MCFLY_DATABASE
-  MCFLY_RECOVERY_COPY
+  SOURCE RESTIC_REPOSITORY EXPECTED_REPOSITORY_ID RESTIC_PASSWORD_FILE
+  RECOVERY_CONFIRMATION_FILE LOG_DIR LOG_RETENTION_DAYS STAGING_DIR RESTIC_CACHE_DIR
+  INCIDENT_HOLD_FILE SOURCE_BASELINE_FILE BACKUP_HOST EXPECTED_UID EXPECTED_GID
+  MIN_BYTES MIN_FILES MIN_SESSIONS MIN_BASELINE_BYTES_PERCENT
+  MIN_BASELINE_FILES_PERCENT MIN_BASELINE_SESSIONS_PERCENT
+  MAX_SNAPSHOT_AGE_SECONDS MCFLY_DATABASE MCFLY_RECOVERY_COPY
 )
 for name in "${required_vars[@]}"; do
   [[ -n ${!name:-} ]] || fail "missing configuration value: $name"
@@ -57,35 +59,86 @@ acquire_lock() {
   fi
 }
 
-validate_source() {
-  local src=${1:-$SOURCE} uid gid bytes files sessions mode landmark
-  [[ -d "$src" ]] || fail "source directory does not exist: $src"
-  uid=$(stat -c %u "$src")
-  gid=$(stat -c %g "$src")
-  [[ $uid == "$EXPECTED_UID" && $gid == "$EXPECTED_GID" ]] || \
-    fail "source owner is $uid:$gid, expected $EXPECTED_UID:$EXPECTED_GID"
+measure_source() {
+  local src=${1:-$SOURCE} uid gid mode landmark
+  SOURCE_ERROR=''
+  if [[ ! -d "$src" ]]; then SOURCE_ERROR="source directory does not exist: $src"; return 1; fi
+  uid=$(stat -c %u "$src") || { SOURCE_ERROR='could not measure source UID'; return 1; }
+  gid=$(stat -c %g "$src") || { SOURCE_ERROR='could not measure source GID'; return 1; }
+  if [[ $uid != "$EXPECTED_UID" || $gid != "$EXPECTED_GID" ]]; then
+    SOURCE_ERROR="source owner is $uid:$gid, expected $EXPECTED_UID:$EXPECTED_GID"; return 1
+  fi
 
-  bytes=$(du -sbx "$src" | awk '{print $1}')
-  files=$(find "$src" -xdev -type f -printf '.\n' | wc -l)
-  [[ $bytes -ge $MIN_BYTES ]] || fail "source has only $bytes bytes; minimum is $MIN_BYTES"
-  [[ $files -ge $MIN_FILES ]] || fail "source has only $files files; minimum is $MIN_FILES"
+  SOURCE_BYTES=$(du -sbx "$src" | awk '{print $1}') || { SOURCE_ERROR='could not measure source bytes'; return 1; }
+  SOURCE_FILES=$(find "$src" -xdev -type f -printf '.\n' | wc -l) || { SOURCE_ERROR='could not count source files'; return 1; }
+  [[ $SOURCE_BYTES =~ ^[0-9]+$ && $SOURCE_FILES =~ ^[0-9]+$ ]] || { SOURCE_ERROR='invalid source measurements'; return 1; }
+  if [[ $SOURCE_BYTES -lt $MIN_BYTES ]]; then SOURCE_ERROR="source has only $SOURCE_BYTES bytes; minimum is $MIN_BYTES"; return 1; fi
+  if [[ $SOURCE_FILES -lt $MIN_FILES ]]; then SOURCE_ERROR="source has only $SOURCE_FILES files; minimum is $MIN_FILES"; return 1; fi
 
   for landmark in "${REQUIRED_LANDMARKS[@]}"; do
-    [[ -e "$src/$landmark" ]] || fail "required source landmark is missing: $landmark"
+    if [[ ! -e "$src/$landmark" ]]; then SOURCE_ERROR="required source landmark is missing: $landmark"; return 1; fi
   done
 
-  sessions=$(find "$src/.pi/agent/sessions" -type f -printf '.\n' | wc -l)
-  [[ $sessions -ge $MIN_SESSIONS ]] || \
-    fail "source has only $sessions Pi sessions; minimum is $MIN_SESSIONS"
+  SOURCE_SESSIONS=$(find "$src/.pi/agent/sessions" -type f -printf '.\n' | wc -l) || { SOURCE_ERROR='could not count source sessions'; return 1; }
+  [[ $SOURCE_SESSIONS =~ ^[0-9]+$ ]] || { SOURCE_ERROR='invalid session count'; return 1; }
+  if [[ $SOURCE_SESSIONS -lt $MIN_SESSIONS ]]; then SOURCE_ERROR="source has only $SOURCE_SESSIONS Pi sessions; minimum is $MIN_SESSIONS"; return 1; fi
 
-  mode=$(stat -c %a "$src/.ssh/id_ed25519")
-  [[ $mode == 600 ]] || fail ".ssh/id_ed25519 mode is $mode, expected 600"
+  mode=$(stat -c %a "$src/.ssh/id_ed25519") || { SOURCE_ERROR='could not measure SSH key mode'; return 1; }
+  if [[ $mode != 600 ]]; then SOURCE_ERROR=".ssh/id_ed25519 mode is $mode, expected 600"; return 1; fi
 
-  [[ $(sqlite3 "$src/$MCFLY_DATABASE" 'PRAGMA integrity_check;') == ok ]] || \
-    fail "McFly database integrity check failed"
+  if [[ $(sqlite3 "$src/$MCFLY_DATABASE" 'PRAGMA integrity_check;') != ok ]]; then
+    SOURCE_ERROR='McFly database integrity check failed'; return 1
+  fi
 
   printf 'source_valid bytes=%s files=%s sessions=%s uid=%s gid=%s\n' \
-    "$bytes" "$files" "$sessions" "$uid" "$gid"
+    "$SOURCE_BYTES" "$SOURCE_FILES" "$SOURCE_SESSIONS" "$uid" "$gid"
+}
+
+read_baseline() {
+  local -a lines
+  [[ -f "$SOURCE_BASELINE_FILE" ]] || return 1
+  mapfile -t lines < "$SOURCE_BASELINE_FILE"
+  [[ ${#lines[@]} -eq 5 && ${lines[0]} == schema_version=1 &&
+      ${lines[1]} == "source=$SOURCE" && ${lines[2]} =~ ^bytes=([0-9]+)$ ]] || return 1
+  BASELINE_BYTES=${BASH_REMATCH[1]}
+  [[ ${lines[3]} =~ ^files=([0-9]+)$ ]] || return 1
+  BASELINE_FILES=${BASH_REMATCH[1]}
+  [[ ${lines[4]} =~ ^sessions=([0-9]+)$ ]] || return 1
+  BASELINE_SESSIONS=${BASH_REMATCH[1]}
+  ((BASELINE_BYTES > 0 && BASELINE_FILES > 0 && BASELINE_SESSIONS > 0))
+}
+
+set_incident_hold() {
+  local reason=$1 temporary
+  install -d -m 700 "$(dirname "$INCIDENT_HOLD_FILE")"
+  temporary=$(mktemp "${INCIDENT_HOLD_FILE}.tmp.XXXXXX")
+  printf 'schema_version=1\ncreated=%s\nreason=%s\n' \
+    "$(date --iso-8601=seconds)" "$reason" > "$temporary"
+  chmod 600 "$temporary"
+  mv -f "$temporary" "$INCIDENT_HOLD_FILE"
+}
+
+validate_against_baseline() {
+  local reason=''
+  if ! read_baseline; then
+    set_incident_hold 'source baseline is missing or malformed'
+    fail "source baseline is missing or malformed; retention hold created"
+  fi
+  ((SOURCE_BYTES * 100 >= BASELINE_BYTES * MIN_BASELINE_BYTES_PERCENT)) || reason="bytes $SOURCE_BYTES below ${MIN_BASELINE_BYTES_PERCENT}% of baseline $BASELINE_BYTES"
+  ((SOURCE_FILES * 100 >= BASELINE_FILES * MIN_BASELINE_FILES_PERCENT)) || reason="files $SOURCE_FILES below ${MIN_BASELINE_FILES_PERCENT}% of baseline $BASELINE_FILES"
+  ((SOURCE_SESSIONS * 100 >= BASELINE_SESSIONS * MIN_BASELINE_SESSIONS_PERCENT)) || reason="sessions $SOURCE_SESSIONS below ${MIN_BASELINE_SESSIONS_PERCENT}% of baseline $BASELINE_SESSIONS"
+  if [[ -n "$reason" ]]; then
+    set_incident_hold "$reason"
+    fail "$reason; retention hold created"
+  fi
+}
+
+validate_source() {
+  if ! measure_source "${1:-$SOURCE}"; then
+    set_incident_hold "$SOURCE_ERROR"
+    fail "$SOURCE_ERROR; retention hold created"
+  fi
+  validate_against_baseline
 }
 
 stage_mcfly() {
@@ -111,7 +164,16 @@ SQL
 }
 
 repository_ready() {
-  restic cat config >/dev/null 2>&1
+  local actual_id
+  actual_id=$(restic cat config 2>/dev/null | jq -er '.id') || return 1
+  [[ $actual_id == "$EXPECTED_REPOSITORY_ID" ]] ||
+    fail "repository identity mismatch: got $actual_id, expected $EXPECTED_REPOSITORY_ID"
+}
+
+require_maintenance_safe() {
+  [[ ! -e "$INCIDENT_HOLD_FILE" ]] ||
+    fail "retention is blocked by persistent incident hold: $INCIDENT_HOLD_FILE"
+  validate_source "$SOURCE"
 }
 
 retention_args=(
@@ -128,20 +190,34 @@ case "$COMMAND" in
     acquire_lock
     start_log init
     validate_source "$SOURCE"
-    if repository_ready; then
-      printf 'Repository is already initialized.\n'
-      exit 0
-    fi
-    if [[ -d "$RESTIC_REPOSITORY" ]] && find "$RESTIC_REPOSITORY" -mindepth 1 -print -quit | grep -q .; then
-      fail "refusing to initialize non-empty invalid repository: $RESTIC_REPOSITORY"
-    fi
-    install -d -m 700 "$RESTIC_REPOSITORY"
-    restic init
-    restic cat config >/dev/null
-    printf 'repository_initialized id=%s\n' "$(restic cat config | jq -r .id)"
+    repository_ready || fail "pinned repository is unavailable; init never creates or replaces it"
+    printf 'repository_verified id=%s\n' "$EXPECTED_REPOSITORY_ID"
+    ;;
+
+  enroll-baseline)
+    acquire_lock
+    [[ ! -e "$SOURCE_BASELINE_FILE" ]] || fail "source baseline already exists: $SOURCE_BASELINE_FILE"
+    measure_source "$SOURCE" || fail "$SOURCE_ERROR"
+    install -d -m 700 "$(dirname "$SOURCE_BASELINE_FILE")"
+    temporary=$(mktemp "${SOURCE_BASELINE_FILE}.tmp.XXXXXX")
+    printf 'schema_version=1\nsource=%s\nbytes=%s\nfiles=%s\nsessions=%s\n' \
+      "$SOURCE" "$SOURCE_BYTES" "$SOURCE_FILES" "$SOURCE_SESSIONS" > "$temporary"
+    chmod 600 "$temporary"
+    mv -f "$temporary" "$SOURCE_BASELINE_FILE"
+    printf 'source_baseline_enrolled path=%s\n' "$SOURCE_BASELINE_FILE"
+    ;;
+
+  clear-hold)
+    acquire_lock
+    [[ -e "$INCIDENT_HOLD_FILE" ]] || fail "no incident hold exists: $INCIDENT_HOLD_FILE"
+    measure_source "$SOURCE" || fail "$SOURCE_ERROR"
+    validate_against_baseline
+    rm -f "$INCIDENT_HOLD_FILE"
+    printf 'incident_hold_cleared path=%s\n' "$INCIDENT_HOLD_FILE"
     ;;
 
   validate)
+    acquire_lock
     validate_source "${2:-$SOURCE}"
     ;;
 
@@ -162,6 +238,7 @@ case "$COMMAND" in
     acquire_lock
     start_log retention
     repository_ready || fail "repository is not initialized"
+    require_maintenance_safe
     restic forget "${retention_args[@]}"
     printf 'completed=%s operation=retention\n' "$(date --iso-8601=seconds)"
     ;;
@@ -171,6 +248,7 @@ case "$COMMAND" in
     acquire_lock
     start_log prune
     repository_ready || fail "repository is not initialized"
+    require_maintenance_safe
     restic forget "${retention_args[@]}"
     restic prune
     printf 'completed=%s operation=prune\n' "$(date --iso-8601=seconds)"
@@ -203,10 +281,20 @@ case "$COMMAND" in
   status)
     ensure_runtime
     repository_ready || fail "repository is not initialized"
-    latest=$(restic snapshots --host "$BACKUP_HOST" --path "$SOURCE" --latest 1 --json |
-      jq -r '.[0].time // empty')
+    # Restic returns the latest snapshot per host/path group. Compare actual
+    # instants across groups, including timestamps with different UTC offsets.
+    candidates=$(restic snapshots --host "$BACKUP_HOST" --path "$SOURCE" --latest 1 --json |
+      jq -er '.[].time') || fail "repository has no readable matching snapshot timestamps"
+    latest=''
+    latest_epoch=0
+    while IFS= read -r candidate; do
+      candidate_epoch=$(date --date="$candidate" +%s) || fail "invalid snapshot timestamp"
+      if [[ -z "$latest" ]] || ((candidate_epoch > latest_epoch)); then
+        latest=$candidate
+        latest_epoch=$candidate_epoch
+      fi
+    done <<< "$candidates"
     [[ -n "$latest" ]] || fail "repository has no matching snapshots"
-    latest_epoch=$(date --date="$latest" +%s)
     now_epoch=$(date +%s)
     age=$((now_epoch - latest_epoch))
     [[ $age -ge -300 ]] || fail "latest snapshot timestamp is unexpectedly in the future"
@@ -241,11 +329,13 @@ case "$COMMAND" in
 Usage: $0 COMMAND
 
 Commands:
-  init                         initialize the configured repository explicitly
-  validate [SOURCE]            validate production source guards
+  init                         verify the existing pinned repository (no creation)
+  enroll-baseline              record the initial healthy source baseline once
+  clear-hold                   explicitly clear a hold after source recovery
+  validate [SOURCE]            validate source and deletion baseline guards
   backup                       validate, stage McFly, and create a snapshot
-  retention                    apply retention without reclaiming packs
-  prune                        apply retention and reclaim unused packs
+  retention                    guarded retention without reclaiming packs
+  prune                        guarded retention and reclaim unused packs
   check                        verify repository metadata and structure
   check-read-data              read and verify every repository data pack
   snapshots                    list snapshots for the configured host and path

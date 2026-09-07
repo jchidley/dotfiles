@@ -27,17 +27,27 @@ fi
   "$DESTDIR/var/cache/restic-home" "$DESTDIR/var/log/restic-home"
 "${privilege[@]}" install "${ownership[@]}" -m 755 "$SCRIPT_DIR/backup-wsl-home" \
   "$DESTDIR/usr/local/sbin/backup-wsl-home"
-"${privilege[@]}" install "${ownership[@]}" -m 755 "$SCRIPT_DIR/wsl-home-scheduler" \
-  "$DESTDIR/usr/local/sbin/wsl-home-scheduler"
-"${privilege[@]}" install "${ownership[@]}" -m 644 "$SCRIPT_DIR/home.conf" \
-  "$DESTDIR/etc/restic/home.conf"
+"${privilege[@]}" install "${ownership[@]}" -m 755 \
+  "$SCRIPT_DIR/wsl-home-scheduler" "$DESTDIR/usr/local/sbin/wsl-home-scheduler"
+"${privilege[@]}" install "${ownership[@]}" -m 755 \
+  "$SCRIPT_DIR/test-restic-recovery-password" "$DESTDIR/usr/local/sbin/test-restic-recovery-password"
+if [[ ! -e "$DESTDIR/etc/restic/home.conf" ]]; then
+  "${privilege[@]}" install "${ownership[@]}" -m 644 "$SCRIPT_DIR/home.conf" \
+    "$DESTDIR/etc/restic/home.conf"
+else
+  "${privilege[@]}" install "${ownership[@]}" -m 644 "$SCRIPT_DIR/home.conf" \
+    "$DESTDIR/etc/restic/home.conf.distributed"
+  printf 'Preserved existing configuration; candidate installed as %s\n' \
+    "$DESTDIR/etc/restic/home.conf.distributed"
+fi
 "${privilege[@]}" install "${ownership[@]}" -m 644 \
   "$SCRIPT_DIR/systemd/wsl-home-scheduler.service" \
   "$SCRIPT_DIR/systemd/wsl-home-scheduler.timer" "$DESTDIR/etc/systemd/system/"
 
 cat <<'EOF'
 Installed the Linux-owned Restic home-backup program, scheduler, systemd units,
-and non-secret configuration. The installer deliberately does not create
-credentials, initialize a repository, enable timers, or register Windows home
-backup tasks. See scripts/wsl-backup/README.md.
+and non-secret configuration. Existing home.conf is preserved and a changed
+candidate is installed as home.conf.distributed. The installer deliberately does
+not create credentials, initialize a repository, enroll a source baseline,
+enable timers, or register Windows home backup tasks. See scripts/wsl-backup/README.md.
 EOF

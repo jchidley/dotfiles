@@ -4,6 +4,7 @@ param([string] $AdapterPath)
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version 2
 $script:tests = 0
+. (Join-Path $PSScriptRoot '../tests/TestProcess.Common.ps1')
 
 function Assert-True {
     param([bool] $Condition, [string] $Message)
@@ -24,12 +25,7 @@ function Invoke-Child {
         $psi.ArgumentList.Add("-$($entry.Key)")
         $psi.ArgumentList.Add([string]$entry.Value)
     }
-    $process = [Diagnostics.Process]::new(); $process.StartInfo = $psi
-    $null = $process.Start()
-    $stdout = $process.StandardOutput.ReadToEnd()
-    $stderr = $process.StandardError.ReadToEnd()
-    if (-not $process.WaitForExit(20000)) { $process.Kill($true); throw "Child timed out: $Script" }
-    [pscustomobject]@{ ExitCode=$process.ExitCode; Stdout=$stdout.Trim(); Stderr=$stderr.Trim() }
+    Invoke-BoundedTestProcess -StartInfo $psi -Name "$Script $($Arguments['Action'])" -TimeoutMilliseconds 20000
 }
 function Invoke-Adapter {
     param([string] $Adapter, [string] $Action, [string] $Policy, [string] $State,

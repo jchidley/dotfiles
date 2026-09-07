@@ -1,16 +1,14 @@
 #requires -Version 7.0
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version 2
+. (Join-Path $PSScriptRoot '../tests/TestProcess.Common.ps1')
 
 function Invoke-TestProcess {
     param([string]$TestPath,[string]$CandidatePath)
     $psi=[Diagnostics.ProcessStartInfo]::new((Get-Command pwsh.exe -CommandType Application | Select-Object -First 1).Source)
     $psi.UseShellExecute=$false;$psi.RedirectStandardOutput=$true;$psi.RedirectStandardError=$true
     foreach ($argument in @('-NoLogo','-NoProfile','-NonInteractive','-File',$TestPath,'-CandidatePath',$CandidatePath)) { $psi.ArgumentList.Add($argument) }
-    $process=[Diagnostics.Process]::new();$process.StartInfo=$psi;$null=$process.Start()
-    $stdout=$process.StandardOutput.ReadToEnd();$stderr=$process.StandardError.ReadToEnd()
-    if (-not $process.WaitForExit(180000)) { $process.Kill($true); throw 'Phase 3 mutation test timed out' }
-    [pscustomobject]@{ExitCode=$process.ExitCode;Text="$stdout`n$stderr"}
+    Invoke-BoundedTestProcess -StartInfo $psi -Name $CandidatePath -TimeoutMilliseconds 180000
 }
 
 $source=Join-Path $PSScriptRoot 'Invoke-WslHomeLongJobConsent.ps1'
@@ -49,6 +47,7 @@ $mutations=@(
 )
 
 New-Item -ItemType Directory -Path $root | Out-Null
+$completed = $false
 try {
     $original=Get-Content -LiteralPath $source -Raw
     foreach ($mutation in $mutations) {
@@ -61,11 +60,16 @@ try {
         $tokens=$null;$parserErrors=$null
         [void][Management.Automation.Language.Parser]::ParseFile($mutated,[ref]$tokens,[ref]$parserErrors)
         if ($parserErrors.Count -gt 0) { throw "Mutation $($mutation.Name) produced a parser error: $($parserErrors[0].Message)" }
+        Write-Output "Starting mutation $($mutation.Name)"
         $result=Invoke-TestProcess $retainedTest $mutated
         if ($result.ExitCode -eq 0) { throw "Mutation survived: $($mutation.Name)" }
         if ($result.Text -notmatch [regex]::Escape($mutation.Pattern)) { throw "Mutation $($mutation.Name) failed at the wrong seam. Expected '$($mutation.Pattern)'. Output: $($result.Text)" }
         if ($result.Text -match 'ParserError|expected one source seam|Child timed out|mutation test timed out') { throw "Mutation $($mutation.Name) produced an invalid trial: $($result.Text)" }
         Write-Output "Killed mutation $($mutation.Name): $($mutation.Pattern)"
     }
-} finally { Remove-Item -LiteralPath $root -Recurse -Force -ErrorAction SilentlyContinue }
+    $completed = $true
+} finally {
+    if ($completed) { Remove-Item -LiteralPath $root -Recurse -Force -ErrorAction SilentlyContinue }
+    else { [Console]::Error.WriteLine("Mutation fixtures preserved: $root") }
+}
 Write-Output "WslHomeLongJobConsent semantic mutations killed: $($mutations.Count)"

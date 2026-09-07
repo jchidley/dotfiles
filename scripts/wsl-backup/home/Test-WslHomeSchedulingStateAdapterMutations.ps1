@@ -1,6 +1,7 @@
 #requires -Version 7.0
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version 2
+. (Join-Path $PSScriptRoot '../tests/TestProcess.Common.ps1')
 
 function Invoke-TestProcess {
     param([string] $TestPath, [string] $AdapterPath)
@@ -11,12 +12,7 @@ function Invoke-TestProcess {
     foreach ($argument in @('-NoLogo','-NoProfile','-NonInteractive','-File',$TestPath,'-AdapterPath',$AdapterPath)) {
         $psi.ArgumentList.Add($argument)
     }
-    $process = [Diagnostics.Process]::new(); $process.StartInfo = $psi
-    $null = $process.Start()
-    $stdout = $process.StandardOutput.ReadToEnd()
-    $stderr = $process.StandardError.ReadToEnd()
-    if (-not $process.WaitForExit(300000)) { $process.Kill($true); throw 'Mutation test timed out' }
-    [pscustomobject]@{ExitCode=$process.ExitCode; Text="$stdout`n$stderr"}
+    Invoke-BoundedTestProcess -StartInfo $psi -Name $AdapterPath -TimeoutMilliseconds 300000
 }
 
 $source = Join-Path $PSScriptRoot 'Invoke-WslHomeSchedulingStateAdapter.ps1'
@@ -75,6 +71,7 @@ $mutations = @(
 )
 
 New-Item -ItemType Directory -Path $root | Out-Null
+$completed = $false
 try {
     $original = Get-Content -LiteralPath $source -Raw
     foreach ($mutation in $mutations) {
@@ -85,17 +82,20 @@ try {
         $mutated = Join-Path $mutationRoot 'Invoke-WslHomeSchedulingStateAdapter.ps1'
         Copy-Item -LiteralPath $common -Destination (Join-Path $mutationRoot 'WslHomeRestic.Common.ps1')
         Set-Content -LiteralPath $mutated -Encoding UTF8 -Value $original.Replace($mutation.Old, $mutation.New)
+        Write-Output "Starting mutation $($mutation.Name)"
         $result = Invoke-TestProcess $retainedTest $mutated
         if ($result.ExitCode -eq 0) { throw "Mutation survived: $($mutation.Name)" }
         if ($result.Text -notmatch [regex]::Escape($mutation.Pattern)) {
             throw "Mutation $($mutation.Name) failed at the wrong seam. Expected '$($mutation.Pattern)'. Output: $($result.Text)"
         }
-        if ($result.Text -match 'ParserError|Mutation harness|Unexpected error') {
+        if ($result.Text -match 'ParserError|Mutation harness|Unexpected error|Child timed out|Child output pipes did not close') {
             throw "Mutation $($mutation.Name) produced an invalid trial: $($result.Text)"
         }
         Write-Output "Killed mutation $($mutation.Name): $($mutation.Pattern)"
     }
+    $completed = $true
 } finally {
-    Remove-Item -LiteralPath $root -Recurse -Force -ErrorAction SilentlyContinue
+    if ($completed) { Remove-Item -LiteralPath $root -Recurse -Force -ErrorAction SilentlyContinue }
+    else { [Console]::Error.WriteLine("Mutation fixtures preserved: $root") }
 }
 Write-Output "WslHomeSchedulingStateAdapter semantic mutations killed: $($mutations.Count)"

@@ -4,6 +4,7 @@ param([string] $CandidatePath)
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version 2
 $script:tests = 0
+. (Join-Path $PSScriptRoot '../tests/TestProcess.Common.ps1')
 
 function Assert-True { param([bool]$Condition,[string]$Message) $script:tests++; if (-not $Condition) { throw "ASSERTION FAILED: $Message" } }
 function Invoke-Child {
@@ -15,10 +16,7 @@ function Invoke-Child {
         if ($null -eq $entry.Value) { continue }
         $psi.ArgumentList.Add("-$($entry.Key)"); $psi.ArgumentList.Add([string]$entry.Value)
     }
-    $process=[Diagnostics.Process]::new(); $process.StartInfo=$psi; $null=$process.Start()
-    $stdout=$process.StandardOutput.ReadToEnd(); $stderr=$process.StandardError.ReadToEnd()
-    if (-not $process.WaitForExit(30000)) { $process.Kill($true); throw "Child timed out: $Script" }
-    [pscustomobject]@{ExitCode=$process.ExitCode;Stdout=$stdout.Trim();Stderr=$stderr.Trim()}
+    Invoke-BoundedTestProcess -StartInfo $psi -Name $Script -TimeoutMilliseconds 30000
 }
 function Read-JsonResult {
     param($Result,[string]$Description)

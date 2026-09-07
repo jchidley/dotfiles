@@ -59,13 +59,24 @@ PATH="$FAKEBIN:$PATH" WSL_BACKUP_DESTDIR=$install_root \
   "$ROOT/setup.sh" --no-windows-tasks >/dev/null
 assert_file "$install_root/usr/local/bin/wsl-backup"
 assert_file "$install_root/usr/local/sbin/backup-wsl-home"
+assert_file "$install_root/usr/local/sbin/test-restic-recovery-password"
 assert_file "$install_root/usr/local/sbin/validate-wsl-system-restore"
 assert_file "$install_root/etc/restic/home.conf"
 assert_file "$install_root/usr/local/sbin/wsl-home-scheduler"
 assert_file "$install_root/etc/systemd/system/wsl-home-scheduler.service"
 assert_file "$install_root/etc/systemd/system/wsl-home-scheduler.timer"
+grep -F 'unset RESTIC_PASSWORD RESTIC_PASSWORD_FILE RESTIC_PASSWORD_COMMAND' \
+  "$ROOT/home/test-restic-recovery-password" >/dev/null || fail 'recovery tester permits runtime credential fallback'
+grep -F -- '--password-file /dev/fd/3' "$ROOT/home/test-restic-recovery-password" >/dev/null ||
+  fail 'recovery tester does not use its private inherited descriptor'
+! grep -F 'home.password.bitwarden-confirmed' "$ROOT/home/test-restic-recovery-password" >/dev/null ||
+  fail 'recovery tester references the confirmation marker'
 [[ ! -e "$ROOT/home/Register-WindowsTasks.ps1" ]] || fail 'obsolete Register-WindowsTasks.ps1 remains in active source'
 ! grep -Eq 'systemctl +(enable|start)|enable +--now' "$ROOT/setup.sh" || fail 'ordinary setup implicitly enables Linux scheduling'
+
+# Reinstallation preserves deployment-specific configuration while publishing
+# the reviewed source candidate separately.
+printf '\nDEPLOYMENT_MARKER=preserve-me\n' >> "$install_root/etc/restic/home.conf"
 
 # Windows controller installation is independent; routine scheduling remains Linux-owned.
 : > "$CALL_LOG"
@@ -73,6 +84,10 @@ PATH="$FAKEBIN:$PATH" WSL_BACKUP_DESTDIR=$install_root \
   WSL_BACKUP_POWERSHELL="$FAKEBIN/fake-powershell" \
   WSL_BACKUP_WSLPATH="$FAKEBIN/fake-wslpath" \
   "$ROOT/setup.sh" --distro 'Fixture Distro' >/dev/null 2> "$TMP/setup-warning"
+grep -Fxq 'DEPLOYMENT_MARKER=preserve-me' "$install_root/etc/restic/home.conf" ||
+  fail 'home installer overwrote existing configuration'
+cmp "$ROOT/home/home.conf" "$install_root/etc/restic/home.conf.distributed" >/dev/null ||
+  fail 'home installer did not publish the current configuration candidate'
 assert_file "$install_root/etc/wsl-backup/windows-system-script"
 assert_log 'Install-Windows.ps1'
 assert_not_log 'Register-WindowsTasks.ps1'

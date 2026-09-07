@@ -10,7 +10,9 @@ require() { command -v "$1" >/dev/null 2>&1 || { echo "Required test tool is mis
 run_windows_test() {
   local path
   path=$(wslpath -w "$1")
+  printf 'test_start file=%s\n' "$path"
   pwsh.exe -NoLogo -NoProfile -NonInteractive -File "$path" </dev/null
+  printf 'test_pass file=%s\n' "$path"
 }
 
 run_fast() {
@@ -22,6 +24,7 @@ run_fast() {
   local shell_files=(
     "$ROOT/setup.sh" "$ROOT/test-all" "$ROOT/wsl-backup"
     "$ROOT/home/backup-wsl-home" "$ROOT/home/wsl-home-scheduler"
+    "$ROOT/home/test-restic-recovery-password" "$ROOT/home/test-recovery-password.sh"
     "$ROOT/home/migrate-linux-scheduler.sh"
     "$ROOT/home/install.sh" "$ROOT/home/test.sh" "$ROOT/home/test-scheduler.sh"
     "$ROOT/home/test-scheduler-mutations.sh"
@@ -33,6 +36,7 @@ run_fast() {
   "$ROOT/tests/test-setup-and-cli.sh"
   "$ROOT/home/test-scheduler.sh"
   "$ROOT/home/test-scheduler-mutations.sh"
+  run_windows_test "$ROOT/tests/Test-TestProcess.ps1"
   run_windows_test "$ROOT/home/Test-WslHomeWindows.ps1"
   run_windows_test "$ROOT/home/Test-WslHomeSchedulingShadow.ps1"
   run_windows_test "$ROOT/home/Test-WslHomeSchedulingStateAdapter.ps1"
@@ -65,6 +69,7 @@ run_fast() {
 
 run_integration() {
   require sudo
+  sudo bash "$ROOT/home/test-recovery-password.sh"
   sudo "$ROOT/home/test.sh"
   if command -v wsl-backup >/dev/null 2>&1; then
     wsl-backup status

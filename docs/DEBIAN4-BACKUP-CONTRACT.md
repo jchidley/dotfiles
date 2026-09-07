@@ -2,6 +2,12 @@
 
 Source-only review, 7 September 2026. This supplements [the migration plan](DEBIAN4-PLAN.md); it is not an executable runbook or approval to deploy, retrieve credentials, initialize storage, import a distro, schedule work, or retire sources.
 
+## Home-backup disposition — 7 September 2026
+
+Later owner authorization split local accidental-erasure recovery from whole-distro export. The local home portion is implemented and its restore, normal cadence and restart gates passed; [STATUS](../scripts/wsl-backup/STATUS.md) owns evidence and limitations. A newly created Debian4 one-off repository was preservation-first copied into durable storage, not transplanted from an older distro. Its existing password was privately enrolled and independently tested against the repository ID. Full restore/data verification used the runtime credential after that independent unlock test; it was not a second full restore using private interactive input.
+
+Findings 1 and 8 below are resolved for home backup: Debian4 landmarks/configuration preservation, baseline/incident holds, and a configuration-driven recovery tester have behavioral evidence. Findings about whole-distro export/import remain open. The original combined acceptance sequence below is retained as historical review evidence, not a requirement to deploy the unaccepted exporter before Linux home scheduling. Laptop-loss resilience, automatic external replication and source retirement are not claimed complete by the local recovery work.
+
 ## Selected source and proposed coverage
 
 The source must be explicitly named **Debian4**, with home `/home/jack`. Never substitute a default/first distro or reuse a surviving system's repository. Capture a fresh bounded source inventory when preparing the actual backup; historical counts are not current deletion thresholds.

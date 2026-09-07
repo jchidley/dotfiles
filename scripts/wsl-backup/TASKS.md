@@ -9,24 +9,24 @@ Only current incomplete work belongs here. Dated implementation and production e
 Retain `/home/jack/.local/state/pi-recovery-import/20260906T112532Z/`, fixtures, the imported recovery archive and all originals/source distros. Cleanup or retirement needs separate approval. The unresolved-gap report still protects two partial-only sessions, 2,943 unconfirmed transcript records, 14 unmerged message candidates, stream fragments and conflicts; none was silently promoted or merged. Further analysis must target a concrete gap, and broad specialist recovery needs a materially revised reviewed strategy.
 
 1. Optional credential follow-up: exact AK value equality with the passphrase-locked Debian-Recovered source remains unverified; Debian4's 14 expected services resolve through the approved route. The owner successfully unlocked the imported SSH key privately with `ssh-keygen -y`; no replacement is needed. Remote SSH authentication remains untested.
-2. Prepare and review fresh Debian4 backup source changes. Owner deferred choosing protected storage and an independently recoverable password; initialization, real restore validation, and scheduling remain blocked until those prerequisites are selected. Enable Linux scheduling only after recovery succeeds.
+2. Local Debian4 home backup is complete: protected runtime credential, independently tested recovery password, pinned repository, verified restore, enabled Linux timer, normal cadence and owner-driven restart observation. See STATUS for evidence. Keep the separate whole-distro exporter review below open.
 3. Keep Debian-Recovered, Debian-Backup and forensic evidence until the Debian4 restore gate passes; retirement requires separate final inventory and approval.
 
 Completed on 7 September: boat-data-platform's 19 commits are pushed at `d18e28d`; the recovered heatpump lineage and Windows guidance were reconciled and pushed at `8bab653`; the AK patch was rebased and pushed at `95ef0a7`; and the remaining McFly/web-search/Pi-guidance bootstrap changes were validated, pushed and deployed at dotfiles `fe8736a`.
 
-## Backup source work awaiting review
+## Separate whole-distro backup work awaiting review
 
 - Preserve Linux/systemd ownership of routine backup scheduling and whole-distro coordination.
-- Resolve the [Debian4 backup contract's candidate findings](../../docs/DEBIAN4-BACKUP-CONTRACT.md): stale home/source landmarks, unchecked destructive cleanup, unproven first-boot isolation, journal/mutex identity mismatch, and insufficient controller behavioral tests.
+- Resolve the remaining [Debian4 backup contract's candidate findings](../../docs/DEBIAN4-BACKUP-CONTRACT.md): exporter/validator landmarks, unchecked destructive cleanup, unproven first-boot isolation, journal/mutex identity mismatch, and insufficient controller behavioral tests. Home landmarks and the recovery-password tester were corrected separately.
 - Remove Debian3-specific recovery landmarks from the unfinished exporter/validator candidate; PostgreSQL remains undecided.
 - Demonstrate isolated disposable-import behavior before deployment. The exact-source canonical fast lane passed and is recorded in STATUS; fixture success does not establish restore safety.
 - Finalize the contract's proposed Debian4 contents after capability/data selection.
-- Use a new repository and independently recoverable password; never initialize over surviving Restic history.
+- Preserve the enrolled Debian4 home repository and recovery credential. Any additional repository requires its own reviewed provisioning; never initialize over surviving Restic history.
 
 ## Deferred
 
 - PostgreSQL installation or activation on Debian4 pending a workflow decision.
-- Backup storage and independently recoverable password selection, explicitly deferred by the owner.
+- Optional additional external replication and whole-distro archive storage/encryption choices; the local home repository and its recovery credential are already enrolled.
 
 Windows default distro was changed to Debian4 and independently verified on 7 September 2026. AK routing already targets Debian4. Neither cutover remains pending.
 

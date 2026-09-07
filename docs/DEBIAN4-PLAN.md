@@ -118,6 +118,8 @@ The new identity, selected credential population and routing cutover are recorde
 
 ### 5. Establish fresh Debian4 backups after selection
 
+**Local home portion completed — 7 September 2026:** later owner authorization selected durable local Restic for accidental-erasure recovery, with whole-distro export explicitly separate. The pinned repository, private recovery-password verification, full data check/verified restore, Linux timer cadence and owner-driven shutdown/restart observation passed. See [current backup status](../scripts/wsl-backup/STATUS.md). The original sequence below is retained for the remaining broader backup work; it must not be replayed to regenerate the enrolled credential or repository. Source retirement still requires separate approval.
+
 Follow the [Debian4 backup contract](DEBIAN4-BACKUP-CONTRACT.md), which records the reviewed candidate defects and missing prerequisites. Only after Debian4's capabilities and data are selected:
 
 1. Define backup contents and restore landmarks from Debian4's chosen system, including selected Pi/McFly recovery data and PostgreSQL only if chosen.

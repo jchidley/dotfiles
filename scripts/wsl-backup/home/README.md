@@ -11,7 +11,9 @@ It backs up `/home/jack` into an encrypted Restic repository on Debian's native 
 | Program | `/usr/local/sbin/backup-wsl-home` |
 | Non-secret configuration | `/etc/restic/home.conf` |
 | Runtime password | `/etc/restic/home.password` |
-| Repository | `/var/lib/restic/home` |
+| Repository | `/var/lib/restic/home` (pinned by repository ID) |
+| Source baseline | `/var/lib/restic/home-source-baseline` |
+| Persistent incident hold | `/var/lib/restic/home-retention.hold` |
 | Logs (30-day retention) | `/var/log/restic-home` |
 | Restic cache | `/var/cache/restic-home` |
 | Consistent McFly recovery copy | `/home/jack/.local/share/mcfly/history.db.restic-backup` |
@@ -24,22 +26,17 @@ The runtime password is root-owned mode 600. Its canonical human recovery copy b
 ./install.sh
 ```
 
-The installer does not generate a password, initialize a repository, enable scheduling, or modify an external disk. It **does replace `/etc/restic/home.conf`** with the source configuration, so review and preserve installation-specific settings before an update; it is not a read-only verification command.
+The installer does not generate a password, initialize a repository, enroll a source baseline, enable scheduling, or modify an external disk. It creates `/etc/restic/home.conf` only when absent. On later runs it preserves the deployed file and writes the reviewed source candidate to `/etc/restic/home.conf.distributed` for explicit reconciliation.
 
-## Initialize explicitly
+## Verify the enrolled repository
 
-**Fresh, uninitialized installations only.** For current work this means a separately approved new Debian4 repository after its backup contents are selected. Never run these password-generation commands against Debian-Recovered, Debian-Backup, or any existing repository: they overwrite the runtime password. The retired Debian3 recovery plan is historical and is not an initialization procedure.
-
-For a fresh installation, generate the runtime password without printing it, record it manually in Bitwarden through a trusted local workflow, then initialize:
+Debian4 uses a preservation-first copy of its verified one-off repository, whose ID is pinned in `home.conf`. Do not initialize over it or regenerate its password. The retained `init` command only verifies the existing pinned repository and source baseline; it never creates a new repository. New repository provisioning is a separate explicit operation requiring a reviewed destination, credential and subsequent identity enrollment.
 
 ```bash
-sudo install -o root -g root -m 600 /dev/null /etc/restic/home.password
-head -c 48 /dev/urandom | base64 | sudo tee /etc/restic/home.password >/dev/null
-sudo chmod 600 /etc/restic/home.password
-sudo /usr/local/sbin/backup-wsl-home init
+sudo backup-wsl-home init
 ```
 
-Never initialize an unexpected non-empty path. The program refuses to do so.
+The configured path and expected ID come from root-managed `/etc/restic/home.conf`; the recovery tester does not duplicate them.
 
 After storing and independently checking the password in Bitwarden, record only the confirmation—not the password—in the machine configuration:
 
@@ -50,11 +47,12 @@ sudo install -o root -g root -m 600 /dev/null \
 
 Until that file exists, every scheduled operation logs a warning. Do not create the confirmation file before the Bitwarden recovery value has actually been tested.
 
-The uncommitted `test-restic-recovery-password` candidate was designed for the now-retired Debian3 repository. Do not execute it as a current recovery step. Its hidden-input, no-runtime-fallback design may be reviewed and adapted later for Debian4's independently supplied recovery credential.
+Before recording confirmation, run `sudo test-restic-recovery-password` in Debian4 and enter the independently retrieved Bitwarden value privately. The tester unsets all runtime credential variables and passes hidden input through a private inherited descriptor; it never reads the confirmation marker.
 
 ## Operations
 
 ```bash
+sudo backup-wsl-home enroll-baseline # one time, after reviewing current source health
 sudo backup-wsl-home validate
 sudo backup-wsl-home backup
 sudo backup-wsl-home retention
@@ -64,9 +62,12 @@ sudo backup-wsl-home check-read-data
 sudo backup-wsl-home snapshots
 sudo backup-wsl-home status
 sudo backup-wsl-home restore latest /var/tmp/restic-home-restore
+sudo backup-wsl-home clear-hold      # only after investigating and restoring loss
 ```
 
-`backup` validates source size, file count, ownership, Pi sessions, SSH key mode, expected landmarks, and McFly SQLite integrity before writing a snapshot. It creates a consistent SQLite recovery copy before invoking Restic. All modifying and checking operations share a non-blocking mutex.
+`backup` validates source size, file count, ownership, Pi sessions, SSH key mode, expected Debian4 landmarks, McFly SQLite integrity, and a one-time enrolled source baseline before writing a snapshot. It creates a consistent SQLite recovery copy before invoking Restic. All modifying and checking operations share a non-blocking mutex. Every repository operation verifies the configured repository ID, not merely that a repository can be opened.
+
+The baseline records healthy bytes, files, and Pi-session counts once and is never lowered automatically. It is a coarse aggregate loss guard, not detection of every deleted file: loss below the configured thresholds, or growth followed by loss that remains above the original baseline, may not trigger a hold. Falling below 80% of any enrolled measure, losing an absolute guard or landmark, or finding missing/malformed baseline state atomically creates the incident hold. Every direct `retention` and `prune` invocation checks both source health and that hold before `forget`; restart, elapsed time, successful source restoration, and later backups do not remove it. `clear-hold` is an explicit operator action and refuses while source health remains below baseline.
 
 Retention uses `--keep-within 24h --keep-hourly 168 --keep-daily 30`: every snapshot within 24 hours plus representatives of the last 168 hours and 30 days that have snapshots. Sparse backup history may therefore span more than seven or 30 calendar days. The Linux coordinator runs due retention without reclaiming packs; prune reclaims unreferenced storage but is not scheduled by this coordinator.
 
