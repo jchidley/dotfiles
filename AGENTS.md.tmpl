@@ -29,6 +29,10 @@ MSYS, WSL, PowerShell, or SSH—or path ownership is unclear—load the globally
 discovered `windows-env` skill at
 `{{ $windowsEnv }}/SKILL.md` and use its tested helper.
 
+For consented long-running Windows→WSL Node jobs, use the `windows-env`
+managed job launcher and its runtime contract; do not reconstruct detachment
+in shell snippets. Other runtimes need their own lifecycle validation.
+
 Agent-facing script commands must name their runtime: use `node <script>` for Node, `bash <script>` for Bash, and native `.ps1` entrypoints for direct Windows operations. Never invoke an extensionless script directly from PowerShell; Windows may open the app picker and report misleading success.
 
 Run environment detection only when shell identity affects the operation. Transport nontrivial destination scripts with `windows-env` helpers and verify cross-boundary writes independently; argument-conversion flags do not solve script quoting.
