@@ -14,11 +14,11 @@ Normal mode downloads a missing or invalid cached artifact. Offline mode accepts
 BOOTSTRAP_OFFLINE=1 ./debian-bootstrap-safe.sh
 ```
 
-Updating a tool requires updating its version, URL, filename, and hash together and then passing the clean-room test. System packages come from the Debian sources configured on the target; the bootstrap does not silently rewrite those sources.
+Updating a tool requires updating its version, URL, filename, and hash together and then passing the clean-room test. System packages come from the Debian sources configured on the target; the bootstrap does not silently rewrite those sources. They include `gh`, `git-delta`, Neovim, ripgrep, and `fd-find` because managed Git and agent workflows depend on their commands. Bootstrap verifies their Debian paths, exposes `fd` as a user-local link to Debian's `fdfind`, installs the locked standalone `uv`/`uvx` release, and records relevant versions.
 
 ## Repository selection
 
-`workspace-repos.tsv` is the executable inventory. Each row assigns one explicit public repository to a group, destination, and profile. Initial clones use HTTPS and therefore do not require SSH keys. Existing Git checkouts are preserved.
+`workspace-repos.tsv` is the executable inventory. Each row assigns one explicit public repository to a group, destination, and profile. Initial clones use HTTPS and therefore do not require SSH keys. Existing Git checkouts are preserved. Chezmoi's authoritative dotfiles checkout remains at `~/.local/share/chezmoi`; bootstrap exposes the same checkout at `~/git/dotfiles` through a guarded symlink so normal Git work does not create a second divergent clone.
 
 - `foundation`: dotfiles, `ak`, agent skills, and maintained tools
 - `active`: actively maintained first-party projects

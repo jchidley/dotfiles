@@ -134,6 +134,21 @@ install_mcfly() {
   marker mcfly "$MCFLY_VERSION"
 }
 
+install_uv() {
+  local archive tmp binary="$HOME/.local/bin/uv"
+  archive=$(fetch_locked uv "$UV_FILE" "$UV_URL" "$UV_SHA256")
+  if [[ "$BOOTSTRAP_DRY_RUN" == 1 ]]; then echo "DRY-RUN: install uv $UV_VERSION at $binary"; return; fi
+  if [[ ! -x "$binary" || $($binary --version) != "uv $UV_VERSION "* ]]; then
+    tmp=$(mktemp -d); trap 'rm -rf "${tmp:-}"' RETURN
+    tar -xzf "$archive" --strip-components=1 -C "$tmp"
+    install -m 0755 "$tmp/uv" "$HOME/.local/bin/uv"
+    install -m 0755 "$tmp/uvx" "$HOME/.local/bin/uvx"
+    trap - RETURN; rm -rf "$tmp"
+  fi
+  [[ $($binary --version) == "uv $UV_VERSION "* ]] || fail "uv version verification failed"
+  marker uv "$UV_VERSION"
+}
+
 install_pi() {
   local archive pi_path package='@earendil-works/pi-coding-agent'
   archive=$(fetch_locked pi "$PI_FILE" "$PI_URL" "$PI_SHA256")
@@ -163,12 +178,20 @@ expand_destination() { case "$1" in \~) printf '%s\n' "$HOME" ;; \~/*) printf '%
 
 if [[ "$SKIP_SYSTEM_PACKAGES" != 1 ]]; then
   run sudo apt-get update
-  run sudo apt-get install -y ca-certificates curl direnv dirmngr git gnupg2 jq openssh-client pinentry-curses restic shellcheck sqlite3 sudo tmux unzip xz-utils zoxide
+  run sudo apt-get install -y ca-certificates curl direnv dirmngr fd-find gh git git-delta gnupg2 jq neovim openssh-client pinentry-curses restic ripgrep shellcheck sqlite3 sudo tmux unzip xz-utils zoxide
+fi
+if [[ "$BOOTSTRAP_DRY_RUN" != 1 ]]; then
+  for required in /usr/bin/delta /usr/bin/fdfind /usr/bin/gh /usr/bin/nvim /usr/bin/rg; do
+    [[ -x "$required" ]] || fail "required Debian tool is unavailable: $required"
+  done
+  marker gh "$(gh --version | head -n 1)"
 fi
 run mkdir -p "$HOME/git" "$HOME/work" "$HOME/.local/bin" "$BOOTSTRAP_STATE_DIR"
+run ln -sfn /usr/bin/fdfind "$HOME/.local/bin/fd"
 install_chezmoi
 install_fnm_and_node
 install_mcfly
+install_uv
 install_pi
 
 RESTIC_HOME_INSTALLER="$SCRIPT_DIR/../wsl-backup/home/install.sh"
@@ -194,6 +217,13 @@ while IFS=$'\t' read -r group _kind repository destination profiles extra; do
   fi
   [[ "$BOOTSTRAP_DRY_RUN" == 1 ]] || marker "repository-$repository" "$(git -C "$destination" rev-parse HEAD)"
 done < "$MANIFEST"
+
+DOTFILES_SOURCE="$HOME/.local/share/chezmoi"
+DOTFILES_WORKSPACE="$HOME/git/dotfiles"
+if [[ -d "$DOTFILES_SOURCE/.git" ]]; then
+  [[ ! -e "$DOTFILES_WORKSPACE" || -L "$DOTFILES_WORKSPACE" ]] || fail "refusing to replace non-symlink dotfiles workspace: $DOTFILES_WORKSPACE"
+  run ln -sfn "$DOTFILES_SOURCE" "$DOTFILES_WORKSPACE"
+fi
 
 AK_REPO="$HOME/git/ak"
 if [[ -x "$AK_REPO/bin/ak" ]]; then
@@ -229,8 +259,8 @@ if [[ "$BOOTSTRAP_DRY_RUN" != 1 ]]; then
     --arg profile "$BOOTSTRAP_PROFILE" --arg groups "$BOOTSTRAP_GROUPS" \
     --arg chezmoi "$("$HOME/.local/bin/chezmoi" --version)" --arg fnm "$(fnm --version)" \
     --arg node "$(node --version)" --arg npm "$(npm --version)" --arg pi "$(pi --version)" \
-    --arg mcfly "$("$HOME/.local/bin/mcfly" --version)" --argjson repositories "$repositories" \
-    '{schema:1,createdUtc:$createdUtc,profile:$profile,groups:$groups,chezmoi:$chezmoi,fnm:$fnm,node:$node,npm:$npm,pi:$pi,mcfly:$mcfly,repositories:$repositories,secrets:"not-copied"}' \
+    --arg mcfly "$("$HOME/.local/bin/mcfly" --version)" --arg uv "$(uv --version)" --arg gh "$(gh --version | head -n 1)" --argjson repositories "$repositories" \
+    '{schema:1,createdUtc:$createdUtc,profile:$profile,groups:$groups,chezmoi:$chezmoi,fnm:$fnm,node:$node,npm:$npm,pi:$pi,mcfly:$mcfly,uv:$uv,gh:$gh,repositories:$repositories,secrets:"not-copied"}' \
     >"$BOOTSTRAP_STATE_DIR/installed-manifest.json"
   chmod 0600 "$BOOTSTRAP_STATE_DIR/installed-manifest.json"
   marker manifest "$BOOTSTRAP_STATE_DIR/installed-manifest.json"

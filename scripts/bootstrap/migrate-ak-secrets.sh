@@ -31,7 +31,9 @@ validate_tree() {
 
 case "$mode" in
   export)
-    command -v gpgconf >/dev/null 2>&1 && gpgconf --kill gpg-agent >/dev/null 2>&1 || true
+    if command -v gpgconf >/dev/null 2>&1; then
+      gpgconf --kill gpg-agent >/dev/null 2>&1 || true
+    fi
     validate_tree "$HOME"
     for path in "${paths[@]}"; do
       [[ ! -e "$HOME/$path" ]] || ! find "$HOME/$path" -type l -print -quit | grep -q . || fail "symlink found in allowlisted path: $path"

@@ -23,10 +23,15 @@ grep -q 'DOTFILES_APPLY_WSL_INTEGRATION' "$template"
 grep -q 'DOTFILES_APPLY_WSL_INTEGRATION' "$terminal_linux_template"
 grep -q 'DOTFILES_APPLY_WSL_INTEGRATION' "$terminal_windows_template"
 grep -q 'https://github.com/${repository}.git' "$bootstrap"
+for package in fd-find gh git-delta neovim ripgrep; do
+  grep -Eq "apt-get install .* ${package}( |$)" "$bootstrap"
+done
+grep -q 'install_uv' "$bootstrap"
+grep -q 'DOTFILES_WORKSPACE=.*git/dotfiles' "$bootstrap"
 
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
-mkdir -p "$tmp/home"
+mkdir -p "$tmp/home/.local/share/chezmoi/.git"
 manifest="$tmp/workspace-repos.tsv"
 cat >"$manifest" <<'EOF'
 # group	kind	repository	destination	profiles
@@ -46,7 +51,10 @@ for output in "$first" "$second"; do
   grep -q 'install chezmoi 2.69.4' <<<"$output"
   grep -q 'install fnm 1.38.1 and Node v22.19.0' <<<"$output"
   grep -q 'install Pi 0.85.0' <<<"$output"
+  grep -q 'install uv 0.8.18' <<<"$output"
+  grep -q 'ln -sfn /usr/bin/fdfind .*\.local/bin/fd' <<<"$output"
   grep -q 'git clone https://github.com/example/tools.git' <<<"$output"
+  grep -q 'ln -sfn .*\.local/share/chezmoi .*git/dotfiles' <<<"$output"
   grep -q 'Bootstrap complete' <<<"$output"
 done
 [[ ! -e "$tmp/home/tools" ]]
