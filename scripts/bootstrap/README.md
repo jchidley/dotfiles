@@ -1,5 +1,7 @@
 # Debian bootstrap
 
+For the current clean successor objective, follow the [Debian4 plan](../../docs/DEBIAN4-PLAN.md): official Debian WSL distribution, default user `jack`, reviewed bootstrap, then selective comparison/migration. The retained-builder default described below uses the earlier pinned rootfs and is **not** the approved Debian4 installation source.
+
 `debian-bootstrap-safe.sh` rebuilds the declared WSL workspace without relying on tools, credentials, or shell state inherited from an older installation. It is repository-only code: chezmoi does not render it into `~/scripts`.
 
 The script must run as the target Linux user, not root. It uses `sudo` only for Debian packages and root-owned backup components. User tools, repositories, chezmoi state, and verification run as that user with an owned `HOME` and `/run/user/<uid>`.
@@ -11,7 +13,7 @@ The script must run as the target Linux user, not root. It uses `sudo` only for 
 Normal mode downloads a missing or invalid cached artifact. Offline mode accepts verified cache hits only:
 
 ```bash
-BOOTSTRAP_OFFLINE=1 ./debian-bootstrap-safe.sh
+BOOTSTRAP_OFFLINE=1 bash ./debian-bootstrap-safe.sh
 ```
 
 Updating a tool requires updating its version, URL, filename, and hash together and then passing the clean-room test. System packages come from the Debian sources configured on the target; the bootstrap does not silently rewrite those sources. They include `gh`, `git-delta`, Neovim, ripgrep, and `fd-find` because managed Git and agent workflows depend on their commands. Bootstrap verifies their Debian paths, exposes `fd` as a user-local link to Debian's `fdfind`, installs the locked standalone `uv`/`uvx` release, and records relevant versions.
@@ -51,28 +53,30 @@ From the authoritative chezmoi source checkout:
 
 ```bash
 cd ~/.local/share/chezmoi/scripts/bootstrap
-BOOTSTRAP_MODE=core BOOTSTRAP_PROFILE=dev ./debian-bootstrap-safe.sh
+BOOTSTRAP_MODE=core BOOTSTRAP_PROFILE=dev bash ./debian-bootstrap-safe.sh
 ```
 
 Inspect behavior without system, network, or filesystem changes:
 
 ```bash
-BOOTSTRAP_DRY_RUN=1 SKIP_SYSTEM_PACKAGES=1 ./debian-bootstrap-safe.sh
+BOOTSTRAP_DRY_RUN=1 SKIP_SYSTEM_PACKAGES=1 bash ./debian-bootstrap-safe.sh
 ```
 
 Apply the Linux home state after reviewing `chezmoi diff`:
 
 ```bash
-APPLY_CHEZMOI=1 ./debian-bootstrap-safe.sh
+APPLY_CHEZMOI=1 bash ./debian-bootstrap-safe.sh
 ```
 
 Host-wide WSL integration is intentionally separate. It enables Windows executable interop and can modify Windows `.wslconfig` and Linux `/etc/wsl.conf`. Opt in only when that is the intended machine policy:
 
 ```bash
-APPLY_CHEZMOI=1 DOTFILES_APPLY_WSL_INTEGRATION=1 ./debian-bootstrap-safe.sh
+APPLY_CHEZMOI=1 DOTFILES_APPLY_WSL_INTEGRATION=1 bash ./debian-bootstrap-safe.sh
 ```
 
 Without that variable, ordinary chezmoi application does not render or run the integration script.
+
+Successful interactive runs also initialize AK. If no secret key exists, the bootstrap creates `Jack Chidley <jack@chidley.org>` using GnuPG's `future-default` profile (Ed25519 signing/certification key with Cv25519 encryption subkey) with no expiry, then runs `ak init`. GnuPG pinentry asks the owner to enter and confirm the passphrase; the bootstrap never receives or records it. Existing valid AK key selections are preserved. Noninteractive clean-room builders set `BOOTSTRAP_SETUP_AK=0`; use the same explicit override only when identity setup is intentionally deferred.
 
 Successful runs emit a marker for each tool and repository and write `~/.local/state/dotfiles-bootstrap/installed-manifest.json`. The manifest records exact installed versions and commits and explicitly records that secrets were not copied.
 
@@ -81,7 +85,7 @@ Successful runs emit a marker for each tool and repository and write `~/.local/s
 Fast, side-effect-free clean-home regression test:
 
 ```bash
-./scripts/bootstrap/test-bootstrap.sh
+bash scripts/bootstrap/test-bootstrap.sh
 ```
 
 A full clean-room test imports an explicitly hash-bound Debian rootfs as a disposable physical-host WSL distribution, runs the bootstrap, checks an interactive login, repeats it offline, and unregisters it in `finally`. Preview is the default; `-Execute` is required because WSL registration affects the physical host:
@@ -96,39 +100,16 @@ A full clean-room test imports an explicitly hash-bound Debian rootfs as a dispo
 
 Use only a new disposable install path and a distribution name beginning `Dotfiles-Bootstrap-Test-`.
 
-## AK/GnuPG secrets are a separate migration
+## AK credential population is a separate migration
 
-The default bootstrap never copies GPG private keys, encrypted AK service files, SSH keys, credentials, or history. If an existing WSL distribution already contains the AK vault, preview the separately guarded migration from PowerShell 7.4+:
+The default interactive bootstrap creates and selects the fresh AK/GnuPG identity, but it never copies GPG private keys, encrypted AK service files, SSH keys, credentials, or history.
 
-```powershell
-./scripts/bootstrap/Copy-WslAkSecrets.ps1 `
-  -SourceDistribution Debian-Recovered -SourceUser jack `
-  -TargetDistribution Debian2 -TargetUser jack
-```
+For Debian4, the selected design is a **new passphrase-protected GPG identity created on Debian4**, followed by direct re-encryption of explicitly selected existing AK values from authoritative Debian-Recovered. Do not use `Copy-WslAkSecrets.ps1` for this: that helper copies the source identity and complete encrypted vault. The selected transfer and routing cutover are recorded complete in the [current tasks](../wsl-backup/TASKS.md); do not replay them. Any later transfer must first pass disposable-key tests and must never place plaintext in files, arguments, environment variables, logs, or agent output. Owner passphrase interaction remains private.
 
-After checking the names, repeat with `-Execute`. The operation:
+Verify selected values by decryption on Debian4 without printing them, and establish protected recovery of the new private key and passphrase before relying on the vault. Keep Debian-Recovered intact through extraction and independent Debian4 recovery.
 
-- streams the complete static GnuPG state plus only `~/.config/ak`, `~/git/ak/secrets`, and `~/git/ak/.gpg-key-id`;
-- rejects symlinks and unexpected archive members;
-- writes no transfer archive to Windows;
-- excludes SSH keys, history, plaintext secret values, and GnuPG sockets;
-- backs up existing target state under `~/.local/state/dotfiles-secret-migrations/`;
-- restores that backup if target validation fails;
-- enforces restrictive permissions and verifies that a secret key and encrypted AK files exist.
+After target validation and explicit approval, the Windows wrapper and managed WSL configuration now route to Debian4. `Set-WindowsAkRoute.ps1` remains the reviewed preview/`-Execute` mechanism for any later route change. Debian-Backup is not an AK routing target; it is a stopped inspection/recovery clone of the August forensic image.
 
-The target's copied `vault.conf` route is rewritten to the target distribution, while the Windows route remains unchanged. The migration deliberately does not request or transport the passphrase. Complete a real decryption check interactively in the target, for example:
-
-```bash
-ak get brave >/dev/null && echo 'AK decryption verified'
-```
-
-Only after that succeeds, preview and then explicitly activate the Windows wrapper route:
-
-```powershell
-./scripts/bootstrap/Set-WindowsAkRoute.ps1 -TargetDistribution Debian2
-./scripts/bootstrap/Set-WindowsAkRoute.ps1 -TargetDistribution Debian2 -Execute
-```
-
-The route update is atomic and preserves the prior configuration beside `vault.conf`. Do not paste the passphrase into a command, transcript, or chat. Keep the source distribution intact until decryption and Windows-wrapper listing both pass and the target has been backed up.
+`Copy-WslAkSecrets.ps1` and `migrate-ak-secrets.sh` remain implementation/history for same-identity migrations and disposable testing. They are not the current Debian4 migration path.
 
 The legacy one-pass bootstrap remains historical evidence under `docs/archive/bootstrap/`; it is not an operational fallback.
