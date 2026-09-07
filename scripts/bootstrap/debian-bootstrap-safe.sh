@@ -178,7 +178,7 @@ expand_destination() { case "$1" in \~) printf '%s\n' "$HOME" ;; \~/*) printf '%
 
 if [[ "$SKIP_SYSTEM_PACKAGES" != 1 ]]; then
   run sudo apt-get update
-  run sudo apt-get install -y ca-certificates curl direnv dirmngr fd-find gh git git-delta gnupg2 jq neovim openssh-client pinentry-curses restic ripgrep shellcheck sqlite3 sudo tmux unzip xz-utils zoxide
+  run sudo apt-get install -y build-essential mold rustup ca-certificates curl direnv dirmngr fd-find gh git git-delta gnupg2 jq neovim openssh-client pinentry-curses restic ripgrep shellcheck sqlite3 sudo tmux unzip xz-utils zoxide
 fi
 if [[ "$BOOTSTRAP_DRY_RUN" != 1 ]]; then
   for required in /usr/bin/delta /usr/bin/fdfind /usr/bin/gh /usr/bin/nvim /usr/bin/rg; do
@@ -193,6 +193,7 @@ install_fnm_and_node
 install_mcfly
 install_uv
 install_pi
+bash "$SCRIPT_DIR/setup-rust.sh"
 
 RESTIC_HOME_INSTALLER="$SCRIPT_DIR/../wsl-backup/home/install.sh"
 [[ ! -x "$RESTIC_HOME_INSTALLER" ]] || run "$RESTIC_HOME_INSTALLER"

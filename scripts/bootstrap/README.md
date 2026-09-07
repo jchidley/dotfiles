@@ -16,6 +16,10 @@ BOOTSTRAP_OFFLINE=1 ./debian-bootstrap-safe.sh
 
 Updating a tool requires updating its version, URL, filename, and hash together and then passing the clean-room test. System packages come from the Debian sources configured on the target; the bootstrap does not silently rewrite those sources. They include `gh`, `git-delta`, Neovim, ripgrep, and `fd-find` because managed Git and agent workflows depend on their commands. Bootstrap verifies their Debian paths, exposes `fd` as a user-local link to Debian's `fdfind`, installs the locked standalone `uv`/`uvx` release, and records relevant versions.
 
+## Rust development
+
+Rust development is included: Debian packages `rustup`, `build-essential`, and `mold`, followed by `bash scripts/bootstrap/setup-rust.sh` as the normal user. The helper installs stable Rust with the minimal profile when absent, selects it as the default, and configures `~/.cargo/config.toml` to use `cc -fuse-ld=mold` for `x86_64-unknown-linux-gnu`. Other targets are unchanged. Existing conflicting Cargo configuration is rejected, not overwritten. Offline reruns require an installed stable toolchain; ordinary reruns do not update it. Stable is a rolling channel, not an exact version lock; projects may pin their own toolchains.
+
 ## Repository selection
 
 `workspace-repos.tsv` is the executable inventory. Each row assigns one explicit public repository to a group, destination, and profile. Initial clones use HTTPS and therefore do not require SSH keys. Existing Git checkouts are preserved. Chezmoi's authoritative dotfiles checkout remains at `~/.local/share/chezmoi`; bootstrap exposes the same checkout at `~/git/dotfiles` through a guarded symlink so normal Git work does not create a second divergent clone.

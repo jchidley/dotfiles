@@ -8,9 +8,9 @@ template="$root/../../run_onchange_after_20-wsl-config.sh.tmpl"
 terminal_linux_template="$root/../../run_onchange_after_50-windows-terminal.sh.tmpl"
 terminal_windows_template="$root/../../run_onchange_after_50-windows-terminal.ps1.tmpl"
 
-bash -n "$bootstrap" "$secret_helper"
+bash -n "$bootstrap" "$secret_helper" "$root/setup-rust.sh"
 if command -v shellcheck >/dev/null 2>&1; then
-  shellcheck -x "$bootstrap" "$secret_helper"
+  shellcheck -x "$bootstrap" "$secret_helper" "$root/setup-rust.sh"
 fi
 
 ! grep -q 'releases/latest' "$bootstrap"
@@ -23,7 +23,7 @@ grep -q 'DOTFILES_APPLY_WSL_INTEGRATION' "$template"
 grep -q 'DOTFILES_APPLY_WSL_INTEGRATION' "$terminal_linux_template"
 grep -q 'DOTFILES_APPLY_WSL_INTEGRATION' "$terminal_windows_template"
 grep -q 'https://github.com/${repository}.git' "$bootstrap"
-for package in fd-find gh git-delta neovim ripgrep; do
+for package in build-essential mold rustup fd-find gh git-delta neovim ripgrep; do
   grep -Eq "apt-get install .* ${package}( |$)" "$bootstrap"
 done
 grep -q 'install_uv' "$bootstrap"
@@ -52,12 +52,77 @@ for output in "$first" "$second"; do
   grep -q 'install fnm 1.38.1 and Node v22.19.0' <<<"$output"
   grep -q 'install Pi 0.85.0' <<<"$output"
   grep -q 'install uv 0.8.18' <<<"$output"
+  grep -q 'configure native Cargo mold default' <<<"$output"
   grep -q 'ln -sfn /usr/bin/fdfind .*\.local/bin/fd' <<<"$output"
   grep -q 'git clone https://github.com/example/tools.git' <<<"$output"
   grep -q 'ln -sfn .*\.local/share/chezmoi .*git/dotfiles' <<<"$output"
   grep -q 'Bootstrap complete' <<<"$output"
 done
 [[ ! -e "$tmp/home/tools" ]]
+
+# Never replace operator Cargo settings, including the legacy config filename.
+mkdir -p "$tmp/home/.cargo"
+printf 'operator config\n' >"$tmp/home/.cargo/config.toml"
+if HOME="$tmp/home" BOOTSTRAP_DRY_RUN=1 bash "$root/setup-rust.sh"; then
+  echo 'Rust setup accepted conflicting Cargo configuration.' >&2; exit 1
+fi
+grep -qx 'operator config' "$tmp/home/.cargo/config.toml"
+mv "$tmp/home/.cargo/config.toml" "$tmp/home/.cargo/config"
+if HOME="$tmp/home" BOOTSTRAP_DRY_RUN=1 bash "$root/setup-rust.sh"; then
+  echo 'Rust setup accepted legacy Cargo configuration.' >&2; exit 1
+fi
+grep -qx 'operator config' "$tmp/home/.cargo/config"
+
+# Exercise Rust setup with disposable state and commands, never real rustup.
+rust_home="$tmp/rust-home"
+rust_bin="$tmp/rust-bin"
+mkdir -p "$rust_home" "$rust_bin"
+cat >"$rust_bin/rustup" <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+printf '%s\n' "$*" >>"$HOME/rustup.calls"
+case "$*" in
+  'run stable rustc --version'|'run stable cargo --version') [[ -f "$HOME/stable-installed" ]] ;;
+  'toolchain install stable --profile minimal') touch "$HOME/stable-installed" ;;
+  'default stable') [[ -f "$HOME/stable-installed" ]] ;;
+  *) echo "Unexpected rustup call: $*" >&2; exit 1 ;;
+esac
+EOF
+printf '#!/usr/bin/env bash\nexit 0\n' >"$rust_bin/cc"
+cp "$rust_bin/cc" "$rust_bin/mold"
+chmod 0755 "$rust_bin/"*
+run_rust() {
+  HOME="$rust_home" CARGO_HOME= RUSTUP_HOME="$rust_home/.rustup" \
+    PATH="$rust_bin:$PATH" BOOTSTRAP_DRY_RUN=0 BOOTSTRAP_OFFLINE="$1" \
+    bash "$root/setup-rust.sh"
+}
+if run_rust 1; then
+  echo 'Offline Rust setup accepted a missing stable toolchain.' >&2; exit 1
+fi
+[[ ! -e "$rust_home/.cargo/config.toml" ]]
+! grep -Eq '^(toolchain install|default)' "$rust_home/rustup.calls"
+run_rust 0
+grep -qx 'toolchain install stable --profile minimal' "$rust_home/rustup.calls"
+grep -qx 'default stable' "$rust_home/rustup.calls"
+printf '%s\n' '[target.x86_64-unknown-linux-gnu]' 'linker = "cc"' \
+  'rustflags = ["-C", "link-arg=-fuse-ld=mold"]' >"$tmp/expected-cargo.toml"
+cmp "$tmp/expected-cargo.toml" "$rust_home/.cargo/config.toml"
+: >"$rust_home/rustup.calls"
+run_rust 1
+run_rust 0
+! grep -q '^toolchain install' "$rust_home/rustup.calls"
+cmp "$tmp/expected-cargo.toml" "$rust_home/.cargo/config.toml"
+printf 'operator config\n' >"$rust_home/.cargo/config.toml"
+: >"$rust_home/rustup.calls"
+if run_rust 0; then
+  echo 'Rust setup changed a conflicting configuration.' >&2; exit 1
+fi
+[[ ! -s "$rust_home/rustup.calls" ]]
+grep -qx 'operator config' "$rust_home/.cargo/config.toml"
+if HOME="$rust_home" CARGO_HOME="$tmp/custom-cargo" BOOTSTRAP_DRY_RUN=1 \
+    bash "$root/setup-rust.sh"; then
+  echo 'Rust setup accepted a custom CARGO_HOME.' >&2; exit 1
+fi
 
 # Exercise the secret-transfer allowlist and target backup without real secrets.
 mkdir -p "$tmp/bin" "$tmp/source/.gnupg/private-keys-v1.d" "$tmp/source/.config/ak" \
