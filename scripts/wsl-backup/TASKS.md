@@ -1,21 +1,37 @@
 # WSL backup and recovery tasks
 
-Only incomplete work is listed here. Verified inspections, completed migration evidence, and historical source-integration gates live in [`STATUS.md`](STATUS.md). Execute the bounded sequence and acceptance gates in [`RECOVERY-PLAN.md`](RECOVERY-PLAN.md); this queue is not production authorization.
+Only current incomplete work belongs here. Dated implementation and production evidence lives in [`STATUS.md`](STATUS.md); the [Debian4 plan](../../docs/DEBIAN4-PLAN.md) owns sequencing and approval boundaries.
 
-## Immediate recovery work
+## Current priority
 
-1. **Owner interaction required:** verify an independently escrowed Restic password unlocks the existing Debian3 repository without using the installed runtime password. Do not expose credentials, automate Bitwarden, regenerate the password, or write confirmation before a successful test and marker-write approval.
-2. **Local source work:** adapt and test the existing whole-distro exporter/validator for the inspected Debian3 layout and Linux-owned scheduler. Remove the mandatory legacy-task dependency deliberately; prove disposable-import isolation and retain fail-closed recovery and validation.
-3. **Storage, deployment, and downtime approval required:** create a protected Debian3 generation with the reviewed source, verify its manifest/hash, test-import it against the recovery contract, and independently verify cleanup. Preserve existing archives and both fallback distros.
+**Completed Pi import — 6 September 2026:** `debian4-import-execution-20260906T112532Z/REPORT.md` under the [inspection evidence root](../../docs/DEBIAN-BACKUP-INSPECTION.md) records 905 native files and 2,826 archive payload files published without overwrites; separate verification passed with zero failures. The session-isolated launcher resolved two preserved SIGHUP failures. The 24-file execution seal and controller review are complete. Do not rerun the importer.
 
-## Before any retirement decision
+Retain `/home/jack/.local/state/pi-recovery-import/20260906T112532Z/`, fixtures, the imported recovery archive and all originals/source distros. Cleanup or retirement needs separate approval. The unresolved-gap report still protects two partial-only sessions, 2,943 unconfirmed transcript records, 14 unmerged message candidates, stream fragments and conflicts; none was silently promoted or merged. Further analysis must target a concrete gap, and broad specialist recovery needs a materially revised reviewed strategy.
 
-- Assess unique persistent files/repositories, authentication/configuration, shared PostgreSQL roles, and large objects not covered by the completed table comparison.
-- Recheck changing database contents at the retirement boundary; the matching fingerprints were point-in-time evidence, not a permanent synchronization guarantee.
-- Confirm ordinary Debian3 use and independently accessible recovery evidence. Then seek separate approval for any exact retirement or PostgreSQL-port change.
+1. Optional credential follow-up: exact AK value equality with the passphrase-locked Debian-Recovered source remains unverified; Debian4's 14 expected services resolve through the approved route. The owner successfully unlocked the imported SSH key privately with `ssh-keygen -y`; no replacement is needed. Remote SSH authentication remains untested.
+2. Prepare and review fresh Debian4 backup source changes. Owner deferred choosing protected storage and an independently recoverable password; initialization, real restore validation, and scheduling remain blocked until those prerequisites are selected. Enable Linux scheduling only after recovery succeeds.
+3. Keep Debian-Recovered, Debian-Backup and forensic evidence until the Debian4 restore gate passes; retirement requires separate final inventory and approval.
 
-## Deferred, not prerequisites for new tooling
+Completed on 7 September: boat-data-platform's 19 commits are pushed at `d18e28d`; the recovered heatpump lineage and Windows guidance were reconciled and pushed at `8bab653`; the AK patch was rebased and pushed at `95ef0a7`; and the remaining McFly/web-search/Pi-guidance bootstrap changes were validated, pushed and deployed at dotfiles `fe8736a`.
 
-- Long-job consent-bridge deployment and prune/full-data-check scheduling remain deferred. Do not clear the historical full-data-check failure marker without separately verified successful full-data-check evidence.
-- Do not repeat the completed scheduler cutover or recreate the absent Windows tasks. Legacy migration procedures and earlier fixture work are historical references, not the next action.
-- No new experiment trials, probe refactoring, or generalized infrastructure work is queued.
+## Backup source work awaiting review
+
+- Preserve Linux/systemd ownership of routine backup scheduling and whole-distro coordination.
+- Resolve the [Debian4 backup contract's candidate findings](../../docs/DEBIAN4-BACKUP-CONTRACT.md): stale home/source landmarks, unchecked destructive cleanup, unproven first-boot isolation, journal/mutex identity mismatch, and insufficient controller behavioral tests.
+- Remove Debian3-specific recovery landmarks from the unfinished exporter/validator candidate; PostgreSQL remains undecided.
+- Record the canonical fast-gate result and demonstrate isolated disposable-import behavior before deployment; fixture success does not establish restore safety.
+- Finalize the contract's proposed Debian4 contents after capability/data selection.
+- Use a new repository and independently recoverable password; never initialize over surviving Restic history.
+
+## Deferred
+
+- PostgreSQL installation or activation on Debian4 pending a workflow decision.
+- Backup storage and independently recoverable password selection, explicitly deferred by the owner.
+
+Windows default distro was changed to Debian4 and independently verified on 7 September 2026. AK routing already targets Debian4. Neither cutover remains pending.
+
+Rust/mold setup completed with owner approval: Debian4 has Rust/Cargo 1.98.1, mold 2.37.1, and build-essential. A disposable offline Cargo build ran successfully and its ELF comment independently identified mold. Native x86-64 Linux Cargo defaults select mold. Debian4 committed the Rust/bootstrap work at `c91bd6f`. Subsequent checkout integration preserved its newer Rust tests and combined them with Windows AK/history tests, fixed the AK-disabled bare-return bug, and synchronized the six selected bootstrap/instruction source files. The combined bootstrap Bash suite and native PowerShell preview/lint checks passed; no bootstrap rerun or blanket chezmoi apply occurred. These additional source changes are locally committed at `300d46a` (bootstrap) and `fc8b1e3` (guidance); Windows was fast-forwarded to that history with its pending work preserved. The broader backup candidate is not accepted for execution; earlier partial fast-gate evidence is retained under `~/.local/state/rust-mold-setup-20260907/fast-gate.log`.
+- Removal of Debian-Recovered or Debian-Backup until extraction is complete and Debian4 recovery is independently demonstrated.
+- Long-job consent-bridge deployment and prune/full-data-check scheduling.
+
+Debian2 and Debian3 are retired and are not execution targets. Historical task fixtures that name old systems remain implementation/test evidence until reviewed separately; do not remove them solely because the distros are gone.

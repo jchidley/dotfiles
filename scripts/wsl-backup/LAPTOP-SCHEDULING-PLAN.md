@@ -1,6 +1,6 @@
 # Historical laptop-aware WSL backup scheduling design
 
-**Not the active implementation plan.** The active bounded objective is [`RECOVERY-PLAN.md`](RECOVERY-PLAN.md); current operational evidence is [`STATUS.md`](STATUS.md), and incomplete work is [`TASKS.md`](TASKS.md).
+**Not the active implementation plan.** The active objective is the [Debian4 clean-build and selective-migration plan](../../docs/DEBIAN4-PLAN.md). [`RECOVERY-PLAN.md`](RECOVERY-PLAN.md) is paused Debian3 scope; dated operational evidence is [`STATUS.md`](STATUS.md), and incomplete backup work is [`TASKS.md`](TASKS.md).
 
 This document preserves the scheduling requirements, rejected Windows-coordinator assumptions, phase evidence, and deferred long-job design. Its Windows state paths, event triggers, six-task migration steps, and acceptance targets are historical design context, not a description of today's Linux scheduler or authority to deploy a Windows controller. The OS-ownership boundary under Scheduling ownership remains binding.
 

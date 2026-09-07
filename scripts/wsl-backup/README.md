@@ -1,8 +1,8 @@
 # WSL backup and recovery
 
-This directory owns the WSL backup implementation and local operational records. Debian3 is the recovery-assurance target; Debian-Recovered and Debian-Backup remain preserved recovery sources. Historical research and benchmark evidence also live in the `jchidley/tools` WSL backup reference.
+This directory owns the WSL backup implementation and local operational records. The [Debian4 plan](../../docs/DEBIAN4-PLAN.md) owns the immediate objective. Debian-Recovered is the authoritative source and Windows default. Debian-Backup is a stopped writable clone of the separately protected August forensic image for controlled inspection and recovery. Both are temporary extraction sources pending a complete Debian4 and independently tested recovery. Debian2 and Debian3 are retired. Historical research and benchmark evidence also live in the `jchidley/tools` WSL backup reference.
 
-Start with [`STATUS.md`](STATUS.md) for verified evidence, [`TASKS.md`](TASKS.md) for incomplete work, and [`RECOVERY-PLAN.md`](RECOVERY-PLAN.md) for the active bounded plan. Setup and operation examples below describe interfaces, not authorization to change an existing installation. Debian3's whole-system export path still needs adaptation; do not run the legacy export examples against it unchanged.
+Start with [`STATUS.md`](STATUS.md) for dated evidence and [`TASKS.md`](TASKS.md) for current incomplete work. [`RECOVERY-PLAN.md`](RECOVERY-PLAN.md) is now a short historical pointer. Setup and operation examples below describe interfaces, not authorization to change an existing installation.
 
 ## Quick start
 
@@ -79,16 +79,17 @@ See [`TESTING.md`](TESTING.md) for stable contracts, mutation evidence, and expl
 
 ## Scheduling and recovery status
 
-Linux-owned scheduler source is integrated at `f41a315`; Windows must not wake or poll WSL for routine Linux work. The 5 September inspection verified Debian3's enabled timer, Debian-Recovered's disabled timer, and zero legacy Windows Restic tasks. See `STATUS.md` for timestamps and limits rather than treating this summary as a live health check.
+Linux-owned scheduler source is integrated at `f41a315`; Windows must not wake or poll WSL for routine Linux work. Historical production state and old-task evidence remain in `STATUS.md`; do not treat them as a live health check.
 
-Independent password recovery and a validated Debian3 whole-distro backup remain open. The old six-task migration is not the next action; follow `RECOVERY-PLAN.md`. The retained Windows Phase 1–3 source is fixture/design evidence, not the routine production scheduler.
+Fresh Debian4 backup scope follows selected capabilities and data. The old six-task migration and retired Debian3 recovery work are not the immediate queue. The retained Windows Phase 1–3 source is fixture/design evidence, not the routine production scheduler.
 
 ## Documentation ownership
 
 - This README and component READMEs: current commands and operational behaviour.
 - [`STATUS.md`](STATUS.md): canonical local evidence, current limitations, and historical integration outcomes.
 - [`TASKS.md`](TASKS.md): incomplete work only.
-- [`RECOVERY-PLAN.md`](RECOVERY-PLAN.md): active bounded recovery objective, sequence, approval boundaries, and acceptance gates.
+- [Debian4 plan](../../docs/DEBIAN4-PLAN.md): current clean-build, selected-capability/data and subsequent fresh-backup sequence.
+- [`RECOVERY-PLAN.md`](RECOVERY-PLAN.md): historical pointer for the retired Debian3 plan; durable safeguards now live in the Debian4 plan.
 - [`LAPTOP-SCHEDULING-PLAN.md`](LAPTOP-SCHEDULING-PLAN.md): historical scheduling design and deferred long-job requirements, not an active deployment plan.
 - [`PRODUCTION-HEALTH-STATE-DECISION.md`](PRODUCTION-HEALTH-STATE-DECISION.md): retained policy/fixture acceptance contract; the Windows routine-controller deployment design is superseded.
 - Source code and tests: implementation truth.

@@ -1,6 +1,6 @@
 # Production backup-health state decision packet
 
-**Status:** retained approved policy and fixture acceptance contract, not a current Windows deployment plan. The later OS-ownership correction superseded its Windows routine-controller paths and triggers. Linux owns routine health and due-state decisions; this contract is not evidence that the deployed Linux scheduler implements every behavior below. The active objective is [`RECOVERY-PLAN.md`](RECOVERY-PLAN.md), with current evidence in [`STATUS.md`](STATUS.md).
+**Status:** retained approved policy and fixture acceptance contract, not a current Windows deployment plan. The later OS-ownership correction superseded its Windows routine-controller paths and triggers. Linux owns routine health and due-state decisions; this contract is not evidence that the deployed Linux scheduler implements every behavior below. The active objective is the [Debian4 plan](../../docs/DEBIAN4-PLAN.md), with dated backup evidence in [`STATUS.md`](STATUS.md); [`RECOVERY-PLAN.md`](RECOVERY-PLAN.md) is paused Debian3 scope.
 
 The original controller approval settled policy documentation only; it did not authorize implementation, deployment, state writes, task changes, backup execution, commit, or push. Subsequent source integration is recorded at the end of this document.
 

@@ -2,6 +2,10 @@
 
 Cross-platform dotfiles managed with [chezmoi](https://www.chezmoi.io/) for consistent development environments across Windows and Debian Linux systems.
 
+## Current Debian4 work
+
+Follow the [Debian4 completion and selective-migration plan](docs/DEBIAN4-PLAN.md). Debian4 is the clean successor. Debian-Recovered is the authoritative known-good source and Windows default. Debian-Backup is a stopped writable clone of the protected August forensic image for controlled inspection and recovery. Both source distros are temporary: extract everything useful into Debian4, prove independent recovery, then consider their separately approved removal. Generic setup examples below are not the Debian4 execution plan.
+
 ## Quick Start
 
 ### New Debian Machine (minimal bootstrap)
@@ -38,7 +42,7 @@ chezmoi update
 
 ### WSL backup and recovery
 
-For current Debian3 recovery work, start with the [verified status](scripts/wsl-backup/STATUS.md) and [active recovery plan](scripts/wsl-backup/RECOVERY-PLAN.md). Preserve Debian-Recovered and Debian-Backup until the recovery gates pass and retirement is separately authorized.
+For current work, start with the [Debian4 plan](docs/DEBIAN4-PLAN.md) and [build results](docs/DEBIAN4-RESULTS.md). Backup [status](scripts/wsl-backup/STATUS.md) preserves dated evidence; the retired [Debian3 recovery plan](scripts/wsl-backup/RECOVERY-PLAN.md) is only a historical pointer. Preserve Debian-Recovered, stopped Debian-Backup, the immutable August image, and relevant histories until extraction and recovery gates pass.
 
 For an explicitly approved installation/update of the backup toolset (not a recovery-verification command):
 
@@ -144,7 +148,7 @@ git push
 
 ### Linux (Debian)
 - Enhanced bash configuration
-- Neovim editor integration  
+- Neovim editor integration
 - Cargo/Rust development environment
 - Python virtual environment auto-activation
 - SSH key management
