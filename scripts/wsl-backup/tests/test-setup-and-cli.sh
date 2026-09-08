@@ -73,6 +73,12 @@ grep -F -- '--password-file /dev/fd/3' "$ROOT/home/test-restic-recovery-password
   fail 'recovery tester references the confirmation marker'
 [[ ! -e "$ROOT/home/Register-WindowsTasks.ps1" ]] || fail 'obsolete Register-WindowsTasks.ps1 remains in active source'
 ! grep -Eq 'systemctl +(enable|start)|enable +--now' "$ROOT/setup.sh" || fail 'ordinary setup implicitly enables Linux scheduling'
+grep -F "DISTRO_NAME=\${WSL_DISTRO_NAME:-Debian4}" "$ROOT/setup.sh" >/dev/null ||
+  fail 'setup default distro is not Debian4'
+grep -F "[string] \$DistroName = 'Debian4'" "$ROOT/Install-Windows.ps1" >/dev/null ||
+  fail 'Windows installer default distro is not Debian4'
+grep -F "[string] \$DistroName = 'Debian4'" "$ROOT/home/Invoke-WslHomeRestic.ps1" >/dev/null ||
+  fail 'retained Windows home entry point default distro is not Debian4'
 
 # GPG migration must not leave systemd silently skipping backups after removal
 # of the former plaintext credential. Check the installed unit, not just source.

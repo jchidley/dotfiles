@@ -4,7 +4,7 @@ param(
     [Parameter(Mandatory = $true)]
     [ValidateSet('backup', 'retention', 'prune', 'check', 'check-read-data', 'status')]
     [string] $Operation,
-    [string] $DistroName = 'Debian-Recovered'
+    [string] $DistroName = 'Debian4'
 )
 
 $ErrorActionPreference = 'Stop'

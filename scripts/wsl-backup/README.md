@@ -1,6 +1,6 @@
 # WSL backup and recovery
 
-This directory owns the WSL backup implementation and local operational records. The [Debian4 plan](../../docs/DEBIAN4-PLAN.md) owns the immediate objective. Debian-Recovered is the authoritative source and Windows default. Debian-Backup is a stopped writable clone of the separately protected August forensic image for controlled inspection and recovery. Both are temporary extraction sources pending a complete Debian4 and independently tested recovery. Debian2 and Debian3 are retired. Historical research and benchmark evidence also live in the `jchidley/tools` WSL backup reference.
+This directory owns the WSL backup implementation and local operational records. The [Debian4 plan](../../docs/DEBIAN4-PLAN.md) owns the immediate objective. Debian4 is the active distro and Windows default. Debian-Recovered remains an authoritative recovery source, and Debian-Backup is a stopped writable clone of the separately protected August forensic image for controlled inspection and recovery. Both are temporary extraction sources pending a complete Debian4 and independently tested recovery. Debian2 and Debian3 are retired. Historical research and benchmark evidence also live in the `jchidley/tools` WSL backup reference.
 
 Start with [`STATUS.md`](STATUS.md) for dated evidence and [`TASKS.md`](TASKS.md) for current incomplete work. [`RECOVERY-PLAN.md`](RECOVERY-PLAN.md) is now a short historical pointer. Setup and operation examples below describe interfaces, not authorization to change an existing installation.
 
@@ -16,7 +16,7 @@ wsl-backup status
 
 `setup.sh` is idempotent and non-destructive. It installs or updates the Linux programs, Linux `systemd` scheduler files, and Windows system-export controller, but never enables the timer or registers Windows tasks for routine Linux work. Timer enablement belongs only to the explicit reversible migration in [`home/MIGRATION.md`](home/MIGRATION.md). Setup never creates credentials, initializes a repository, deletes snapshots, or creates a whole-system export.
 
-For a distro whose registered name is not `Debian-Recovered`:
+For a distro whose registered name is not `Debian4`:
 
 ```bash
 ./scripts/wsl-backup/setup.sh --distro NAME

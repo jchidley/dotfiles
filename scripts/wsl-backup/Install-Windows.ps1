@@ -1,7 +1,7 @@
 #requires -Version 7.0
 [CmdletBinding()]
 param(
-    [string] $DistroName = 'Debian-Recovered'
+    [string] $DistroName = 'Debian4'
 )
 
 $ErrorActionPreference = 'Stop'

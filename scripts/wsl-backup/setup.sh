@@ -2,7 +2,7 @@
 set -euo pipefail
 
 SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
-DISTRO_NAME=${WSL_DISTRO_NAME:-Debian-Recovered}
+DISTRO_NAME=${WSL_DISTRO_NAME:-Debian4}
 WINDOWS_INTEGRATION=1
 DESTDIR=${WSL_BACKUP_DESTDIR:-${DESTDIR:-}}
 POWERSHELL=${WSL_BACKUP_POWERSHELL:-pwsh.exe}
