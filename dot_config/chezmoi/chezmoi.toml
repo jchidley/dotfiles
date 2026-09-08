@@ -1,3 +1,6 @@
+# Use the canonical checkout rather than a separate chezmoi clone.
+sourceDir = '~/git/dotfiles'
+
 # Run managed PowerShell scripts only with PowerShell 7.
 [interpreters.ps1]
 command = "pwsh.exe"
