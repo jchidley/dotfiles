@@ -14,7 +14,9 @@ for path in \
   etc/systemd/system/wsl-home-scheduler.timer; do
   [[ -e $root/$path ]] || fail "required system path is absent: /$path"
 done
-for path in home/jack var/lib/restic/home etc/restic/home.password; do
+[[ -s $root/var/lib/restic/home/config && ! -L $root/var/lib/restic/home ]] ||
+  fail 'embedded Restic repository is absent or redirected'
+for path in home/jack etc/restic/home.password; do
   [[ ! -e $root/$path ]] || fail "separated payload was restored from the system archive: /$path"
 done
 [[ $(stat -c %u:%g "$root/etc") == 0:0 ]] || fail '/etc ownership was not preserved'
@@ -24,4 +26,4 @@ case $(readlink "$root/etc/mtab") in
   /proc/mounts|../proc/self/mounts) ;;
   *) fail '/etc/mtab target is unexpected' ;;
 esac
-printf 'system_restore_validation=passed metadata=ownership,mode,symlink separated_home=true\n'
+printf 'system_restore_validation=passed metadata=ownership,mode,symlink separated_home=true embedded_repository=true\n'

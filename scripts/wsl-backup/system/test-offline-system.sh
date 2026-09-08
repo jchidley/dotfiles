@@ -15,9 +15,20 @@ uuid=$(findmnt --mountpoint "$root/source" -n -o UUID)
 mkdir -p "$root/source/etc/restic" "$root/source/home/jack" "$root/source/var/lib/restic/home" \
   "$root/source/mnt" "$root/source/dev" "$root/source/proc" "$root/source/run" "$root/source/sys"
 printf 'synthetic-os\n' >"$root/source/etc/os-release"
-for path in home/jack/secret etc/restic/home.password var/lib/restic/home/config; do
+for path in home/jack/secret etc/restic/home.password; do
   printf 'SYNTHETIC-SECRET\n' >"$root/source/$path"
 done
+# Create real snapshot history inside the source filesystem. The recovery
+# password is kept outside it, simulating independent Bitwarden recovery.
+unset RESTIC_PASSWORD RESTIC_PASSWORD_COMMAND RESTIC_PASSWORD_FILE
+printf 'synthetic-recovery-password\n' >"$root/password"
+export RESTIC_PASSWORD_FILE="$root/password"
+restic --repo "$root/source/var/lib/restic/home" --no-cache init >/dev/null
+repository_id=$(restic --repo "$root/source/var/lib/restic/home" --no-cache cat config | jq -er .id)
+restic --repo "$root/source/var/lib/restic/home" --no-cache backup "$root/source/home/jack" >/dev/null
+first_snapshot=$(restic --repo "$root/source/var/lib/restic/home" --no-cache snapshots --json | jq -er '.[0].id')
+printf 'new version\n' >"$root/source/home/jack/secret"
+restic --repo "$root/source/var/lib/restic/home" --no-cache backup "$root/source/home/jack" >/dev/null
 for staging in tmp var/tmp var/lib/restic/staging; do
   mkdir -p "$root/source/$staging/old-restore/home/jack/.ssh"
   printf 'SYNTHETIC-STAGED-SECRET\n' >"$root/source/$staging/old-restore/home/jack/.ssh/id_ed25519"
@@ -54,7 +65,20 @@ cmp "$root/source/mnt/ordinary" "$root/restore/mnt/ordinary"
 for staging in tmp var/tmp var/lib/restic/staging; do
   [[ -d $root/restore/$staging && ! -e $root/restore/$staging/old-restore ]]
 done
-[[ ! -e $root/restore/home/jack && ! -e $root/restore/etc/restic/home.password && ! -e $root/restore/var/lib/restic/home ]]
+[[ ! -e $root/restore/home/jack && ! -e $root/restore/etc/restic/home.password && -s $root/restore/var/lib/restic/home/config ]]
+# Unmount the entire source before opening the recovered repository: recovery
+# must depend only on the gzip and independent password, not the original data.
+umount "$root/source"
+recovered_repo="$root/restore/var/lib/restic/home"
+[[ $(restic --repo "$recovered_repo" --no-cache cat config | jq -er .id) == "$repository_id" ]]
+[[ $(restic --repo "$recovered_repo" --no-cache snapshots --json | jq length) == 2 ]]
+restic --repo "$recovered_repo" --no-cache check --read-data >/dev/null
+restic --repo "$recovered_repo" --no-cache restore "$first_snapshot" --target "$root/recovered-home" --verify >/dev/null
+[[ $(<"$root/recovered-home$root/source/home/jack/secret") == SYNTHETIC-SECRET ]]
+if env -u RESTIC_PASSWORD_FILE RESTIC_PASSWORD_COMMAND=false restic --repo "$recovered_repo" --no-cache cat config >/dev/null 2>&1; then
+  echo 'repository opened without recovery credential' >&2; exit 1
+fi
+mount -o loop,ro "$root/disk.img" "$root/source"
 if bash "$helper" "$root/source" "$uuid" "$root/system.tar.gz" >/dev/null 2>&1; then
   echo 'existing archive accepted' >&2; exit 1
 fi
@@ -71,4 +95,13 @@ if PATH="$root/bin:$PATH" bash "$helper" "$root/source" "$uuid" "$root/failed.ta
   echo 'producer failure accepted' >&2; exit 1
 fi
 [[ -s $root/failed.tar.gz.partial && ! -e $root/failed.tar.gz ]]
-printf 'PASS: offline ext4 archive, identities, exclusions, ACL/xattrs/capabilities, hardlinks, restore, corruption and producer failure\n'
+# A system-only archive must now be refused rather than published as complete.
+umount "$root/source"
+mount -o loop,rw "$root/disk.img" "$root/source"
+mv "$root/source/var/lib/restic/home" "$root/source/var/lib/restic/repository-held"
+mount -o remount,ro "$root/source"
+if bash "$helper" "$root/source" "$uuid" "$root/missing-repository.tar.gz" >/dev/null 2>&1; then
+  echo 'system-only source accepted' >&2; exit 1
+fi
+[[ ! -e $root/missing-repository.tar.gz && ! -e $root/missing-repository.tar.gz.partial ]]
+printf 'PASS: self-contained gzip restores embedded Restic history without source; metadata, exclusions, corruption and producer failure\n'

@@ -1,46 +1,35 @@
-# Debian4 system backup
+# Debian4 self-contained system archive
 
-The agreed recovery set is an ordinary system tar/gzip plus an encrypted Restic home snapshot. See the [backup contract](../../../docs/DEBIAN4-BACKUP-CONTRACT.md).
+The primary artifact is an ordinary tar/gzip on the **Windows internal drive, outside Debian4's VHDX**. It includes the encrypted `/var/lib/restic/home` repository and excludes plaintext `/home/jack`. External copying is a separate replication step. See the [backup contract](../../../docs/DEBIAN4-BACKUP-CONTRACT.md).
 
-**Production capture is disabled.** `Backup-WslSystem.ps1` refuses Preflight/Create until the offline WSL/VHDX coordinator is implemented and tested. Status remains available. Do not use the retired root-freeze capture path.
+**Production orchestration remains disabled.** The tested archive helper is not yet an automatic WSL/VHDX coordinator. The old root-freeze path must not be retried.
 
-## Tested archive primitive
-
-```bash
-bash scripts/wsl-backup/system/capture-offline-system READ_ONLY_ROOT EXPECTED_EXT4_UUID /outside/source/system.tar.gz
-```
-
-This requires an already isolated, read-only ext4 mount. It does not stop WSL, attach a VHDX or prove absence of competing writers. Those are outstanding coordinator responsibilities. Output and partial files must not already exist.
-
-The archive excludes `/home/jack`, `/var/lib/restic/home`, `/etc/restic/home.password` and contents of `/dev`, `/proc`, `/run`, `/sys`, `/tmp`, `/var/tmp`, `/var/lib/restic/staging`. Temporary staging has contained real home restores, so it must not leak into an unencrypted archive. It preserves ordinary root-resident files under `/mnt`. Tar uses numeric ownership, sparse-file support, ACLs and xattrs. Ownership, modes, symlinks, hardlinks, POSIX ACLs, user xattrs and capabilities are fixture-tested. Restore using `--acls --xattrs --xattrs-include='*' --numeric-owner`. VHDX attachment and isolated import/boot remain open.
-
-Failed partial output is retained. Publication does not overwrite existing output. The printed SHA-256 is to be recorded with the exact external home snapshot ID in a validated generation manifest.
-
-## Credential migration
-
-Home backups will use `home/restic-home-password`, a root-owned password-command provider that invokes GPG as jack. The encrypted password lives at `/home/jack/.config/restic/home.password.gpg`. Its stdout is secret and must only be consumed by Restic, never displayed.
-
-`home/prepare-gpg-credential` is an owner-approved root enrollment operation, not a routine installer. It encrypts the existing credential to the existing selected key without printing it, refuses existing output, and preserves the original plaintext file. It neither deploys configuration nor removes the old password.
-
-If the agent is locked, the owner can unlock privately from a Debian4 terminal:
+## Offline capture helper
 
 ```bash
-export GPG_TTY=$(tty)
-gpg --decrypt /home/jack/.config/restic/home.password.gpg >/dev/null
+bash scripts/wsl-backup/system/capture-offline-system READ_ONLY_ROOT EXPECTED_EXT4_UUID /internal-windows-mount/system.tar.gz
 ```
 
-This prompts for the GPG passphrase, not the Restic password. Do not paste either password into an agent session. Backups retain their existing schedule; GPG has a 20-hour maximum cache, and restart can end the unlock sooner.
+The caller must establish exclusive offline access first. The helper checks the source's read-only ext4 mount/UUID, the embedded repository's structural presence and that the output uses a different filesystem. It does not stop WSL or authenticate encrypted repository contents.
+
+Included: system files and `/var/lib/restic/home`, retaining snapshot history.
+
+Excluded: `/home/jack`, `/etc/restic/home.password`, runtime contents of `/dev`, `/proc`, `/run`, `/sys`, and temporary/restore contents of `/tmp`, `/var/tmp`, `/var/lib/restic/staging`. Ordinary files under `/mnt` are kept; nested filesystems are not crossed. Failed partial output is retained and completed output is never overwritten.
+
+## Recovery
+
+Extract the archive with `--acls --xattrs --xattrs-include='*' --numeric-owner` into isolated ext4 storage. Run `validate-wsl-system-restore` before restoring home. Privately retrieve the password from Bitwarden, authenticate/check the extracted repository, then restore its manifest-selected snapshot into the recovered root. No original VHDX, external home repository or original GPG agent should be needed. Do not boot before isolation is established.
+
+## GPG credentials
+
+The root-owned `home/restic-home-password` provider invokes GPG as jack. Its stdout is secret and must only be consumed by Restic. The password is encrypted under home and the existing cache lasts at most 20 hours. `credential-unlock` in a visible Debian4 terminal owns normal prompting. The one-time enrollment helper has already been run; do not rerun it over the existing credential.
 
 ## Tests
 
-Run from WSL. Privileged tests use disposable repositories and mounts only:
-
 ```bash
 bash scripts/wsl-backup/test-all fast
-bash scripts/wsl-backup/system/test-combined-home-copy.sh
-bash scripts/wsl-backup/system/test-gpg-password-command.sh
 sudo bash scripts/wsl-backup/system/test-offline-system.sh
-sudo bash scripts/wsl-backup/home/test.sh
+sudo bash scripts/wsl-backup/system/test-restore-validator.sh
 ```
 
-See [STATUS](../STATUS.md) and [TASKS](../TASKS.md) before production work. Existing encrypted system snapshots and failed generation records must remain preserved until the replacement restore gate passes.
+The offline fixture builds real Restic history, archives the repository with the system, unmounts the source, runs a full data check on the recovered repository and restores an older home version. It also covers metadata, exclusions, corrupt gzip, failed producer and non-overwrite behavior. It does not validate the unfinished automatic production coordinator or real isolated boot.

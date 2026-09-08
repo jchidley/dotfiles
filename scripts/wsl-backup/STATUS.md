@@ -1,5 +1,15 @@
 # WSL backup and recovery status
 
+## Self-contained internal archive design — 8 September 2026
+
+The owner clarified that the primary archive belongs on the Windows internal drive and must contain the encrypted `/var/lib/restic/home` repository, not depend on a separately copied external repository. Plaintext `/home/jack` and temporary restore/staging contents remain excluded to avoid duplication. The source repository is included only through a consistent offline capture; output must be outside the source VHDX. External copying is optional replication, not a completeness requirement.
+
+`capture-offline-system` now requires an embedded repository on the source mount with a config and snapshot history, includes it in tar, checks its archived presence, and refuses a destination filesystem equal to the source. The current restore validator requires that repository rather than rejecting it. These checks are structural; authenticated data verification remains a restore operation.
+
+The revised disposable test built two real Restic snapshots, archived the system and repository, unmounted the source, fully checked the extracted repository and verified recovery of the older home version using a separate synthetic password. It also passed metadata, duplication exclusions, corruption, producer failure, existing-output and missing-repository refusal. The first negative fixture needed a detach/reopen rather than remounting a read-only loop device writable; the corrected fixture passed. Restore-validator and canonical fast gates passed; logs: `/var/tmp/self-contained-archive-gates.sOA5j5`.
+
+This implements and validates the self-contained archive primitive. No automatic archive schedule or production coordinator was enabled, no new real archive was created, and no existing backup was removed. Production cold-VHDX orchestration and isolated first boot remain incomplete. Older two-part evidence below remains historical and must not be mistaken for the selected primary layout.
+
 ## Real preserved-pair restore — 8 September 2026
 
 With the reattached SSD's Windows volume/disk identities and actual external Restic repository ID verified, the preserved system snapshot `033958c4fe23e6e834a3b9e9d91c0ec7b8b5d981a8741a5e7508bab9c75d04a0` and home target `ae7a77e5eb64d57563cd9b2bf59e4c55c0269f1b34bb53fc7b30cfeae9f39a11` were restored into `/var/tmp/debian4-paired-restore.qBcGGm/root`. Home target provenance matched source ID `1207fe6ded8ef12c9eeabed6c35a72695938bf3c4e58c0bb6d54cc720967a121`. No existing backup was replaced or pruned.
