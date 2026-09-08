@@ -25,10 +25,15 @@ run_fast() {
     "$ROOT/setup.sh" "$ROOT/test-all" "$ROOT/wsl-backup"
     "$ROOT/home/backup-wsl-home" "$ROOT/home/wsl-home-scheduler"
     "$ROOT/home/test-restic-recovery-password" "$ROOT/home/test-recovery-password.sh"
+    "$ROOT/home/restic-home-password" "$ROOT/home/prepare-gpg-credential"
+    "$ROOT/system/test-gpg-password-command.sh"
+    "$ROOT/system/capture-offline-system" "$ROOT/system/test-offline-system.sh"
     "$ROOT/home/migrate-linux-scheduler.sh"
     "$ROOT/home/install.sh" "$ROOT/home/test.sh" "$ROOT/home/test-scheduler.sh"
     "$ROOT/home/test-scheduler-mutations.sh"
     "$ROOT/system/install.sh" "$ROOT/system/validate-wsl-system-restore"
+    "$ROOT/system/copy-combined-home-snapshot" "$ROOT/system/capture-combined-system"
+    "$ROOT/system/test-combined-home-copy.sh" "$ROOT/system/test-combined-system.sh"
     "$ROOT/tests/test-setup-and-cli.sh"
   )
   bash -n "${shell_files[@]}"
@@ -68,7 +73,12 @@ run_fast() {
 }
 
 run_integration() {
+  require restic
+  bash "$ROOT/system/test-combined-home-copy.sh"
+  bash "$ROOT/system/test-combined-system.sh"
   require sudo
+  bash "$ROOT/system/test-gpg-password-command.sh"
+  sudo bash "$ROOT/system/test-offline-system.sh"
   sudo bash "$ROOT/home/test-recovery-password.sh"
   sudo "$ROOT/home/test.sh"
   if command -v wsl-backup >/dev/null 2>&1; then

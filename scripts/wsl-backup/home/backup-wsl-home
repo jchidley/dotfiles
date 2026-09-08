@@ -12,11 +12,13 @@ fail() {
 
 [[ $EUID -eq 0 ]] || fail "run as root"
 [[ -r "$CONFIG" ]] || fail "configuration is not readable: $CONFIG"
+# Never inherit a plaintext credential or silently fall back to one.
+unset RESTIC_PASSWORD RESTIC_PASSWORD_FILE RESTIC_PASSWORD_COMMAND
 # shellcheck source=/dev/null
 source "$CONFIG"
 
 required_vars=(
-  SOURCE RESTIC_REPOSITORY EXPECTED_REPOSITORY_ID RESTIC_PASSWORD_FILE
+  SOURCE RESTIC_REPOSITORY EXPECTED_REPOSITORY_ID RESTIC_PASSWORD_COMMAND
   RECOVERY_CONFIRMATION_FILE LOG_DIR LOG_RETENTION_DAYS STAGING_DIR RESTIC_CACHE_DIR
   INCIDENT_HOLD_FILE SOURCE_BASELINE_FILE BACKUP_HOST EXPECTED_UID EXPECTED_GID
   MIN_BYTES MIN_FILES MIN_SESSIONS MIN_BASELINE_BYTES_PERCENT
@@ -28,14 +30,16 @@ for name in "${required_vars[@]}"; do
 done
 
 umask 077
-export RESTIC_REPOSITORY RESTIC_PASSWORD_FILE RESTIC_CACHE_DIR
+[[ -z ${RESTIC_PASSWORD_FILE+x} && -z ${RESTIC_PASSWORD+x} ]] || fail 'plaintext password configuration is unsupported'
+export RESTIC_REPOSITORY RESTIC_PASSWORD_COMMAND RESTIC_CACHE_DIR
 
 ensure_runtime() {
   install -d -m 700 "$LOG_DIR" "$STAGING_DIR" "$RESTIC_CACHE_DIR" "$(dirname "$LOCK_FILE")"
-  [[ -s "$RESTIC_PASSWORD_FILE" ]] || fail "password file is absent or empty: $RESTIC_PASSWORD_FILE"
-  mode=$(stat -c %a "$RESTIC_PASSWORD_FILE")
-  owner=$(stat -c %u "$RESTIC_PASSWORD_FILE")
-  [[ $mode == 600 && $owner == 0 ]] || fail "password file must be root-owned mode 600"
+  if [[ $CONFIG == /etc/restic/home.conf ]]; then
+    [[ $RESTIC_PASSWORD_COMMAND == /usr/local/sbin/restic-home-password ]] || fail 'unexpected production password provider'
+    [[ -x $RESTIC_PASSWORD_COMMAND && $(stat -c %u:%a "$RESTIC_PASSWORD_COMMAND") == 0:755 ]] ||
+      fail 'password provider must be executable, root-owned mode 755'
+  fi
   if [[ ! -f "$RECOVERY_CONFIRMATION_FILE" ]]; then
     printf 'WARNING: Bitwarden recovery-password confirmation is absent: %s\n' \
       "$RECOVERY_CONFIRMATION_FILE" >&2
@@ -165,7 +169,7 @@ SQL
 
 repository_ready() {
   local actual_id
-  actual_id=$(restic cat config 2>/dev/null | jq -er '.id') || return 1
+  actual_id=$(restic cat config | jq -er '.id') || return 1
   [[ $actual_id == "$EXPECTED_REPOSITORY_ID" ]] ||
     fail "repository identity mismatch: got $actual_id, expected $EXPECTED_REPOSITORY_ID"
 }

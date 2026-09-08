@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "distro": "Debian4",
+  "targetLabel": "bs29063p00036",
+  "diskGuid": "9e53b6c8-6602-433e-b19e-0f584262fad4",
+  "volumeId": "\\\\?\\Volume{fc6a6853-c707-48a5-b482-50ab0ebc1288}\\",
+  "fileSystem": "NTFS",
+  "systemRelativePath": "WSL-Backups\\Debian4\\system",
+  "homeRepositoryRelativePath": "WSL-Backups\\Debian4\\restic-home",
+  "sourceRepositoryId": "fad9e4c059250bf3d0d22ab90018ba599d09b57deaed944c4e0b1277c7c81dac",
+  "externalRepositoryId": "dc377d8f1b5ce2a32183be56cd6ffce1222f776f0db73b07fc8f4ecfa0b44eb5",
+  "minimumFreeBytes": 32212254720
+}

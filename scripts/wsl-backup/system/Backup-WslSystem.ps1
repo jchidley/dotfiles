@@ -1,387 +1,223 @@
 #requires -Version 7.0
 [CmdletBinding()]
 param(
-    [ValidateSet('Preflight', 'Export', 'Validate', 'Status', 'Recover', 'ValidateManifest', 'Cleanup')]
-    [string] $Mode = 'Preflight',
-    [string] $Distro = 'Debian-Recovered',
-    [string] $StagingDirectory = (Join-Path $env:USERPROFILE 'wsl-backup-staging\distro-exports'),
-    [string] $ArchivePath,
-    [switch] $ConfirmMaintenanceWindow,
-    [switch] $SourceAlreadyStopped,
-    [switch] $ConfirmCleanup,
-    [switch] $RemoveFailedArtifacts,
-    [switch] $RemoveValidationDirectories,
-    [int64] $MinimumFreeBytes = 45GB
+    [ValidateSet('Preflight','Create','Status')][string]$Mode = 'Preflight',
+    [string]$ConfigPath = (Join-Path $PSScriptRoot 'combined-backup.json'),
+    [switch]$ConfirmMaintenanceWindow
 )
 
 $ErrorActionPreference = 'Stop'
+Set-StrictMode -Version Latest
 $PSStyle.OutputRendering = 'PlainText'
 . (Join-Path $PSScriptRoot 'WslSystemBackup.Common.ps1')
+$config = Read-CombinedBackupConfig $ConfigPath
 $wsl = Join-Path $env:SystemRoot 'System32\wsl.exe'
-$validator = '/usr/local/sbin/validate-wsl-system-restore'
-$temporaryValidator = '/tmp/validate-wsl-system-restore-current'
-$resticTaskPattern = 'WSL Home Restic - *'
-$stateDirectory = Join-Path $env:LOCALAPPDATA 'WSLSystemBackup'
-$journalPath = Join-Path $stateDirectory 'active-run.json'
-$logDirectory = Join-Path $stateDirectory 'logs'
+$stateRoot = Join-Path $env:LOCALAPPDATA 'Debian4CombinedBackup'
+$journalPath = Join-Path $stateRoot 'active-run.json'
+$mutexName = 'Local\Debian4CombinedBackup'
+$linuxTargetMount = '/mnt/wsl-combined-backup-target'
 
-function Invoke-WslChecked {
-    param([Parameter(Mandatory = $true)][string[]] $Arguments)
-    & $wsl @Arguments
-    if ($LASTEXITCODE -ne 0) {
-        throw "wsl.exe failed with exit code ${LASTEXITCODE}: $($Arguments -join ' ')"
-    }
+function Get-DistroNames([switch]$Running) {
+    $arguments = @('--list','--quiet')
+    if ($Running) { $arguments = @('--list','--running','--quiet') }
+    @(& $wsl @arguments) | ForEach-Object { ($_ -replace "`0", '').Trim() } | Where-Object { $_ }
 }
 
-function Get-DistroNames {
-    @(& $wsl --list --quiet) | ForEach-Object { ($_ -replace "`0", '').Trim() } | Where-Object { $_ }
+function Invoke-WslChecked([string[]]$Arguments) {
+    $output = @(& $wsl @Arguments)
+    if ($LASTEXITCODE -ne 0) { throw "wsl.exe operation failed (exit $LASTEXITCODE)" }
+    return @($output | ForEach-Object { ($_ -replace "`0", '').Trim() } | Where-Object { $_ })
 }
 
-function Test-DistroRunning {
-    param([string] $Name)
-    $running = @(& $wsl --list --running --quiet) | ForEach-Object { ($_ -replace "`0", '').Trim() }
-    return $running -contains $Name
+function Set-JournalStage([Collections.IDictionary]$Journal, [string]$Stage) {
+    $Journal.stage = $Stage
+    $Journal.updatedAt = (Get-Date).ToUniversalTime().ToString('o')
+    Write-AtomicJson $Journal $journalPath
 }
 
-function Assert-Preflight {
-    $distros = @(Get-DistroNames)
-    if ($distros -notcontains $Distro) {
-        throw "Expected WSL distro is not registered: $Distro"
+function Resolve-LiveTarget {
+    $target = Resolve-CombinedBackupTarget $config
+    $system = Assert-SafeTargetPath $target.Root $config.systemRelativePath
+    $homeRepository = Assert-SafeTargetPath $target.Root $config.homeRepositoryRelativePath
+    [pscustomobject]@{ Identity=$target; SystemPath=$system; HomeRepositoryPath=$homeRepository }
+}
+
+function Invoke-HomeCopyHelper([string]$Operation, [string]$LinuxRepositoryPath) {
+    $helper = Convert-ToWslDrivePath (Join-Path $PSScriptRoot 'copy-combined-home-snapshot')
+    Invoke-WslChecked @('-d','Debian4','-u','root','--','bash',$helper,$Operation,
+        '/etc/restic/home.conf',$LinuxRepositoryPath,$config.sourceRepositoryId,$config.externalRepositoryId)
+}
+
+function Invoke-SystemCaptureHelper([string]$Operation, [string]$LinuxRepositoryPath) {
+    $helper = Convert-ToWslDrivePath (Join-Path $PSScriptRoot 'capture-combined-system')
+    Invoke-WslChecked @('-d','Debian4','-u','root','--','bash',$helper,
+        '/etc/restic/home.conf',$LinuxRepositoryPath,$config.externalRepositoryId,'/',$Operation)
+}
+
+function Mount-CombinedBackupTarget {
+    param([Parameter(Mandatory)]$Target)
+    & $wsl -d Debian4 -u root -- findmnt --mountpoint $linuxTargetMount -n -o SOURCE
+    if ($LASTEXITCODE -eq 0) { throw "Temporary target mount is already occupied: $linuxTargetMount" }
+    if ($LASTEXITCODE -ne 1) { throw 'Could not establish temporary target mount state' }
+    Invoke-WslChecked @('-d','Debian4','-u','root','--','mkdir','-p',$linuxTargetMount) | Out-Null
+    $transport = $Target.Identity.Root.Substring(0,2)
+    Invoke-WslChecked @('-d','Debian4','-u','root','--','mount','-t','drvfs',$transport,$linuxTargetMount) | Out-Null
+    $source = @(Invoke-WslChecked @('-d','Debian4','-u','root','--','findmnt','--mountpoint',$linuxTargetMount,'-n','-o','SOURCE'))
+    if ($source.Count -ne 1 -or $source[0] -ne $transport) {
+        throw 'Temporary target mount source is unexpected; preserving uncertain mount state'
     }
-    $root = [IO.Path]::GetPathRoot([IO.Path]::GetFullPath($StagingDirectory))
-    $free = ([IO.DriveInfo]::new($root)).AvailableFreeSpace
-    if ($free -lt $MinimumFreeBytes) {
-        throw "Insufficient free space on ${root}: $free bytes; require $MinimumFreeBytes"
+    $relative = ([string]$config.homeRepositoryRelativePath).Replace('\','/')
+    [pscustomobject]@{ MountPoint=$linuxTargetMount; Source=$transport; Repository="$linuxTargetMount/$relative" }
+}
+
+function Dismount-CombinedBackupTarget {
+    param([Parameter(Mandatory)]$Mount)
+    $source = @(Invoke-WslChecked @('-d','Debian4','-u','root','--','findmnt','--mountpoint',$Mount.MountPoint,'-n','-o','SOURCE'))
+    if ($source.Count -ne 1 -or $source[0] -ne $Mount.Source) { throw 'Temporary target mount identity changed; refusing to unmount' }
+    Invoke-WslChecked @('-d','Debian4','-u','root','--','umount',$Mount.MountPoint) | Out-Null
+    Invoke-WslChecked @('-d','Debian4','-u','root','--','rmdir',$Mount.MountPoint) | Out-Null
+}
+
+function Assert-CreatePreflight {
+    if ((Get-DistroNames) -notcontains 'Debian4') { throw 'Debian4 is not registered' }
+    if ((Get-DistroNames -Running) -notcontains 'Debian4') {
+        throw 'Debian4 is stopped; preflight will not wake it. Start it normally before an approved run.'
     }
-    if ($SourceAlreadyStopped) {
-        if (Test-DistroRunning $Distro) {
-            throw "$Distro is running despite -SourceAlreadyStopped"
+    if (-not (Test-Path -LiteralPath $wsl)) { throw 'Required native wsl.exe is absent' }
+    $target = Resolve-LiveTarget
+    if ($target.Identity.FreeBytes -lt [int64]$config.minimumFreeBytes) { throw 'Verified target has insufficient free space' }
+    if (-not (Test-Path -LiteralPath $target.HomeRepositoryPath -PathType Container)) { throw 'Pinned external Restic repository is absent' }
+    $mount = $null
+    try {
+        $mount = Mount-CombinedBackupTarget $target
+        $homeOutput = @(Invoke-HomeCopyHelper preflight $mount.Repository)
+        if (@($homeOutput | Where-Object { $_ -match '^repositories_verified source=[0-9a-f]{64} target=[0-9a-f]{64}$' }).Count -ne 1) {
+            throw 'Home repository preflight did not return its exact identity result'
         }
-        $validatorState = 'deferred; previously installed and source remains stopped'
+        $systemOutput = @(Invoke-SystemCaptureHelper preflight $mount.Repository)
+        if (@($systemOutput | Where-Object { $_ -match '^system_repository_verified target=[0-9a-f]{64}$' }).Count -ne 1) {
+            throw 'System repository preflight did not return its exact identity result'
+        }
     }
-    else {
-        Invoke-WslChecked @('-d', $Distro, '-u', 'root', '--', 'test', '-x', $validator)
-        $validatorState = $validator
-    }
+    finally { if ($mount) { Dismount-CombinedBackupTarget $mount } }
     [pscustomobject]@{
-        Distro = $Distro
-        DistroRunning = (Test-DistroRunning $Distro)
-        StagingDirectory = $StagingDirectory
-        AvailableBytes = $free
-        RequiredBytes = $MinimumFreeBytes
-        Validator = $validatorState
+        Distro='Debian4'; SourceRunning=$true; TargetLabel=$config.targetLabel
+        TargetVolume=$target.Identity.VolumeId; FreeBytes=$target.Identity.FreeBytes
+        ManifestDestination=$target.SystemPath; ResticRepository=$target.HomeRepositoryPath
+        SourceRepositoryId=$config.sourceRepositoryId; ExternalRepositoryId=$config.externalRepositoryId
+        ExternalWritesPerformed=$false; TemporaryGuestMount=$true; Encryption='existing Restic repository keys'
     }
 }
 
-function Test-ImportedArchive {
-    param([Parameter(Mandatory = $true)][string] $Path)
-    $resolved = (Resolve-Path -LiteralPath $Path).Path
-    $name = 'Debian-backup-validation-' + [guid]::NewGuid().ToString('N').Substring(0, 12)
-    $directory = Join-Path $env:LOCALAPPDATA "WSLSystemBackupValidation\$name"
-    $registered = $false
-    try {
-        New-Item -ItemType Directory -Path (Split-Path -Parent $directory) -Force | Out-Null
-        Invoke-WslChecked @('--import', $name, $directory, $resolved, '--version', '2') | Out-Null
-        $registered = $true
-        Invoke-WslChecked @('--manage', $name, '--set-default-user', 'jack') | Out-Null
-        $hostValidator = Convert-ToWslPath (Join-Path $PSScriptRoot 'validate-wsl-system-restore')
-        Invoke-WslChecked @('-d', $name, '-u', 'root', '--', 'install', '-o', 'root', '-g', 'root', '-m', '755', $hostValidator, $temporaryValidator) | Out-Null
-        $validatorOutput = @(Invoke-WslChecked @('-d', $name, '-u', 'root', '--', $temporaryValidator) |
-            ForEach-Object { ($_ -replace "`0", '').Trim() } | Where-Object { $_ })
-        $summary = @($validatorOutput | Where-Object { $_ -match '^restore_validation=passed files=(\d+) sessions=(\d+)$' })
-        if ($summary.Count -ne 1) {
-            throw "Restore validator did not return one parseable summary"
-        }
-        [void]($summary[0] -match '^restore_validation=passed files=(\d+) sessions=(\d+)$')
-        return [pscustomobject]@{
-            Result = 'passed'
-            ValidatedAt = (Get-Date).ToUniversalTime().ToString('o')
-            DisposableDistro = $name
-            Files = [int]$Matches[1]
-            PiSessions = [int]$Matches[2]
-        }
-    }
-    finally {
-        if ($registered) {
-            & $wsl --unregister $name | Out-Null
-        }
-        if (Test-Path -LiteralPath $directory) {
-            Remove-Item -LiteralPath $directory -Recurse -Force
-        }
-    }
-}
-
-function Write-RunLog {
-    param([string] $Message)
-    if ($script:runLogPath) {
-        Add-Content -LiteralPath $script:runLogPath -Encoding UTF8 -Value (
-            '{0} {1}' -f (Get-Date).ToString('o'), $Message
-        )
-    }
-}
-
-function Set-RunStage {
-    param([string] $Stage)
-    $script:journalRecord.Stage = $Stage
-    $script:journalRecord.UpdatedAt = (Get-Date).ToUniversalTime().ToString('o')
-    Write-AtomicJson -Value $script:journalRecord -Path $journalPath
-    Write-RunLog "stage=$Stage"
-}
-
-function Show-SystemBackupStatus {
-    $journal = Read-RunJournal -Path $journalPath
-    $journalState = 'absent'
-    if ($journal) {
-        $journalState = $(if (Test-JournalProcessActive $journal) { 'active' } else { 'abandoned' })
-    }
-    Write-Output "journal=$journalState path=$journalPath"
-    Write-Output "export_client_active=$(Test-ExportClientActive -Distro $Distro)"
-    if ($journal) {
-        Write-Output "run_id=$($journal.RunId) stage=$($journal.Stage) process_id=$($journal.ProcessId)"
-    }
-    Write-Output 'tasks:'
-    Get-ScheduledTask -TaskName $resticTaskPattern -ErrorAction SilentlyContinue |
-        Sort-Object TaskName | Select-Object TaskName, State | Format-Table -AutoSize
-    $artifacts = @(Get-BackupArtifacts -Directory $StagingDirectory)
-    Write-Output "failed_artifacts=$($artifacts.Count)"
-    $artifacts | Select-Object Name, Length, LastWriteTime | Format-Table -AutoSize
-    $validationRoot = Join-Path $env:LOCALAPPDATA 'WSLSystemBackupValidation'
-    $validationDirectories = @(Get-ChildItem -LiteralPath $validationRoot -Directory -Force -ErrorAction SilentlyContinue)
-    Write-Output "validation_directories=$($validationDirectories.Count)"
-    $manifests = @(Get-ChildItem -LiteralPath $StagingDirectory -Filter '*.tar.gz.manifest.json' -File -ErrorAction SilentlyContinue)
-    foreach ($item in $manifests) {
-        try {
-            $result = Test-BackupManifest -ManifestPath $item.FullName -SkipHash
-            Write-Output "manifest=valid archive=$([IO.Path]::GetFileName($result.Archive))"
-        }
-        catch {
-            Write-Output "manifest=invalid path=$($item.FullName) reason=$($_.Exception.Message)"
-        }
-    }
-}
-
-if ($Mode -eq 'Preflight') {
-    Assert-Preflight | Format-List
-    exit 0
-}
 if ($Mode -eq 'Status') {
-    Show-SystemBackupStatus
+    if (Test-Path -LiteralPath $journalPath) {
+        Write-Output "incomplete_run=$journalPath"
+        Get-Content -LiteralPath $journalPath -Raw
+    } else { Write-Output 'incomplete_run=none' }
+    Write-Output "debian4_running=$((Get-DistroNames -Running) -contains 'Debian4')"
     exit 0
 }
-
-$mutexName = 'Local\WSLSystemBackup-' + ($Distro -replace '[^A-Za-z0-9_.-]', '_')
-$mutex = [Threading.Mutex]::new($false, $mutexName)
-if (-not $mutex.WaitOne(0)) {
-    $mutex.Dispose()
-    throw "Another whole-system backup operation owns $mutexName"
+if ($Mode -in @('Preflight','Create')) {
+    throw 'Combined capture is disabled pending the reviewed offline tar/gzip replacement. Existing backups are preserved; do not retry the root-freeze implementation.'
 }
+if ($Mode -eq 'Preflight') { Assert-CreatePreflight | Format-List; exit 0 }
+if (-not $ConfirmMaintenanceWindow) { throw 'Create requires -ConfirmMaintenanceWindow because it writes Restic snapshots and briefly freezes Debian4 writes' }
+if (Test-Path -LiteralPath $journalPath) { throw "An incomplete run requires inspection before retry: $journalPath" }
 
-$taskState = @()
-$journalCreated = $false
-$tasksSuspended = $false
-$script:journalRecord = $null
-$script:runLogPath = $null
+$mutex = [Threading.Mutex]::new($false, $mutexName)
+if (-not $mutex.WaitOne(0)) { $mutex.Dispose(); throw 'Another Debian4 combined backup operation is active' }
+$timerWasActive = $false
+$timerSuspended = $false
+$journal = $null
+$targetMount = $null
 try {
-    if ($Mode -eq 'Recover') {
-        $journal = Read-RunJournal -Path $journalPath
-        if (-not $journal) { Write-Output 'No run journal requires recovery.'; return }
-        if ($journal.SchemaVersion -ne 1 -or -not $journal.Tasks) { throw 'Run journal schema or task state is invalid' }
-        if (Test-JournalProcessActive $journal) { throw "Run is still active: $($journal.RunId)" }
-        if (Test-ExportClientActive -Distro $journal.Distro) { throw "A WSL export client is still active for $($journal.Distro)" }
-        Restore-BackupTaskState -TaskState @($journal.Tasks)
-        Remove-Item -LiteralPath $journalPath -Force
-        Write-Output "Recovered task state from abandoned run: $($journal.RunId)"
-        return
-    }
-
-    if ($Mode -eq 'ValidateManifest') {
-        if (-not $ArchivePath) { throw '-ArchivePath must name a manifest in ValidateManifest mode' }
-        Test-BackupManifest -ManifestPath $ArchivePath | Format-List
-        return
-    }
-
-    if ($Mode -eq 'Cleanup') {
-        $journal = Read-RunJournal -Path $journalPath
-        if ($journal) { throw 'A run journal exists; use Status and Recover before cleanup' }
-        if (Test-ExportClientActive -Distro $Distro) { throw "A WSL export client is still active for $Distro" }
-        if (-not $ConfirmCleanup) { throw 'Cleanup requires -ConfirmCleanup' }
-        if ($RemoveFailedArtifacts) {
-            foreach ($artifact in @(Get-BackupArtifacts -Directory $StagingDirectory)) {
-                Remove-Item -LiteralPath $artifact.FullName -Force
-                if ($artifact.Name -match '\.tar\.gz\.failed$') {
-                    $orphanManifest = $artifact.FullName.Substring(0, $artifact.FullName.Length - '.failed'.Length) + '.manifest.json'
-                    Remove-Item -LiteralPath $orphanManifest -Force -ErrorAction SilentlyContinue
-                }
-                Write-Output "Removed failed artifact: $($artifact.FullName)"
-            }
-        }
-        if ($RemoveValidationDirectories) {
-            $root = Join-Path $env:LOCALAPPDATA 'WSLSystemBackupValidation'
-            $registeredPaths = @(Get-ChildItem 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Lxss' -ErrorAction SilentlyContinue |
-                ForEach-Object { (Get-ItemProperty $_.PSPath).BasePath } | Where-Object { $_ } |
-                ForEach-Object { [IO.Path]::GetFullPath($_.Replace('/', '\')).TrimEnd('\') })
-            foreach ($directory in @(Get-ChildItem -LiteralPath $root -Directory -Force -ErrorAction SilentlyContinue)) {
-                $normalizedDirectory = [IO.Path]::GetFullPath($directory.FullName).TrimEnd('\')
-                if ($registeredPaths -contains $normalizedDirectory) {
-                    throw "Refusing to remove a registered validation directory: $($directory.FullName)"
-                }
-                Remove-Item -LiteralPath $directory.FullName -Recurse -Force
-                Write-Output "Removed validation directory: $($directory.FullName)"
-            }
-        }
-        Show-SystemBackupStatus
-        return
-    }
-
-    if ($Mode -eq 'Validate') {
-        if (-not $ArchivePath) { throw '-ArchivePath is required in Validate mode' }
-        Test-ImportedArchive -Path $ArchivePath | Format-List
-        return
-    }
-
-    if (-not $ConfirmMaintenanceWindow) {
-        throw 'Export mode stops Debian-Recovered. Re-run with -ConfirmMaintenanceWindow during an approved maintenance window.'
-    }
-
-    $existingJournal = Read-RunJournal -Path $journalPath
-    if ($existingJournal) {
-        $state = $(if (Test-JournalProcessActive $existingJournal) { 'active' } else { 'abandoned' })
-        throw "An $state run journal exists; use Status or Recover: $journalPath"
-    }
-
-    if (Test-ExportClientActive -Distro $Distro) { throw "A WSL export client is already active for $Distro" }
-    Assert-Preflight | Out-Null
-    New-Item -ItemType Directory -Path $StagingDirectory -Force | Out-Null
-    New-Item -ItemType Directory -Path $logDirectory -Force | Out-Null
-    $taskState = @(Get-BackupTaskState -Pattern $resticTaskPattern)
-    $process = Get-Process -Id $PID
-    $runId = (Get-Date).ToUniversalTime().ToString('yyyyMMddTHHmmssZ')
-    $script:runLogPath = Join-Path $logDirectory "$runId.log"
-    $script:journalRecord = [ordered]@{
-        SchemaVersion = 1
-        RunId = $runId
-        Distro = $Distro
-        ProcessId = $PID
-        ProcessStartedAt = $process.StartTime.ToString('o')
-        StartedAt = (Get-Date).ToUniversalTime().ToString('o')
-        UpdatedAt = (Get-Date).ToUniversalTime().ToString('o')
-        Stage = 'journal-created'
-        Tasks = $taskState
-        Partial = $null
-        Final = $null
-        Manifest = $null
-        Log = $script:runLogPath
-    }
-    Write-AtomicJson -Value $script:journalRecord -Path $journalPath
-    $journalCreated = $true
-    Write-RunLog "run_id=$runId distro=$Distro"
-
-    $tasksSuspended = $true
-    Suspend-BackupTasks -TaskState $taskState -Pattern $resticTaskPattern
-    Set-RunStage 'tasks-suspended'
-    Write-Output "Temporarily disabled Restic tasks: $((@($taskState | Where-Object WasEnabled).Name) -join ', ')"
-
+    [void](Assert-CreatePreflight)
+    $target = Resolve-LiveTarget
+    New-Item -ItemType Directory -Path $target.SystemPath -Force | Out-Null
     $timestamp = (Get-Date).ToUniversalTime().ToString('yyyyMMddTHHmmssZ')
-    $baseName = "${timestamp}_${Distro}"
-    $partial = Join-Path $StagingDirectory "$baseName.tar.gz.partial"
-    $final = Join-Path $StagingDirectory "$baseName.tar.gz"
-    $manifest = "$final.manifest.json"
-    if ((Test-Path -LiteralPath $partial) -or (Test-Path -LiteralPath $final)) {
-        throw "Refusing to replace an existing generation: $baseName"
+    $partialDirectory = Join-Path $target.SystemPath "$timestamp.partial"
+    $finalDirectory = Join-Path $target.SystemPath $timestamp
+    if ((Test-Path -LiteralPath $partialDirectory) -or (Test-Path -LiteralPath $finalDirectory)) {
+        throw 'Refusing to replace an existing combined-backup generation'
     }
-    $script:journalRecord.Partial = $partial
-    $script:journalRecord.Final = $final
-    $script:journalRecord.Manifest = $manifest
-    Set-RunStage 'paths-selected'
+    $journal = [ordered]@{
+        schemaVersion=1; runId=$timestamp; distro='Debian4'; processId=$PID
+        processStartedAt=(Get-Process -Id $PID).StartTime.ToString('o')
+        startedAt=(Get-Date).ToUniversalTime().ToString('o'); updatedAt=(Get-Date).ToUniversalTime().ToString('o')
+        stage='prepared'; targetLabel=$config.targetLabel; partialDirectory=$partialDirectory; finalDirectory=$finalDirectory
+    }
+    Write-AtomicJson $journal $journalPath
+    New-Item -ItemType Directory -Path $partialDirectory | Out-Null
 
-    $wasRunning = Test-DistroRunning $Distro
-    if ($SourceAlreadyStopped -and $wasRunning) {
-        throw "$Distro started after preflight; refusing the stopped-source export"
-    }
-    $exportCompleted = $false
-    $promoted = $false
-    try {
-        if ($wasRunning) {
-            Set-RunStage 'synchronizing-source'
-            Invoke-WslChecked @('-d', $Distro, '-u', 'root', '--', 'sync')
-            Invoke-WslChecked @('--terminate', $Distro)
-        }
-        try {
-            Set-RunStage 'exporting'
-            Invoke-WslChecked @('--export', $Distro, $partial, '--format', 'tar.gz')
-            $exportCompleted = $true
-        }
-        finally {
-            if ($wasRunning) {
-                Invoke-WslChecked @('-d', $Distro, '-u', 'root', '--', 'true')
-            }
-        }
+    & $wsl -d Debian4 -u root -- systemctl is-active --quiet wsl-home-scheduler.timer
+    if ($LASTEXITCODE -eq 0) { $timerWasActive = $true }
+    elseif ($LASTEXITCODE -eq 3) { $timerWasActive = $false }
+    else { throw 'Could not establish the home scheduler timer state' }
+    & $wsl -d Debian4 -u root -- systemctl is-active --quiet wsl-home-scheduler.service
+    if ($LASTEXITCODE -eq 0) { throw 'The home scheduler service is active; wait for it to finish before the maintenance window' }
+    if ($LASTEXITCODE -ne 3) { throw 'Could not establish the home scheduler service state' }
+    Set-JournalStage $journal 'stopping-timer'
+    Invoke-WslChecked @('-d','Debian4','-u','root','--','systemctl','stop','wsl-home-scheduler.timer') | Out-Null
+    $timerSuspended = $true
+    & $wsl -d Debian4 -u root -- systemctl is-active --quiet wsl-home-scheduler.service
+    if ($LASTEXITCODE -eq 0) { throw 'The scheduler raced with timer suspension; no combined capture was started' }
+    if ($LASTEXITCODE -ne 3) { throw 'Could not verify scheduler quiescence' }
 
-        Set-RunStage 'hashing'
-        $hash = (Get-FileHash -LiteralPath $partial -Algorithm SHA256).Hash.ToLowerInvariant()
-        Set-RunStage 'validating-import'
-        $validation = Test-ImportedArchive -Path $partial
-        Move-Item -LiteralPath $partial -Destination $final
-        $promoted = $true
-        $archive = Get-Item -LiteralPath $final
-        $record = [ordered]@{
-            SchemaVersion = 1
-            Distro = $Distro
-            CreatedAt = (Get-Date).ToUniversalTime().ToString('o')
-            Archive = $archive.Name
-            ArchiveBytes = $archive.Length
-            Sha256 = $hash
-            Format = 'tar.gz'
-            Validation = $validation
-            WslVersion = (((& $wsl --version | Out-String) -replace "`0", '').Trim())
-        }
-        Set-RunStage 'writing-manifest'
-        Write-AtomicJson -Value $record -Path $manifest -Depth 5
-        $manifestCheck = Test-BackupManifest -ManifestPath $manifest -SkipHash
-        if ($manifestCheck.Sha256 -ne $hash) { throw 'Generated manifest hash does not match export hash' }
+    Set-JournalStage $journal 'creating-local-home-snapshot'
+    Invoke-WslChecked @('-d','Debian4','-u','root','--','/usr/local/sbin/backup-wsl-home','backup') | Out-Null
+    $target = Resolve-LiveTarget
+    $targetMount = Mount-CombinedBackupTarget $target
 
-        Set-RunStage 'applying-retention'
-        foreach ($old in @(Get-OldBackupGenerations -Directory $StagingDirectory -Distro $Distro -Keep 2)) {
-            Remove-Item -LiteralPath $old.FullName -Force
-            Remove-Item -LiteralPath ($old.FullName + '.manifest.json') -Force -ErrorAction SilentlyContinue
-        }
-        Set-RunStage 'completed'
-        Write-Output "Validated system generation: $final"
-        Write-Output "SHA-256: $hash"
+    Set-JournalStage $journal 'copying-home-snapshot'
+    $copyOutput = @(Invoke-HomeCopyHelper copy $targetMount.Repository)
+    $copyLine = @($copyOutput | Where-Object { $_ -match '^snapshot_copied source_snapshot=([0-9a-f]{64}) target_snapshot=([0-9a-f]{64})$' })
+    if ($copyLine.Count -ne 1) { throw 'Home-copy helper did not return one copied snapshot identity pair' }
+    [void]($copyLine[0] -match '^snapshot_copied source_snapshot=([0-9a-f]{64}) target_snapshot=([0-9a-f]{64})$')
+    $homeSnapshot = $Matches[1]
+    $homeTargetSnapshot = $Matches[2]
+
+    Set-JournalStage $journal 'streaming-system-snapshot'
+    $systemOutput = @(Invoke-SystemCaptureHelper capture $targetMount.Repository)
+    $systemLine = @($systemOutput | Where-Object { $_ -match '^system_snapshot_created id=([0-9a-f]{64}) filename=system\.tar\.gz$' })
+    if ($systemLine.Count -ne 1) { throw 'System-capture helper did not return one snapshot identity' }
+    [void]($systemLine[0] -match '^system_snapshot_created id=([0-9a-f]{64}) filename=system\.tar\.gz$')
+    $systemSnapshot = $Matches[1]
+    Dismount-CombinedBackupTarget $targetMount
+    $targetMount = $null
+
+    Set-JournalStage $journal 'writing-completion-record'
+    $manifest = [ordered]@{
+        schemaVersion=1; completedAt=(Get-Date).ToUniversalTime().ToString('o'); distro='Debian4'
+        targetLabel=$config.targetLabel; volumeId=$config.volumeId
+        repositoryRelativePath=$config.homeRepositoryRelativePath; repositoryId=$config.externalRepositoryId
+        homeSourceSnapshotId=$homeSnapshot; homeTargetSnapshotId=$homeTargetSnapshot; systemSnapshotId=$systemSnapshot; systemSnapshotFilename='system.tar.gz'
+        systemExclusions=@('/home/jack','/var/lib/restic/home','/etc/restic/home.password','/dev','/proc','/run','/sys','/mnt')
+        consistency='fresh home snapshot copied with Restic locks; system tar streamed while the ext4 root was fsfreeze-frozen'
+        encryption='Restic repository keys'; plaintextSystemArtifactCreated=$false; finalDistroState='running'
     }
-    catch {
-        Write-RunLog "error=$($_.Exception.Message -replace '[\r\n]+',' ')"
-        if ($exportCompleted -and (Test-Path -LiteralPath $partial)) {
-            Move-Item -LiteralPath $partial -Destination ($partial + '.failed') -Force
-        }
-        if ($promoted -and (Test-Path -LiteralPath $final)) {
-            Move-Item -LiteralPath $final -Destination ($final + '.failed') -Force
-        }
-        Remove-Item -LiteralPath ($manifest + '.partial') -Force -ErrorAction SilentlyContinue
-        throw
-    }
+    Write-AtomicJson $manifest (Join-Path $partialDirectory 'manifest.json')
+    $target = Resolve-LiveTarget
+    if ($target.SystemPath -ne (Split-Path -Parent $partialDirectory)) { throw 'Verified target path changed before promotion' }
+    Complete-CombinedGeneration $partialDirectory $finalDirectory
+    Remove-Item -LiteralPath $journalPath -Force
+    Write-Output "Combined backup completed: $finalDirectory"
+    Write-Output "Home snapshot copied: $homeSnapshot"
+    Write-Output "System snapshot stored in Restic: $systemSnapshot"
 }
 finally {
-    try {
-        if ($journalCreated -and $tasksSuspended) {
-            Restore-BackupTaskState -TaskState $taskState
-            Write-RunLog 'tasks=restored'
-            Write-Output "Restored Restic tasks: $((@($taskState | Where-Object WasEnabled).Name) -join ', ')"
-        }
-        if ($journalCreated) {
-            Remove-Item -LiteralPath $journalPath -Force -ErrorAction SilentlyContinue
+    $cleanupErrors = [Collections.Generic.List[string]]::new()
+    if ($targetMount) {
+        try { Dismount-CombinedBackupTarget $targetMount }
+        catch { $cleanupErrors.Add("target mount: $($_.Exception.Message)") }
+    }
+    if ($timerSuspended -and $timerWasActive -and ((Get-DistroNames -Running) -contains 'Debian4')) {
+        try { Invoke-WslChecked @('-d','Debian4','-u','root','--','systemctl','start','wsl-home-scheduler.timer') | Out-Null }
+        catch {
+            $cleanupErrors.Add("scheduler timer: $($_.Exception.Message)")
+            if ($journal) { try { Set-JournalStage $journal 'timer-restore-failed' } catch { } }
         }
     }
-    catch {
-        if ($journalCreated) {
-            $script:journalRecord.Stage = 'task-restore-failed'
-            $script:journalRecord.UpdatedAt = (Get-Date).ToUniversalTime().ToString('o')
-            Write-AtomicJson -Value $script:journalRecord -Path $journalPath
-        }
-        throw
-    }
-    finally {
-        $mutex.ReleaseMutex()
-        $mutex.Dispose()
-    }
+    $mutex.ReleaseMutex()
+    $mutex.Dispose()
+    if ($cleanupErrors.Count -gt 0) { throw "Combined backup cleanup requires inspection: $($cleanupErrors -join '; ')" }
 }

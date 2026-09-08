@@ -1,200 +1,93 @@
 #requires -Version 7.0
-function Convert-ToWslPath {
-    param([Parameter(Mandatory = $true)][string] $WindowsPath)
-    if ($WindowsPath -notmatch '^[A-Za-z]:[\\/]') {
-        throw "Path is not on a Windows drive: $WindowsPath"
-    }
-    $full = [IO.Path]::GetFullPath($WindowsPath)
-    if ($full -notmatch '^([A-Za-z]):\\(.*)$') {
-        throw "Path is not on a Windows drive: $full"
-    }
-    $drive = $Matches[1].ToLowerInvariant()
-    $relative = $Matches[2].Replace('\', '/')
-    return "/mnt/$drive/$relative"
-}
-
-function Get-BackupTaskState {
-    param(
-        [string] $Pattern = 'WSL Home Restic - *',
-        [int] $ExpectedCount = 6,
-        [scriptblock] $GetTasks = { param($p) @(Get-ScheduledTask -TaskName $p -ErrorAction SilentlyContinue) }
-    )
-    $tasks = @(& $GetTasks $Pattern)
-    if ($tasks.Count -ne $ExpectedCount) {
-        throw "Expected $ExpectedCount Restic tasks, found $($tasks.Count)"
-    }
-    $running = @($tasks | Where-Object { $_.State.ToString() -eq 'Running' })
-    if ($running.Count -gt 0) {
-        throw "Restic tasks are currently running: $($running.TaskName -join ', ')"
-    }
-    return @($tasks | ForEach-Object {
-        [pscustomobject]@{
-            Name = $_.TaskName
-            WasEnabled = ($_.State.ToString() -ne 'Disabled')
-        }
-    })
-}
-
-function Suspend-BackupTasks {
-    param(
-        [Parameter(Mandatory = $true)][object[]] $TaskState,
-        [scriptblock] $DisableTask = { param($n) Disable-ScheduledTask -TaskName $n | Out-Null },
-        [scriptblock] $EnableTask = { param($n) Enable-ScheduledTask -TaskName $n | Out-Null },
-        [scriptblock] $GetTasks = { param($p) @(Get-ScheduledTask -TaskName $p -ErrorAction SilentlyContinue) },
-        [string] $Pattern = 'WSL Home Restic - *'
-    )
-    $disabled = [Collections.Generic.List[string]]::new()
-    try {
-        foreach ($entry in @($TaskState | Where-Object WasEnabled)) {
-            & $DisableTask $entry.Name
-            $disabled.Add($entry.Name)
-        }
-        $raced = @(& $GetTasks $Pattern | Where-Object { $_.State.ToString() -eq 'Running' })
-        if ($raced.Count -gt 0) {
-            throw "Restic tasks started during suspension: $($raced.TaskName -join ', ')"
-        }
-    }
-    catch {
-        foreach ($name in $disabled) {
-            try { & $EnableTask $name } catch { }
-        }
-        throw
-    }
-}
-
-function Restore-BackupTaskState {
-    param(
-        [Parameter(Mandatory = $true)][object[]] $TaskState,
-        [scriptblock] $EnableTask = { param($n) Enable-ScheduledTask -TaskName $n | Out-Null },
-        [scriptblock] $DisableTask = { param($n) Disable-ScheduledTask -TaskName $n | Out-Null }
-    )
-    $errors = [Collections.Generic.List[string]]::new()
-    foreach ($entry in $TaskState) {
-        try {
-            if ($entry.WasEnabled) {
-                & $EnableTask $entry.Name
-            }
-            else {
-                & $DisableTask $entry.Name
-            }
-        }
-        catch {
-            $errors.Add("$($entry.Name): $($_.Exception.Message)")
-        }
-    }
-    if ($errors.Count -gt 0) {
-        throw "Could not restore task state: $($errors -join '; ')"
-    }
-}
-
-function Test-ExportClientActive {
-    param(
-        [Parameter(Mandatory = $true)][string] $Distro,
-        [scriptblock] $GetProcesses = { @(Get-CimInstance Win32_Process -Filter "Name = 'wsl.exe'" -ErrorAction SilentlyContinue) }
-    )
-    $escaped = [regex]::Escape($Distro)
-    return (@(& $GetProcesses | Where-Object { $_.CommandLine -match "--export\s+$escaped(?:\s|$)" }).Count -gt 0)
-}
+Set-StrictMode -Version Latest
 
 function Write-AtomicJson {
-    param(
-        [Parameter(Mandatory = $true)] $Value,
-        [Parameter(Mandatory = $true)][string] $Path,
-        [int] $Depth = 8
-    )
+    param([Parameter(Mandatory)]$Value, [Parameter(Mandatory)][string]$Path, [int]$Depth = 8)
     $parent = Split-Path -Parent $Path
     New-Item -ItemType Directory -Path $parent -Force | Out-Null
     $temporary = "$Path.$([guid]::NewGuid().ToString('N')).partial"
     try {
-        $Value | ConvertTo-Json -Depth $Depth | Set-Content -LiteralPath $temporary -Encoding UTF8
-        Move-Item -LiteralPath $temporary -Destination $Path -Force
+        $Value | ConvertTo-Json -Depth $Depth | Set-Content -LiteralPath $temporary -Encoding utf8NoBOM
+        [IO.File]::Move($temporary, $Path, $true)
     }
     finally {
         Remove-Item -LiteralPath $temporary -Force -ErrorAction SilentlyContinue
     }
 }
 
-function Read-RunJournal {
-    param([Parameter(Mandatory = $true)][string] $Path)
-    if (-not (Test-Path -LiteralPath $Path)) { return $null }
-    try { return (Get-Content -LiteralPath $Path -Raw | ConvertFrom-Json) }
-    catch { throw "Run journal is malformed: $Path ($($_.Exception.Message))" }
-}
-
-function Test-JournalProcessActive {
-    param([Parameter(Mandatory = $true)] $Journal)
-    $process = Get-Process -Id ([int]$Journal.ProcessId) -ErrorAction SilentlyContinue
-    if (-not $process) { return $false }
-    try {
-        $expected = [datetime]$Journal.ProcessStartedAt
-        return ([math]::Abs(($process.StartTime - $expected).TotalSeconds) -lt 2)
+function Read-CombinedBackupConfig {
+    param([Parameter(Mandatory)][string]$Path)
+    try { $config = Get-Content -LiteralPath $Path -Raw | ConvertFrom-Json }
+    catch { throw "Combined-backup configuration is unreadable: $($_.Exception.Message)" }
+    if ($config.schemaVersion -ne 1 -or $config.distro -ne 'Debian4') { throw 'Combined-backup configuration identity is invalid' }
+    foreach ($property in 'targetLabel','diskGuid','volumeId','fileSystem','systemRelativePath','homeRepositoryRelativePath','sourceRepositoryId','externalRepositoryId') {
+        if ([string]::IsNullOrWhiteSpace([string]$config.$property)) { throw "Combined-backup configuration is missing: $property" }
     }
-    catch { return $false }
+    if ([guid]::Empty -eq [guid]$config.diskGuid) { throw 'Configured disk GUID is invalid' }
+    if ($config.sourceRepositoryId -notmatch '^[0-9a-f]{64}$' -or $config.externalRepositoryId -notmatch '^[0-9a-f]{64}$') {
+        throw 'Configured Restic repository ID is invalid'
+    }
+    foreach ($relative in $config.systemRelativePath, $config.homeRepositoryRelativePath) {
+        if ([IO.Path]::IsPathRooted($relative) -or $relative -match '(^|[\\/])\.\.([\\/]|$)') { throw "Configured target path is unsafe: $relative" }
+    }
+    return $config
 }
 
-function Get-BackupArtifacts {
-    param([Parameter(Mandatory = $true)][string] $Directory)
-    if (-not (Test-Path -LiteralPath $Directory)) { return @() }
-    return @(Get-ChildItem -LiteralPath $Directory -File -Force | Where-Object {
-        $_.Name -match '\.tar\.gz\.(partial|partial\.failed|partial\.interrupted|failed)$' -or
-        $_.Name -match '\.manifest\.json\.partial$'
-    })
-}
-
-function Test-BackupManifest {
+function Resolve-CombinedBackupTarget {
     param(
-        [Parameter(Mandatory = $true)][string] $ManifestPath,
-        [switch] $SkipHash
+        [Parameter(Mandatory)]$Config,
+        [scriptblock]$GetVolumes = { @(Get-Volume) },
+        [scriptblock]$GetPartitions = { param($volume) @(Get-Partition -Volume $volume) },
+        [scriptblock]$GetDisks = { param($partition) @($partition | Get-Disk) }
     )
-    $resolvedManifest = (Resolve-Path -LiteralPath $ManifestPath).Path
-    try { $manifest = Get-Content -LiteralPath $resolvedManifest -Raw | ConvertFrom-Json }
-    catch { throw "Manifest is not valid JSON: $resolvedManifest ($($_.Exception.Message))" }
-
-    foreach ($property in 'SchemaVersion','Distro','Archive','ArchiveBytes','Sha256','Format','Validation','WslVersion') {
-        if ($null -eq $manifest.$property) { throw "Manifest property is missing: $property" }
+    $volumes = @(& $GetVolumes | Where-Object UniqueId -eq $Config.volumeId)
+    if ($volumes.Count -ne 1) { throw "Expected target volume is absent or ambiguous: $($Config.targetLabel)" }
+    $volume = $volumes[0]
+    if ($volume.FileSystemLabel -ne $Config.targetLabel -or $volume.FileSystem -ne $Config.fileSystem) {
+        throw 'Target volume label or filesystem mismatch'
     }
-    if ($manifest.SchemaVersion -ne 1) { throw "Unsupported manifest schema: $($manifest.SchemaVersion)" }
-    if ($manifest.Format -ne 'tar.gz') { throw "Unexpected archive format: $($manifest.Format)" }
-    if ([IO.Path]::GetFileName($manifest.Archive) -ne $manifest.Archive) { throw 'Manifest archive must be a leaf filename' }
-    if ($manifest.Sha256 -notmatch '^[0-9a-f]{64}$') { throw 'Manifest SHA-256 is malformed' }
-    if ($manifest.Validation -is [array]) { throw 'Manifest Validation must be an object, not an array' }
-    if ($manifest.Validation.Result -ne 'passed') { throw 'Manifest validation result is not passed' }
-    if ([int64]$manifest.Validation.Files -lt 1 -or [int64]$manifest.Validation.PiSessions -lt 1) {
-        throw 'Manifest validation counts are invalid'
+    $partitions = @(& $GetPartitions $volume)
+    if ($partitions.Count -ne 1) { throw 'Target volume partition is ambiguous' }
+    $disks = @(& $GetDisks $partitions[0])
+    if ($disks.Count -ne 1 -or [guid]$disks[0].Guid -ne [guid]$Config.diskGuid -or $disks[0].BusType -ne 'USB' -or $disks[0].IsOffline) {
+        throw 'Target physical-disk identity or availability mismatch'
     }
-    if ([string]::IsNullOrWhiteSpace($manifest.WslVersion)) { throw 'Manifest WSL version is empty' }
-    if ($manifest.WslVersion -match "`0") { throw 'Manifest WSL version contains NUL characters' }
-
-    $archivePath = Join-Path (Split-Path -Parent $resolvedManifest) $manifest.Archive
-    if (-not (Test-Path -LiteralPath $archivePath)) { throw "Archive is absent: $archivePath" }
-    $archive = Get-Item -LiteralPath $archivePath
-    if ($archive.Length -ne [int64]$manifest.ArchiveBytes) {
-        throw "Archive size mismatch: $($archive.Length) != $($manifest.ArchiveBytes)"
-    }
-    $actualHash = $null
-    if (-not $SkipHash) {
-        $actualHash = (Get-FileHash -LiteralPath $archivePath -Algorithm SHA256).Hash.ToLowerInvariant()
-        if ($actualHash -ne $manifest.Sha256) { throw "Archive SHA-256 mismatch: $actualHash" }
-    }
-    return [pscustomobject]@{
-        Result = 'passed'
-        Manifest = $resolvedManifest
-        Archive = $archivePath
-        ArchiveBytes = $archive.Length
-        Sha256 = $(if ($actualHash) { $actualHash } else { $manifest.Sha256 })
-        Files = [int64]$manifest.Validation.Files
-        PiSessions = [int64]$manifest.Validation.PiSessions
-        HashRead = (-not $SkipHash)
-    }
+    if ($volume.DriveLetter -notmatch '^[A-Z]$') { throw 'Verified target has no drive-letter transport' }
+    $root = "$($volume.DriveLetter):\"
+    [pscustomobject]@{ Root=$root; FreeBytes=[int64]$volume.SizeRemaining; VolumeId=$volume.UniqueId; DiskGuid=[string]$disks[0].Guid }
 }
 
-function Get-OldBackupGenerations {
-    param(
-        [Parameter(Mandatory = $true)][string] $Directory,
-        [Parameter(Mandatory = $true)][string] $Distro,
-        [int] $Keep = 2
-    )
-    if (-not (Test-Path -LiteralPath $Directory)) { return @() }
-    return @(Get-ChildItem -LiteralPath $Directory -Filter "*_${Distro}.tar.gz" -File |
-        Sort-Object Name -Descending | Select-Object -Skip $Keep)
+function Assert-SafeTargetPath {
+    param([Parameter(Mandatory)][string]$VolumeRoot, [Parameter(Mandatory)][string]$RelativePath)
+    $root = [IO.Path]::GetFullPath($VolumeRoot).TrimEnd('\') + '\'
+    $candidate = [IO.Path]::GetFullPath((Join-Path $root $RelativePath))
+    if (-not $candidate.StartsWith($root, [StringComparison]::OrdinalIgnoreCase)) { throw 'Target path escapes the verified volume' }
+    $current = $root.TrimEnd('\')
+    foreach ($component in ($RelativePath -split '[\\/]' | Where-Object { $_ })) {
+        $current = Join-Path $current $component
+        if (Test-Path -LiteralPath $current) {
+            $item = Get-Item -LiteralPath $current -Force
+            if (-not $item.PSIsContainer -or ($item.Attributes -band [IO.FileAttributes]::ReparsePoint)) {
+                throw "Unsafe target component: $current"
+            }
+        }
+    }
+    return $candidate
+}
+
+function Complete-CombinedGeneration {
+    param([Parameter(Mandatory)][string]$PartialDirectory, [Parameter(Mandatory)][string]$FinalDirectory)
+    if (Test-Path -LiteralPath $FinalDirectory) { throw 'Refusing to replace a completed generation' }
+    $manifest = Join-Path $PartialDirectory 'manifest.json'
+    if (-not (Test-Path -LiteralPath $manifest -PathType Leaf) -or (Get-Item -LiteralPath $manifest).Length -eq 0) {
+        throw 'Partial generation is not promotable: manifest.json'
+    }
+    Move-Item -LiteralPath $PartialDirectory -Destination $FinalDirectory
+}
+
+function Convert-ToWslDrivePath {
+    param([Parameter(Mandatory)][string]$WindowsPath)
+    $full = [IO.Path]::GetFullPath($WindowsPath)
+    if ($full -notmatch '^([A-Za-z]):\\(.*)$') { throw 'Only a local drive path can cross into WSL' }
+    "/mnt/$($Matches[1].ToLowerInvariant())/$($Matches[2].Replace('\','/'))"
 }

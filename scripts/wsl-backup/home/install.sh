@@ -30,6 +30,8 @@ fi
 "${privilege[@]}" install "${ownership[@]}" -m 755 \
   "$SCRIPT_DIR/wsl-home-scheduler" "$DESTDIR/usr/local/sbin/wsl-home-scheduler"
 "${privilege[@]}" install "${ownership[@]}" -m 755 \
+  "$SCRIPT_DIR/restic-home-password" "$DESTDIR/usr/local/sbin/restic-home-password"
+"${privilege[@]}" install "${ownership[@]}" -m 755 \
   "$SCRIPT_DIR/test-restic-recovery-password" "$DESTDIR/usr/local/sbin/test-restic-recovery-password"
 if [[ ! -e "$DESTDIR/etc/restic/home.conf" ]]; then
   "${privilege[@]}" install "${ownership[@]}" -m 644 "$SCRIPT_DIR/home.conf" \

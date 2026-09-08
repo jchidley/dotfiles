@@ -14,14 +14,25 @@ Retain `/home/jack/.local/state/pi-recovery-import/20260906T112532Z/`, fixtures,
 
 Completed on 7 September: boat-data-platform's 19 commits are pushed at `d18e28d`; the recovered heatpump lineage and Windows guidance were reconciled and pushed at `8bab653`; the AK patch was rebased and pushed at `95ef0a7`; and the remaining McFly/web-search/Pi-guidance bootstrap changes were validated, pushed and deployed at dotfiles `fe8736a`.
 
-## Separate whole-distro backup work awaiting review
+## Current implementation gates — 8 September 2026
 
-- Preserve Linux/systemd ownership of routine backup scheduling and whole-distro coordination.
-- Resolve the remaining [Debian4 backup contract's candidate findings](../../docs/DEBIAN4-BACKUP-CONTRACT.md): exporter/validator landmarks, unchecked destructive cleanup, unproven first-boot isolation, journal/mutex identity mismatch, and insufficient controller behavioral tests. Home landmarks and the recovery-password tester were corrected separately.
-- Remove Debian3-specific recovery landmarks from the unfinished exporter/validator candidate; PostgreSQL remains undecided.
-- Demonstrate isolated disposable-import behavior before deployment. The exact-source canonical fast lane passed and is recorded in STATUS; fixture success does not establish restore safety.
-- Finalize the contract's proposed Debian4 contents after capability/data selection.
-- Preserve the enrolled Debian4 home repository and recovery credential. Any additional repository requires its own reviewed provisioning; never initialize over surviving Restic history.
+1. GPG-backed credentials are deployed; fresh backup `3e313f1f`, status, source comparisons and ciphertext recovery passed without resetting the agent. Do not repeat enrollment or deployment.
+2. Independent Bitwarden recovery and plaintext removal are complete. Natural scheduling passed at 08:03–08:04 after correcting the obsolete unit condition; cached GPG access and snapshot status are healthy. Locked-agent behavior is fixture-tested; user-facing failure notification remains a separate visibility gap. Do not clear the real cache for testing. Preserve deletion holds and timer policy.
+3. Implement/test the offline Windows/WSL VHDX coordinator around `capture-offline-system`. Obtain concrete approval for the helper environment, exclusive read-only attachment, downtime and final state. The old freeze controller is disabled; do not retry it.
+4. Validate generation manifests, interruption/cleanup behavior and the full paired restore, including an approved isolated boot. Offline fixture ACL/xattr/capability/hardlink, corruption and producer-failure checks now pass; real VHDX attachment/import remains unvalidated.
+5. All local gates passed under temporary idle-sleep inhibition; see STATUS for logs. Publish a scoped source checkpoint without claiming that the disabled production VHDX coordinator or real paired recovery is complete.
+
+## Preserved prior generation — not the current design
+
+Production generation `20260907T225805Z` now exists on `bs29063p00036`, linking exact home and system snapshots in the encrypted external Restic repository. Capture, streamed archive validation, promotion, thaw, timer restoration, mount removal, journal removal, and post-run health checks passed. Two earlier failed attempts and one unpromoted Restic snapshot remain preserved; nothing was deleted or pruned.
+
+Remaining gates:
+
+- Independently restore both manifest-pinned snapshots into a new offline/network-isolated ext4 target before accepting the combined backup end-to-end.
+- Recreate empty runtime mount points (`dev`, `proc`, `run`, `sys`, and `mnt`) before isolated import validation.
+- Preserve failed run evidence, existing repositories, recovery evidence, and both recovery distros. Cleanup, first boot, deployment, and source retirement remain separate approvals.
+
+Fixture and capture success do not prove isolated import or safe first boot.
 
 ## Deferred
 

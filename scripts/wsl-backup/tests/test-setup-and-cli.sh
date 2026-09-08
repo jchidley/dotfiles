@@ -74,6 +74,12 @@ grep -F -- '--password-file /dev/fd/3' "$ROOT/home/test-restic-recovery-password
 [[ ! -e "$ROOT/home/Register-WindowsTasks.ps1" ]] || fail 'obsolete Register-WindowsTasks.ps1 remains in active source'
 ! grep -Eq 'systemctl +(enable|start)|enable +--now' "$ROOT/setup.sh" || fail 'ordinary setup implicitly enables Linux scheduling'
 
+# GPG migration must not leave systemd silently skipping backups after removal
+# of the former plaintext credential. Check the installed unit, not just source.
+if grep -Eq '^Condition.*(password|credential)' "$install_root/etc/systemd/system/wsl-home-scheduler.service"; then
+  fail 'scheduler still skips execution based on credential-file presence'
+fi
+
 # Reinstallation preserves deployment-specific configuration while publishing
 # the reviewed source candidate separately.
 printf '\nDEPLOYMENT_MARKER=preserve-me\n' >> "$install_root/etc/restic/home.conf"

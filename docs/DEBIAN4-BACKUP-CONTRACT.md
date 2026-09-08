@@ -1,57 +1,43 @@
-# Debian4 backup preparation and restore gates
+# Debian4 backup and recovery contract
 
-Source-only review, 7 September 2026. This supplements [the migration plan](DEBIAN4-PLAN.md); it is not an executable runbook or approval to deploy, retrieve credentials, initialize storage, import a distro, schedule work, or retire sources.
+## Agreed design
 
-## Home-backup disposition — 7 September 2026
+The owner relies on physical security for Windows and external disks. This workflow does not add whole-disk encryption or encrypt the system archive. An unencrypted VHDX is not a security boundary.
 
-Later owner authorization split local accidental-erasure recovery from whole-distro export. The local home portion is implemented and its restore, normal cadence and restart gates passed; [STATUS](../scripts/wsl-backup/STATUS.md) owns evidence and limitations. A newly created Debian4 one-off repository was preservation-first copied into durable storage, not transplanted from an older distro. Its existing password was privately enrolled and independently tested against the repository ID. Full restore/data verification used the runtime credential after that independent unlock test; it was not a second full restore using private interactive input.
+- `/home/jack` contains user data, GPG keys and encrypted credentials. Restic encrypts its snapshots automatically.
+- The Restic repository password is to be stored at `/home/jack/.config/restic/home.password.gpg`, encrypted to the existing GPG key. Root-run backups use the root-owned `restic-home-password` provider to invoke GPG as jack.
+- The existing agent configuration has `default-cache-ttl 72000` and `max-cache-ttl 72000`. This governs passphrase caching, not backup frequency. Agent restart can lock it sooner. A locked agent fails unattended operations without pinentry or plaintext fallback; the owner unlocks interactively.
+- Bitwarden remains the independent Restic recovery credential. Recovery must not depend on GPG keys that are themselves inside the backup.
+- The remaining system is an ordinary metadata-preserving tar/gzip, excluding home, the local Restic repository and the old plaintext runtime password. Runtime filesystem contents are excluded. Ordinary root-resident files under `/mnt` must not be discarded merely because of their pathname.
 
-Findings 1 and 8 below are resolved for home backup: Debian4 landmarks/configuration preservation, baseline/incident holds, and a configuration-driven recovery tester have behavioral evidence. Findings about whole-distro export/import remain open. The original combined acceptance sequence below is retained as historical review evidence, not a requirement to deploy the unaccepted exporter before Linux home scheduling. Laptop-loss resilience, automatic external replication and source retirement are not claimed complete by the local recovery work.
+No new key, AK service, Windows password process or automatic Bitwarden access is needed. The old `/etc/restic/home.password` is removed only after the new provider and independent recovery are verified. Ordinary deletion is not a claim of erasing historical VHDX blocks or prior copies.
 
-## Selected source and proposed coverage
+## Current implementation boundary
 
-The source must be explicitly named **Debian4**, with home `/home/jack`. Never substitute a default/first distro or reuse a surviving system's repository. Capture a fresh bounded source inventory when preparing the actual backup; historical counts are not current deletion thresholds.
+The previous root-freeze/Restic-system controller is disabled for both Preflight and Create. Do not retry it. Its snapshots and failure evidence remain preserved.
 
-| Material | Required recovery evidence |
-|---|---|
-| Native Pi sessions/transcripts and the separately marked recovery archive | Preserve exact bytes, paths, permissions and provenance. Keep variants and unresolved gaps separate; do not rerun the importer. |
-| McFly and Bash histories | Consistent SQLite recovery copy with an integrity check; preserve the selected merged history. |
-| Git work | Preserve local commits, dirty/untracked work and selected ignored/local-only data, not just remote URLs. Record repository identity and expected recovery state. |
-| Dotfiles and bootstrap source | Recover committed source plus any explicitly selected pending work; demonstrate a reproducible clean setup separately from data restoration. |
-| SSH and the new AK/GPG identity | Treat as secret-bearing contents. Demonstrate recovery of the required private identity and independently supplied passphrases without exposing values in logs, arguments or transcripts. Runtime decryption alone is not independent recovery. |
-| PostgreSQL/boat databases | Still an owner workflow decision. Do not require a Debian4 service or two historical dumps merely because Debian3's validator did. Preserve authoritative source data until selected recovery is settled. |
+`capture-offline-system` is a tested archive primitive, not a production WSL coordinator. It requires an isolated read-only ext4 mount with a caller-pinned filesystem UUID. It writes a new `.partial` archive, validates it, checks the mount again, then publishes without replacing existing output. The disposable restore test verifies ownership, modes, symlinks, hardlinks, POSIX ACLs, user xattrs and Linux capabilities. Restore with `--acls --xattrs --xattrs-include='*' --numeric-owner`; the wildcard is required to recover non-user attributes such as capabilities.
 
-Review generated dependencies/caches separately from irreplaceable data. Do not use blanket exclusions that silently discard ignored work or recovery evidence. Preserve the independent Pi import staging and all source evidence regardless of whether a backup includes another copy.
+Before production capture, a reviewed Windows/WSL procedure must stop Debian4 cleanly, attach its VHDX exclusively for read-only access from an approved helper environment, verify identity and absence of competing writers, capture, detach and restore the intended final distro state. Read-only mount options alone do not prove exclusive offline access. Ordinary `wsl --export` has no exclusions; a plaintext whole-distro intermediate containing home is not an acceptable substitute.
 
-## Missing owner prerequisites
+## Home integration
 
-- Select an **explicitly new** Restic repository and protected storage destination, including whether protection covers loss of the laptop. Same-disk storage does not meet laptop-loss recovery.
-- Select the independently recoverable backup-password method and protection for the new private key/passphrase. Do not automate Bitwarden or regenerate an existing password.
-- For a whole-distro export, approve the exact secret-bearing payload, destination, downtime, final source state, disposable import identity/location, elevation and cleanup effects.
+Linux systemd retains the existing backup frequency, operation locks and persistent deletion holds. Credential changes do not authorise retention, prune or changes to those policies. Failed backups block later scheduler maintenance and must be visible to the operator. A user-facing missed-backup notification is not established by a journal error alone.
 
-These choices were deferred. Source review and disposable fixture tests can continue without them; real backup/restore and deployment cannot.
+Supported `restic copy` is retained. Both source and target repository identities are checked. Copy returns the local source ID and the exact external snapshot ID, which can differ. A recovery manifest must identify the external ID, system archive checksum, capture times, exclusions and repository identity. Separate home/system captures are not claimed to be one atomic instant.
 
-## Candidate findings: not accepted for execution
+Device identity pins remain in `scripts/wsl-backup/system/combined-backup.json`; drive letters are transport only.
 
-The preserved Windows candidate requires further implementation and behavioral tests:
+## Recovery acceptance
 
-1. `home/home.conf` still names `Debian-Recovered`, retains an obsolete repository landmark (`boat-data-platform/.git` directly under home), and carries historical size/count thresholds. Derive Debian4 landmarks and guards from the selected inventory rather than changing only a host label. Installation replaces this configuration and is not a read-only check.
-2. The exporter defaults to `Debian-Recovered` and legacy Windows task coordination. Current operations must explicitly select Debian4 and the reviewed Linux-owned scheduling contract. Do not recreate old Windows tasks.
-3. The system validator and manifest evidence still assume Debian3's two PostgreSQL dumps. Define the selected Debian4 restore result before adapting the implementation; retain historical manifest evidence without upgrading its assurance.
-4. `Test-ImportedArchive` ignores native unmount/unregister exit codes in `finally`, then recursively removes the validation directory. Cleanup must verify successful detach/unregistration and preserve uncertain state rather than delete it. Cover failure ordering with injected behavioral tests before a real import.
-5. Disabling systemd offline is a startup measure, not demonstrated network isolation. Prove how the disposable import prevents production contact before first boot, and how Windows files reach WSL's system distro; do not assume its mounts match ordinary `/mnt/c` access. No real isolation trial has passed in this review.
-6. Recovery uses one global journal but a distro-specific mutex and does not bind the journal's distro to the requested operation. Review cross-distro overlap and recovery identity before allowing scheduler restoration or journal deletion.
-7. Current controller tests mostly inspect source strings for the new coordination/isolation paths. Those checks do not establish crash recovery, startup isolation or safe cleanup behavior.
-8. The hidden-input password-test helper remains a retired-Debian3 candidate, including its default target. Static no-fallback assertions are not a private interactive recovery test.
+1. Verify the archive checksum and pinned external repository ID.
+2. Extract the system into a new isolated ext4 target with ownership, ACL and xattr restoration.
+3. Retrieve the Restic password from Bitwarden privately, without relying on the source VHDX or GPG keys.
+4. Restore the manifest-pinned external home snapshot into the recovered root.
+5. Verify content, ownership, permissions and key recovery landmarks.
+6. Keep scheduling, networking and production services disabled before a separately approved disposable first boot.
+7. Re-enrol runtime credentials deliberately, then verify scheduling only after recovery review.
 
-Do not commit the runtime candidate as completed or infer readiness from a passing fast lane. Keep it separate from bootstrap, Terminal and migration-documentation commits.
+No real combined recovery is accepted until this test passes. Capture, archive listing, checksums and fixture tests alone are insufficient. Preserve existing repositories, failed runs and recovery distros; cleanup or retirement requires separate approval.
 
-## Acceptance order
-
-1. Finish the finite data/capability selection and Debian4-specific source contract. Review the candidate findings above and implement focused regression tests without production access.
-2. Run the canonical nondestructive fast lane against the exact source and record its limitations. Preserve failed attempts as well as final results.
-3. After concrete approval, deploy only reviewed files, preserve installation-specific configuration, and initialize only the new repository with independently protected credentials. Scheduling remains disabled.
-4. Create a snapshot and restore into an explicitly new disposable destination using the independently retrieved recovery password, not the installed runtime credential. Verify selected bytes, permissions, SQLite consistency, Git work and secret recoverability without logging secrets.
-5. Separately demonstrate the approved whole-distro disposable-import isolation and selected restore landmarks. Hashes alone do not prove restoration. Preserve uncertain cleanup state for review.
-6. Enable Linux/systemd scheduling only after the restore evidence is accepted. Windows must not wake WSL for routine backup polling or scheduling.
-7. Source retirement remains a separate final unique-data inventory and explicit approval. Keep Debian-Recovered, Debian-Backup, immutable images, existing repositories and recovery staging intact until then.
+See `scripts/wsl-backup/STATUS.md` for dated evidence and `scripts/wsl-backup/TASKS.md` for remaining gates.

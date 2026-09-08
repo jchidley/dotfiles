@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+# Capture a separately mounted read-only ext4 root, never the running system.
+set -euo pipefail
+umask 077
+fail() { printf 'offline-system-capture: %s\n' "$*" >&2; exit 1; }
+[[ $# -eq 3 ]] || fail 'usage: READ_ONLY_ROOT EXPECTED_FILESYSTEM_UUID NEW_ARCHIVE.tar.gz'
+root=$(realpath -e -- "$1")
+expected_uuid=$2
+archive=$3
+[[ $root != / && -d $root ]] || fail 'source must be an isolated root'
+[[ $expected_uuid =~ ^[0-9a-fA-F-]{36}$ ]] || fail 'expected ext4 UUID is malformed'
+[[ $archive == /*.tar.gz && ! -e $archive && ! -L $archive ]] || fail 'archive must be a new absolute .tar.gz path'
+parent=$(realpath -e -- "$(dirname -- "$archive")")
+[[ $parent != "$root" && $parent != "$root/"* ]] || fail 'destination must be outside source'
+archive="$parent/$(basename -- "$archive")"
+partial="$archive.partial"
+[[ ! -e $partial && ! -L $partial ]] || fail 'partial archive already exists; preserve and inspect it'
+assert_source() {
+  local fs options uuid
+  fs=$(findmnt --mountpoint "$root" -n -o FSTYPE) || fail 'source is not a mount point'
+  options=$(findmnt --mountpoint "$root" -n -o OPTIONS)
+  uuid=$(findmnt --mountpoint "$root" -n -o UUID)
+  [[ $fs == ext4 && ,$options, == *,ro,* && $uuid == "$expected_uuid" ]] || fail 'source must be the pinned read-only ext4 filesystem'
+}
+assert_source
+[[ -f $root/etc/os-release ]] || fail 'source lacks etc/os-release'
+# noclobber prevents a concurrent invocation from replacing partial output.
+(set -o noclobber
+ tar --create --gzip --file=- --one-file-system --sparse --acls --xattrs --xattrs-include='*' --numeric-owner \
+   --exclude='./home/jack' --exclude='./var/lib/restic/home' --exclude='./etc/restic/home.password' \
+   --exclude='./dev/*' --exclude='./proc/*' --exclude='./sys/*' --exclude='./run/*' \
+   --directory="$root" . >"$partial") || fail 'tar failed; partial archive retained'
+# Inspect archive paths without printing the system inventory into logs.
+tar -tzf "$partial" | awk '
+  { p=$0; sub(/^\.\//,"",p)
+    if (p ~ /^\// || p ~ /(^|\/)\.\.(\/|$)/ ||
+        p ~ /^home\/jack(\/|$)/ || p ~ /^var\/lib\/restic\/home(\/|$)/ ||
+        p == "etc/restic/home.password") bad=1
+    if (p=="etc/os-release") os=1
+  }
+  END { exit (bad || !os) }
+' || fail 'archive validation failed; partial archive retained'
+assert_source
+# A hard-link publish fails rather than replacing any concurrently created file.
+ln -- "$partial" "$archive" || fail 'archive publication failed; partial retained'
+rm -- "$partial"
+sha256sum -- "$archive"

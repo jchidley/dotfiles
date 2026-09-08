@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+fail() { printf 'combined-home-copy: %s\n' "$*" >&2; exit 1; }
+[[ $# -eq 5 ]] || fail 'usage: MODE CONFIG TARGET_REPOSITORY EXPECTED_SOURCE_ID EXPECTED_TARGET_ID'
+mode=$1
+config=$2
+target=$3
+expected_source=$4
+expected_target=$5
+[[ $mode == preflight || $mode == copy ]] || fail 'mode must be preflight or copy'
+[[ $expected_source =~ ^[0-9a-f]{64}$ && $expected_target =~ ^[0-9a-f]{64}$ ]] || fail 'repository identity is malformed'
+[[ -r $config ]] || fail 'Restic configuration is unreadable'
+[[ -d $target && ! -L $target ]] || fail 'target repository path is absent or redirected'
+for command in restic jq flock; do command -v "$command" >/dev/null || fail "required command is absent: $command"; done
+
+unset RESTIC_PASSWORD RESTIC_PASSWORD_FILE RESTIC_PASSWORD_COMMAND
+# shellcheck source=/dev/null
+source "$config"
+[[ -z ${RESTIC_PASSWORD_FILE+x} && -z ${RESTIC_PASSWORD+x} ]] || fail 'plaintext password configuration is unsupported'
+export RESTIC_PASSWORD_COMMAND
+: "${RESTIC_REPOSITORY:?}" "${RESTIC_PASSWORD_COMMAND:?}" "${RESTIC_CACHE_DIR:?}" "${BACKUP_HOST:?}" "${SOURCE:?}"
+if [[ $config == /etc/restic/home.conf ]]; then
+  [[ $RESTIC_REPOSITORY == /var/lib/restic/home ]] || fail 'source repository path is unexpected'
+  [[ $RESTIC_PASSWORD_COMMAND == /usr/local/sbin/restic-home-password ]] || fail 'runtime credential provider is unexpected'
+  [[ $BACKUP_HOST == Debian4 && $SOURCE == /home/jack ]] || fail 'source identity is unexpected'
+fi
+lock_file=${COMBINED_COPY_LOCK_FILE:-/run/lock/restic-home.lock}
+
+repository_id() {
+  local repository=$1
+  restic --repo "$repository" \
+    --cache-dir "$RESTIC_CACHE_DIR" cat config --no-lock | jq -er '.id'
+}
+source_id=$(repository_id "$RESTIC_REPOSITORY") || fail 'source repository cannot be opened'
+target_id=$(repository_id "$target") || fail 'target repository cannot be opened'
+[[ $source_id == "$expected_source" ]] || fail 'source repository identity mismatch'
+[[ $target_id == "$expected_target" ]] || fail 'target repository identity mismatch'
+printf 'repositories_verified source=%s target=%s\n' "$source_id" "$target_id"
+[[ $mode == copy ]] || exit 0
+
+mkdir -p "$(dirname -- "$lock_file")"
+exec 9>"$lock_file"
+flock -n 9 || fail 'another home operation owns the Restic lock'
+snapshot=$(restic --repo "$RESTIC_REPOSITORY" \
+  --cache-dir "$RESTIC_CACHE_DIR" snapshots --host "$BACKUP_HOST" --path "$SOURCE" --latest 1 --json |
+  jq -er 'sort_by(.time) | last | .id') || fail 'latest source snapshot is unavailable'
+[[ $snapshot =~ ^[0-9a-f]{64}$ ]] || fail 'latest source snapshot identity is malformed'
+restic --repo "$target" --cache-dir "$RESTIC_CACHE_DIR" \
+  copy "$snapshot" --from-repo "$RESTIC_REPOSITORY" --from-password-command "$RESTIC_PASSWORD_COMMAND"
+repository_id "$RESTIC_REPOSITORY" | grep -Fxq "$expected_source" || fail 'source identity changed during copy'
+repository_id "$target" | grep -Fxq "$expected_target" || fail 'target identity changed during copy'
+target_snapshot=$(restic --repo "$target" --cache-dir "$RESTIC_CACHE_DIR" snapshots --json |
+  jq -er --arg source "$snapshot" \
+    '[.[] | select(.id == $source or .original == $source)] | if length == 1 then .[0].id else error("copied snapshot count") end') ||
+  fail 'exactly one copied snapshot with source provenance is required at target'
+[[ $target_snapshot =~ ^[0-9a-f]{64}$ ]] || fail 'target snapshot identity is malformed'
+printf 'snapshot_copied source_snapshot=%s target_snapshot=%s\n' "$snapshot" "$target_snapshot"

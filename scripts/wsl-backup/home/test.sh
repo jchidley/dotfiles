@@ -38,7 +38,7 @@ SOURCE=$source_dir
 LOCK_FILE=$root/operation.lock
 RESTIC_REPOSITORY=$root/repository
 EXPECTED_REPOSITORY_ID=$repository_id
-RESTIC_PASSWORD_FILE=$password
+RESTIC_PASSWORD_COMMAND='cat $password'
 RECOVERY_CONFIRMATION_FILE=$root/bitwarden-confirmed
 LOG_DIR=$root/logs
 LOG_RETENTION_DAYS=30
@@ -82,6 +82,11 @@ RESTIC_REPOSITORY=$root/repository RESTIC_PASSWORD_FILE=$password restic backup 
   "$source_dir" "$root/capture" --host restic-home-test --time '2020-01-01 00:00:00' >/dev/null
 run enroll-baseline
 expect_failure enroll-baseline
+# Configured provider failure must not fall back to inherited credentials.
+cp "$config" "$root/config.original"
+sed -i "s|^RESTIC_PASSWORD_COMMAND=.*|RESTIC_PASSWORD_COMMAND=false|" "$config"
+RESTIC_PASSWORD_FILE=$password expect_failure backup
+cp "$root/config.original" "$config"
 run init
 sed -i "s|^RESTIC_REPOSITORY=.*|RESTIC_REPOSITORY=$root/must-not-create|" "$config"
 expect_failure init

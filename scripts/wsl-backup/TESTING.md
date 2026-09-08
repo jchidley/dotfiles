@@ -2,6 +2,20 @@
 
 This page defines the local test strategy. Tests deliberately run from WSL and use PowerShell 7 (`pwsh.exe`) for Windows components. There is no GitHub Actions workflow; the canonical gate is the local `test-all` command.
 
+## Combined-backup focused evidence
+
+`system/Test-WslSystemBackup.ps1` uses disposable files and injected device objects. It checks wrong-disk/label/path refusal, journal replacement, and refusal to promote a directory without a nonempty manifest. It does not exercise the complete controller or validate a recovery manifest's schema.
+
+`system/test-combined-home-copy.sh` creates disposable ext4 repositories and verifies supported `restic copy`, source/destination IDs, snapshot provenance, wrong-ID refusal, and no synthetic password output.
+
+`system/test-combined-system.sh` retains the old encrypted-system-stream fixture. Production root capture is now refused; this fixture is historical coverage, not acceptance of the new ordinary system archive design.
+
+`system/test-gpg-password-command.sh` exercises the actual enrollment/provider source with disposable path substitutions and the real root-to-jack identity transition. It tests encryption to the existing-style short public-key selector, non-overwrite, preserved source, cached Restic access and locked-agent failure without pinentry. Only its isolated GPG agent is stopped. It requires jack with approved noninteractive sudo for fixture operations.
+
+`system/test-offline-system.sh` uses a disposable ext4 loop image and real read-only mount. It covers UUID/read-only refusal, exclusions, ordinary `/mnt` content, ownership/mode/symlink/hardlink metadata, POSIX ACLs, user xattrs, Linux capabilities, gzip truncation and producer failure. `test-linux-metadata.c` uses kernel APIs as the fixture oracle and is compiled in disposable ext4 storage with `cc`; `setcap`/`getcap` cover capability restoration. It does not attach a VHDX or prove exclusive access against competing writers.
+
+The focused tests do not perform a production snapshot, real root freeze/thaw, recovery-password retrieval, import or first boot. VHDX lifecycle, production metadata coverage, complete controller failure handling and paired recovery remain open gates.
+
 ## Test lanes
 
 ```bash
@@ -28,7 +42,7 @@ The setup tests use `WSL_BACKUP_DESTDIR` plus fake PowerShell 7, `wslpath`, `sud
 - Adapter failures propagate through the operator command.
 - Retained legacy-task helpers describe and validate the six historical schedule shapes for rollback fixtures; they are not evidence of currently deployed tasks. Setup no longer calls them.
 - Duplicate notifications are suppressed for less than six hours and resume at the boundary.
-- Existing system manifest, journal, task rollback, artifact, and retention contracts remain covered by the system suite.
+- System helper checks cover basic target and journal behavior; full manifest, orchestration and recovery contracts are not yet covered.
 
 ## Process deadlines and failure diagnostics
 

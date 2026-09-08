@@ -1,0 +1,95 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+fail() { printf 'combined-system-capture: %s\n' "$*" >&2; exit 1; }
+[[ $# -eq 5 ]] || fail 'usage: CONFIG TARGET_REPOSITORY EXPECTED_TARGET_ID CAPTURE_ROOT MODE'
+config=$1
+target=$2
+expected_target=$3
+capture_root=$4
+mode=$5
+[[ $capture_root != / ]] || fail 'production root-freeze capture is retired; offline tar/gzip replacement is not yet validated'
+[[ $mode == preflight || $mode == capture ]] || fail 'mode must be preflight or capture'
+[[ $expected_target =~ ^[0-9a-f]{64}$ ]] || fail 'repository identity is malformed'
+[[ -r $config && -d $target && ! -L $target && -d $capture_root ]] || fail 'configuration, repository, or capture root is invalid'
+for command in restic jq tar awk flock; do command -v "$command" >/dev/null || fail "required command is absent: $command"; done
+
+# shellcheck source=/dev/null
+source "$config"
+: "${RESTIC_PASSWORD_FILE:?}" "${BACKUP_HOST:?}" "${SOURCE:?}"
+if [[ $config == /etc/restic/home.conf ]]; then
+  [[ $EUID -eq 0 && $capture_root == / ]] || fail 'production system capture must run as root against /'
+  [[ $RESTIC_PASSWORD_FILE == /etc/restic/home.password ]] || fail 'runtime credential path is unexpected'
+  [[ $BACKUP_HOST == Debian4 && $SOURCE == /home/jack ]] || fail 'source identity is unexpected'
+  command -v fsfreeze >/dev/null || fail 'required command is absent: fsfreeze'
+fi
+[[ -r $RESTIC_PASSWORD_FILE ]] || fail 'runtime credential is unreadable'
+
+restic_target=(restic --repo "$target" --password-file "$RESTIC_PASSWORD_FILE" --no-cache)
+target_id=$("${restic_target[@]}" cat config --no-lock | jq -er .id) || fail 'target repository cannot be opened'
+[[ $target_id == "$expected_target" ]] || fail 'target repository identity mismatch'
+printf 'system_repository_verified target=%s\n' "$target_id"
+[[ $mode == capture ]] || exit 0
+
+lock_file=${COMBINED_COPY_LOCK_FILE:-/run/lock/restic-home.lock}
+mkdir -p "$(dirname -- "$lock_file")"
+exec 9>"$lock_file"
+flock -n 9 || fail 'another home operation owns the Restic lock'
+
+frozen=false
+thaw() {
+  if $frozen; then
+    fsfreeze -u / || printf 'combined-system-capture: CRITICAL: root filesystem thaw failed\n' >&2
+    frozen=false
+  fi
+}
+trap thaw EXIT HUP INT TERM
+before_snapshots=$("${restic_target[@]}" snapshots --host Debian4-system --tag combined-system --json |
+  jq -r '.[].id') || fail 'existing system snapshots cannot be listed'
+if [[ $capture_root == / ]]; then
+  printf 'filesystem_freeze=starting note=Debian4_writes_will_block_until_capture_finishes\n' >&2
+  sync
+  fsfreeze -f /
+  frozen=true
+  printf 'filesystem_freeze=active\n' >&2
+fi
+set +e
+tar --create --gzip --file=- --one-file-system --acls --xattrs --xattrs-include='*' --numeric-owner \
+  --exclude='./home/jack' --exclude='./home/jack/*' \
+  --exclude='./var/lib/restic/home' --exclude='./var/lib/restic/home/*' \
+  --exclude='./etc/restic/home.password' \
+  --exclude='./dev' --exclude='./proc' --exclude='./run' --exclude='./sys' --exclude='./mnt' \
+  --directory="$capture_root" . |
+"${restic_target[@]}" backup --stdin --stdin-filename system.tar.gz --host Debian4-system \
+  --tag combined-system --json >&2
+status=$?
+set -e
+thaw
+if [[ $capture_root == / ]]; then printf 'filesystem_freeze=released\n' >&2; fi
+[[ $status -eq 0 ]] || fail "streamed system capture failed with exit $status"
+snapshot=$("${restic_target[@]}" snapshots --host Debian4-system --tag combined-system --latest 1 --json |
+  jq -er 'sort_by(.time) | last | .id') || fail 'system snapshot result is unreadable'
+[[ $snapshot =~ ^[0-9a-f]{64}$ ]] || fail 'system snapshot identity is malformed'
+if grep -Fxq "$snapshot" <<<"$before_snapshots"; then fail 'system capture did not create a new snapshot'; fi
+
+"${restic_target[@]}" dump "$snapshot" system.tar.gz |
+  tar -tzf - |
+  awk '
+    function norm(s) { sub(/^\.\//, "", s); return s }
+    BEGIN { os=0; backup=0; timer=0 }
+    {
+      p=norm($0)
+      if (p ~ /^\// || p ~ /(^|\/)\.\.(\/|$)/) exit 20
+      if (p == "home/jack" || p ~ /^home\/jack\//) exit 21
+      if (p == "var/lib/restic/home" || p ~ /^var\/lib\/restic\/home\//) exit 22
+      if (p == "etc/restic/home.password") exit 23
+      if (p ~ /^(dev|proc|run|sys|mnt)(\/|$)/) exit 25
+      if (p == "etc/os-release") os=1
+      if (p == "usr/local/sbin/backup-wsl-home") backup=1
+      if (p == "etc/systemd/system/wsl-home-scheduler.timer") timer=1
+    }
+    END { if (!(os && backup && timer)) exit 24 }
+  ' || fail 'stored system archive failed path/landmark validation'
+final_id=$("${restic_target[@]}" cat config --no-lock | jq -er .id) || fail 'target repository cannot be re-opened'
+[[ $final_id == "$expected_target" ]] || fail 'target repository identity changed during capture'
+printf 'system_snapshot_created id=%s filename=system.tar.gz\n' "$snapshot"
