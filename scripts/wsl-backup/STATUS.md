@@ -1,5 +1,15 @@
 # WSL backup and recovery status
 
+## Real preserved-pair restore — 8 September 2026
+
+With the reattached SSD's Windows volume/disk identities and actual external Restic repository ID verified, the preserved system snapshot `033958c4fe23e6e834a3b9e9d91c0ec7b8b5d981a8741a5e7508bab9c75d04a0` and home target `ae7a77e5eb64d57563cd9b2bf59e4c55c0269f1b34bb53fc7b30cfeae9f39a11` were restored into `/var/tmp/debian4-paired-restore.qBcGGm/root`. Home target provenance matched source ID `1207fe6ded8ef12c9eeabed6c35a72695938bf3c4e58c0bb6d54cc720967a121`. No existing backup was replaced or pruned.
+
+System archive path validation and extraction passed. The validator initially rejected Debian's real `../proc/self/mounts` mtab link, which matches the live source; the corrected validator and regression accept that and the prior `/proc/mounts` fixture, rejecting unrelated targets. Home restore recovered 99,517 files/directories (8.312 GiB) and Restic `--verify` checked 85,806 files. Ownership, SSH key mode and McFly recovery-copy SQLite integrity passed. Evidence and result are preserved beside the restored root. The temporary guest SSD mount was removed. No imported distro or boot was attempted; these checks used the existing GPG unlock, not a fresh-machine password entry.
+
+A path-only inspection found staged home SSH keys in the old system snapshot under `/var/tmp/debian4-durable-restore.X3xGgs` and `/var/tmp/debian4-first-backup-unodn8f1/restore`. No key contents were inspected. That snapshot is encrypted, but the proposed plain archive must not duplicate these temporary home copies. The offline helper now excludes contents of `/tmp`, `/var/tmp`, and `/var/lib/restic/staging`, with a regression proving staged SSH-key fixtures are absent while their parent directories remain. Existing encrypted snapshots and recovery evidence are preserved. Focused offline metadata/failure and validator tests plus ShellCheck passed after correction.
+
+This demonstrates file-level recovery of the preserved encrypted-system pair, not acceptance of the new plain-gzip production coordinator, network-isolated import/boot or arbitrary secret-location coverage.
+
 ## Elevated disposable VHDX verification — 8 September 2026, 08:30 BST
 
 Owner approved the elevated fixture test. A newly created 64 MiB dynamic VHDX was attached bare to WSL; its newly appearing guest device was matched to the VHDX identifier through the guest serial and exact size before formatting. Only that fixture was formatted. Synthetic system/home/password/repository files were written, the fixture unmounted, block-device read-only enabled and verified, and ext4 remounted `ro,noload`. The offline capture helper produced an ordinary system tar/gzip; extraction into a separate fixture root passed content, ownership/mode, symlink and exclusion checks. The guest mount and exact VHDX were detached. Independent inspection confirmed the fixture serial absent and the archive checksum valid.

@@ -20,5 +20,8 @@ done
 [[ $(stat -c %u:%g "$root/etc") == 0:0 ]] || fail '/etc ownership was not preserved'
 [[ $(stat -c %a "$root/usr/local/sbin/backup-wsl-home") == 755 ]] || fail 'backup command mode was not preserved'
 [[ -L $root/etc/mtab ]] || fail '/etc/mtab symlink was not preserved'
-[[ $(readlink "$root/etc/mtab") == /proc/mounts ]] || fail '/etc/mtab target is unexpected'
+case $(readlink "$root/etc/mtab") in
+  /proc/mounts|../proc/self/mounts) ;;
+  *) fail '/etc/mtab target is unexpected' ;;
+esac
 printf 'system_restore_validation=passed metadata=ownership,mode,symlink separated_home=true\n'

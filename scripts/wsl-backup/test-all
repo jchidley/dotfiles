@@ -28,6 +28,7 @@ run_fast() {
     "$ROOT/home/restic-home-password" "$ROOT/home/prepare-gpg-credential"
     "$ROOT/system/test-gpg-password-command.sh"
     "$ROOT/system/capture-offline-system" "$ROOT/system/test-offline-system.sh"
+    "$ROOT/system/test-restore-validator.sh"
     "$ROOT/home/migrate-linux-scheduler.sh"
     "$ROOT/home/install.sh" "$ROOT/home/test.sh" "$ROOT/home/test-scheduler.sh"
     "$ROOT/home/test-scheduler-mutations.sh"
@@ -79,6 +80,7 @@ run_integration() {
   require sudo
   bash "$ROOT/system/test-gpg-password-command.sh"
   sudo bash "$ROOT/system/test-offline-system.sh"
+  sudo bash "$ROOT/system/test-restore-validator.sh"
   sudo bash "$ROOT/home/test-recovery-password.sh"
   sudo "$ROOT/home/test.sh"
   if command -v wsl-backup >/dev/null 2>&1; then

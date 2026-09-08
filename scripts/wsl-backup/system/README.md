@@ -12,7 +12,7 @@ bash scripts/wsl-backup/system/capture-offline-system READ_ONLY_ROOT EXPECTED_EX
 
 This requires an already isolated, read-only ext4 mount. It does not stop WSL, attach a VHDX or prove absence of competing writers. Those are outstanding coordinator responsibilities. Output and partial files must not already exist.
 
-The archive excludes `/home/jack`, `/var/lib/restic/home`, `/etc/restic/home.password` and contents of `/dev`, `/proc`, `/run`, `/sys`. It preserves ordinary root-resident files under `/mnt`. Tar uses numeric ownership, sparse-file support, ACLs and xattrs. Ownership, modes, symlinks, hardlinks, POSIX ACLs, user xattrs and capabilities are fixture-tested. Restore using `--acls --xattrs --xattrs-include='*' --numeric-owner`. VHDX attachment and isolated import/boot remain open.
+The archive excludes `/home/jack`, `/var/lib/restic/home`, `/etc/restic/home.password` and contents of `/dev`, `/proc`, `/run`, `/sys`, `/tmp`, `/var/tmp`, `/var/lib/restic/staging`. Temporary staging has contained real home restores, so it must not leak into an unencrypted archive. It preserves ordinary root-resident files under `/mnt`. Tar uses numeric ownership, sparse-file support, ACLs and xattrs. Ownership, modes, symlinks, hardlinks, POSIX ACLs, user xattrs and capabilities are fixture-tested. Restore using `--acls --xattrs --xattrs-include='*' --numeric-owner`. VHDX attachment and isolated import/boot remain open.
 
 Failed partial output is retained. Publication does not overwrite existing output. The printed SHA-256 is to be recorded with the exact external home snapshot ID in a validated generation manifest.
 

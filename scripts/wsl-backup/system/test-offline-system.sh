@@ -18,6 +18,10 @@ printf 'synthetic-os\n' >"$root/source/etc/os-release"
 for path in home/jack/secret etc/restic/home.password var/lib/restic/home/config; do
   printf 'SYNTHETIC-SECRET\n' >"$root/source/$path"
 done
+for staging in tmp var/tmp var/lib/restic/staging; do
+  mkdir -p "$root/source/$staging/old-restore/home/jack/.ssh"
+  printf 'SYNTHETIC-STAGED-SECRET\n' >"$root/source/$staging/old-restore/home/jack/.ssh/id_ed25519"
+done
 printf 'ordinary root-resident mount-directory file\n' >"$root/source/mnt/ordinary"
 chmod 640 "$root/source/etc/os-release"
 component=$(cd -- "$(dirname -- "$0")" && pwd)
@@ -47,6 +51,9 @@ if gzip -t "$root/truncated.tar.gz" 2>/dev/null; then echo 'truncated gzip accep
 [[ $(stat -c %u:%g:%a "$root/restore/etc/os-release") == 0:0:640 ]]
 [[ $(readlink "$root/restore/etc/mtab") == /proc/mounts ]]
 cmp "$root/source/mnt/ordinary" "$root/restore/mnt/ordinary"
+for staging in tmp var/tmp var/lib/restic/staging; do
+  [[ -d $root/restore/$staging && ! -e $root/restore/$staging/old-restore ]]
+done
 [[ ! -e $root/restore/home/jack && ! -e $root/restore/etc/restic/home.password && ! -e $root/restore/var/lib/restic/home ]]
 if bash "$helper" "$root/source" "$uuid" "$root/system.tar.gz" >/dev/null 2>&1; then
   echo 'existing archive accepted' >&2; exit 1

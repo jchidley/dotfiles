@@ -29,13 +29,15 @@ assert_source
  tar --create --gzip --file=- --one-file-system --sparse --acls --xattrs --xattrs-include='*' --numeric-owner \
    --exclude='./home/jack' --exclude='./var/lib/restic/home' --exclude='./etc/restic/home.password' \
    --exclude='./dev/*' --exclude='./proc/*' --exclude='./sys/*' --exclude='./run/*' \
+   --exclude='./tmp/*' --exclude='./var/tmp/*' --exclude='./var/lib/restic/staging/*' \
    --directory="$root" . >"$partial") || fail 'tar failed; partial archive retained'
 # Inspect archive paths without printing the system inventory into logs.
 tar -tzf "$partial" | awk '
   { p=$0; sub(/^\.\//,"",p)
     if (p ~ /^\// || p ~ /(^|\/)\.\.(\/|$)/ ||
         p ~ /^home\/jack(\/|$)/ || p ~ /^var\/lib\/restic\/home(\/|$)/ ||
-        p == "etc/restic/home.password") bad=1
+        p == "etc/restic/home.password" ||
+        p ~ /^(tmp|var\/tmp|var\/lib\/restic\/staging)\/.+/) bad=1
     if (p=="etc/os-release") os=1
   }
   END { exit (bad || !os) }
