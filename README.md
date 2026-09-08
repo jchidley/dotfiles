@@ -4,7 +4,7 @@ Cross-platform dotfiles managed with [chezmoi](https://www.chezmoi.io/) for cons
 
 ## Current Debian4 work
 
-Follow the [Debian4 completion and selective-migration plan](docs/DEBIAN4-PLAN.md). Debian4 is the clean successor. Debian-Recovered is the authoritative known-good source and Windows default. Debian-Backup is a stopped writable clone of the protected August forensic image for controlled inspection and recovery. Both source distros are temporary: extract everything useful into Debian4, prove independent recovery, then consider their separately approved removal. Generic setup examples below are not the Debian4 execution plan.
+Follow the [Debian4 completion and selective-migration plan](docs/DEBIAN4-PLAN.md). Debian4 is the active distro and Windows default. Debian-Recovered remains an authoritative known-good recovery source. Debian-Backup is a stopped writable clone of the protected August forensic image for controlled inspection and recovery. Both source distros are temporary: extract everything useful into Debian4, prove independent recovery, then consider their separately approved removal. Generic setup examples below are not the Debian4 execution plan.
 
 ## Quick Start
 
