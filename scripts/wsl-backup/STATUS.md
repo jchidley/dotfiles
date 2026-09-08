@@ -1,5 +1,13 @@
 # WSL backup and recovery status
 
+## Elevated disposable VHDX verification — 8 September 2026, 08:30 BST
+
+Owner approved the elevated fixture test. A newly created 64 MiB dynamic VHDX was attached bare to WSL; its newly appearing guest device was matched to the VHDX identifier through the guest serial and exact size before formatting. Only that fixture was formatted. Synthetic system/home/password/repository files were written, the fixture unmounted, block-device read-only enabled and verified, and ext4 remounted `ro,noload`. The offline capture helper produced an ordinary system tar/gzip; extraction into a separate fixture root passed content, ownership/mode, symlink and exclusion checks. The guest mount and exact VHDX were detached. Independent inspection confirmed the fixture serial absent and the archive checksum valid.
+
+Evidence: `C:/Users/jackc/.local/state/debian4-combined-backup/elevation/vhdx-restore-03.log`; Windows fixture `vhdx-fixture-17e29e4f530440de9ef254bccbf4feeb` under the same state root; Linux restore `/var/tmp/disposable-vhdx-restore.kxKtlH`. Archive SHA-256: `b9495a02a6a9047a6058c27771c2fdc6919fc91f4fd1878bc0474862b1ec41b1`. Earlier attach-only run 02 passed; run 01 exposed helper stdout-capture behavior and detached its fixture before failing. All fixtures remain retained.
+
+This validates disposable VHDX attachment, guest read-only capture, archive restore and detach. It does not prove exclusive Windows-side read-only protection of a real stopped source, distro import/boot, or a paired production restore. Debian4's own VHDX was not touched, no distro was stopped or imported, no GPG agent was reset and no external drive was accessed. Production orchestration remains disabled pending those remaining boundaries.
+
 ## Latest verification — 8 September 2026, 08:13 BST
 
 The canonical fast gate and all seven named local lanes passed with temporary Windows idle-sleep inhibition, released afterward. Logs: `/var/tmp/debian4-awake-gates.IcEm7t` (fast, home-copy, retained legacy stream, GPG provider/enrollment, offline system, interactive recovery fixture and home integration). Windows Kernel-Power events 506 at 03:01:51 and 507 at 07:55:31 corroborate standby spanning the earlier timeout; no timeout thresholds were weakened.
