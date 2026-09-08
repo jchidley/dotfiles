@@ -16,6 +16,11 @@ $powerShellCoreGuid = '{574e775e-4f2a-5b96-ac1e-a2962a402336}'
 # Profile policy is data, while profile mutation remains generic below.
 $wslProfileSpecs = @(
     [pscustomobject]@{
+        Distro = 'Debian4'
+        Name = 'Debian4'
+        Guid = '{4eeffcc0-18c0-5b29-b6c3-02305b49996d}'
+    },
+    [pscustomobject]@{
         Distro = 'Debian'
         Name = 'Debian'
         Guid = '{58ad8b0c-3ef8-5f4d-bc6f-13e4c00f2530}'
@@ -290,7 +295,7 @@ foreach ($spec in $wslProfileSpecs) {
         Ensure-Profile $settings @{
             guid = $spec.Guid
             name = $spec.Name
-            commandline = "wsl.exe -d $($spec.Distro)"
+            commandline = $(if ($spec.Distro -eq 'Debian4') { 'wsl.exe -d Debian4 -u jack --exec bash --login' } else { "wsl.exe -d $($spec.Distro)" })
             startingDirectory = '~'
             icon = Get-DistroIcon $distro
             hidden = $false

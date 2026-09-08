@@ -51,19 +51,18 @@ path_append "/opt/nvim-linux-x86_64/bin"
 # SSH passphrases are askpass-only credentials, never shell environment data.
 unset SSH_KEY_PASSPHRASE
 
-# GPG agent (for ak/GPG encryption, 20h cache)
-[ -t 0 ] && export GPG_TTY="$(tty)"
-[ -t 0 ] && gpgconf --launch gpg-agent 2>/dev/null
-
-# direnv loads only the reviewed service allowlist in ~/.envrc. A bare
-# no-argument bulk load is rejected, and export:false credentials stay out.
-
-# OpenSSH keys remain in OpenSSH's agent, while ak decrypts their passphrase
-# through the same 20h gpg-agent cache used by API secrets. Start/reuse the
-# agent now; the askpass helper performs the explicit `ak get ssh-key` below.
-if [[ -n ${WSL_DISTRO_NAME:-} && -r "$HOME/.local/lib/credential-agent.sh" ]]; then
+# One visible WSL login owns GPG prompting and the fixed SSH deadline.
+# WSL's internal systemd login has a PTY but TERM=dumb: never prompt there.
+if [[ -n ${WSL_DISTRO_NAME:-} && -r "$HOME/.local/lib/credential-agent.sh" &&
+      -r "$HOME/.local/lib/credential-login.sh" ]]; then
   source "$HOME/.local/lib/credential-agent.sh"
-  credential_agent_start
+  source "$HOME/.local/lib/credential-login.sh"
+  if credential_login_visible; then
+    credential_agent_start
+    if credential_login_automatic; then
+      credential_login || printf 'Credentials remain locked; retry with credential-unlock.\n' >&2
+    fi
+  fi
 fi
 
 # Pico SDK paths - only export if directories exist
@@ -76,8 +75,11 @@ fi
 # https://github.com/ajeetdsouza/zoxide?tab=readme-ov-file#configuration
 [ -t 1 ] && command -v zoxide >/dev/null 2>&1 && eval "$(zoxide init bash)"
 
-# direnv
-command -v direnv >/dev/null 2>&1 && eval "$(direnv hook bash)"
+# Export the reviewed allowlist only in visible logins. AK itself refuses
+# background pinentry, so direnv can never steal the unlock prompt.
+if declare -F credential_login_visible >/dev/null && credential_login_visible && command -v direnv >/dev/null 2>&1; then
+  eval "$(direnv hook bash)"
+fi
 
 # McFly records every completed command in SQLite and appends it promptly to
 # the ordinary HISTFILE. Its database can contain secrets typed as commands.
@@ -128,11 +130,8 @@ fi
 # GPG agent caches the passphrase (~20h TTL, see ~/.gnupg/gpg-agent.conf).
 # Lock immediately: gpgconf --kill gpg-agent
 
-# Askpass explicitly retrieves only ssh-key; the passphrase never enters this
-# shell's environment, and ssh-agent enforces the matching 20h key lifetime.
-if [[ -n ${WSL_DISTRO_NAME:-} && $- == *i* ]] && declare -F credential_agent_load_ssh_key >/dev/null; then
-    credential_agent_load_ssh_key || true
-fi
+# SSH is loaded by credential_login above, using the remaining login window.
+# Opening additional shells must not refresh the SSH expiry.
 
 # Aliases
 alias clauded='claude --dangerously-skip-permissions'

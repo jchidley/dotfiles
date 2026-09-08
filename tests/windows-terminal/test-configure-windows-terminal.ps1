@@ -41,6 +41,7 @@ try {
 
     $distributions = @(
         [pscustomobject]@{ Name = 'Debian'; BasePath = $debianRoot },
+        [pscustomobject]@{ Name = 'Debian4'; BasePath = $debianRoot },
         [pscustomobject]@{ Name = 'Debian-Recovered'; BasePath = $recoveredRoot }
     )
 
@@ -78,6 +79,8 @@ try {
     Assert-Equal (@($settings.profiles.list | Where-Object { $_.guid -eq '{77526b00-08ae-4477-bddc-9587432a0901}' }).Count -eq 0) $expected.profiles.alpineAbsentWhenNotInstalled 'absent Alpine profile was created'
     Assert-True (-not $debian.PSObject.Properties['source']) 'Debian profile remained dynamically sourced'
     Assert-True (-not $recovered.PSObject.Properties['source']) 'Debian-Recovered profile remained dynamically sourced'
+    $debian4 = Get-Profile $settings '{4eeffcc0-18c0-5b29-b6c3-02305b49996d}'
+    Assert-Equal $debian4.commandline 'wsl.exe -d Debian4 -u jack --exec bash --login' 'Debian4 must explicitly launch login Bash'
     Assert-Equal $debian.commandline 'wsl.exe -d Debian' 'Debian command line differs'
     Assert-Equal $recovered.commandline 'wsl.exe -d Debian-Recovered' 'Debian-Recovered command line differs'
     Assert-True ($debian.icon -like '*shortcut.ico') 'Debian icon was not discovered'

@@ -34,7 +34,10 @@ path_prepend "$HOME/.local/bin"
 {{ include "dot_bashrc_debian" }}
 {{ end }}
 
-{{ include "dot_bashrc_custom" }}
+# Keep one deployed copy of custom settings instead of embedding stale copies.
+if [ -r "$HOME/.bashrc_custom" ]; then
+  . "$HOME/.bashrc_custom"
+fi
 
 # End chezmoi template - "dot_bashrc.tmpl"
 

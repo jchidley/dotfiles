@@ -2,7 +2,7 @@
 set -euo pipefail
 
 repo=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)
-ak_bin=$(command -v ak || true)
+ak_bin=${1:-$(command -v ak || true)}
 askpass_bin=$(command -v ak-ssh-askpass || true)
 [[ -n $ak_bin ]] || ak_bin=$HOME/git/ak/bin/ak
 [[ -n $askpass_bin ]] || askpass_bin=$HOME/git/ak/bin/ak-ssh-askpass
@@ -110,3 +110,6 @@ explicit=$(PATH="$work/bin:$PATH" AK_DIR="$work/ak" "$ak_bin" get ssh-key)
 [[ $explicit == ssh-secret ]]
 
 printf '%s\n' 'credential-agent tests passed'
+bash "$repo/tests/credential-agent/test-login.sh"
+bash "$repo/tests/credential-agent/test-ak-prompt-policy.sh" "$ak_bin"
+bash "$repo/tests/credential-agent/test-login-real.sh" "$ak_bin"
