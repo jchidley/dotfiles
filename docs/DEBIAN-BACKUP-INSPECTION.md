@@ -1,5 +1,11 @@
 # Inspect the August Debian image without risking the source
 
+## Latest follow-up — final recovery attempt, 9 September 2026
+
+The final recovery classification and bounded curation are recorded in `C:/Users/jackc/.local/state/debian-final-recovery-20260909/RESULTS.md`; `HANDOFF.md` remains the preceding scan handoff. The combined 163,818-object Git pool was separated into 406 commit components and compared with 43 current Windows repositories, seven current Debian4 repositories, preserved inventories, and selected public GitHub repositories. Eight useful complete Git snapshots and 20 session-derived files—especially otherwise-unmatched deleted `~/tmp` material—were copied into isolated evidence with provenance. A targeted validation of already-indexed tar headers recovered one additional boat-data-platform systemd unit absent from the Git pool, session candidates, current Debian4 Git, and the current checkout. `CURATION-VERIFICATION-v1.json` independently verifies 892 curated artifacts with zero hash/size failures; it is deliberately not a full evidence-root seal. A 941-file / 143,060,136-byte review package was subsequently transferred to `/home/jack/recovery/debian-final-recovery-20260909` in Debian4 and verified with zero transfer failures; review and promotion remain pending there. The combined Git fsck still has four metadata-blob errors, 57 maximal heads are incomplete, and the earlier full seal remains partial. Do not repeat the completed scans, execute recovered code, import into live projects without focused review, delete evidence, or retire Debian-Backup without separate approval.
+
+## Earlier inspection and migration history
+
 This page records the completed built-in forensic pass and the partial specialist follow-up for Debian4 selection. The procedure below is historical, not an instruction to repeat either pass. Review the completed curation and import preview through the next-session entry point below; the [Debian4 plan](DEBIAN4-PLAN.md) owns sequencing and approval boundaries.
 
 Keep the registered `Debian-Backup` distro stopped and preserve all source images, disposable copies, and partial evidence. Its purpose and lineage are represented by the immutable source and verified copy evidence; do not boot the registered clone for curation.
