@@ -1,48 +1,45 @@
 # Debian4 backup and recovery contract
 
-## Agreed design: one internally stored recovery archive
+## Agreed design — 9 September 2026
 
-The ordinary system tar/gzip **includes `/var/lib/restic/home`**, the encrypted local Restic repository, and excludes plaintext `/home/jack`. This preserves home snapshot history without duplicating home data. It does not require an external drive to be a complete recovery set.
+Use two complementary backups:
 
-The archive destination must be on the Windows internal drive, outside the source VHDX. It must not be inside the filesystem being archived, including through an alias. Copying completed archives to a verified external disk is a separate replication step. An archive on the same physical internal drive protects against logical loss, not failure or loss of that drive.
+- **Incremental home backup:** Restic snapshots of `/home/jack`, retaining file history and efficient recovery of accidental changes or deletions.
+- **Complete-distro export:** an ordinary full-system tar/gzip produced by `wsl --export`, in addition to the home backup. It includes home, the local Restic repository and other root-filesystem contents without custom exclusions.
 
-The owner relies on physical security for Windows and external disks; no whole-disk encryption or additional system-archive encryption is imposed. An unencrypted VHDX is not a security boundary.
+The owner selected this combination for efficiency and security considerations. Restic encrypts its repositories as part of how it works; encryption is not an independently requested requirement or the reason for choosing this backup layout. No additional system-archive encryption or new key-management scheme is required. Existing Restic credentials still need to be preserved because Restic requires them to recover its snapshots.
 
-- `/home/jack` contains user data, GPG keys and encrypted credentials. Automatic Restic snapshots remain in `/var/lib/restic/home`.
-- The Restic password is stored at `/home/jack/.config/restic/home.password.gpg`, encrypted to the existing key. Root-run backups invoke GPG as jack through `restic-home-password`.
-- Existing GPG cache limits are 72,000 seconds. A locked agent fails unattended operations without pinentry or plaintext fallback; the owner unlocks interactively. This does not change backup frequency.
-- Bitwarden provides independent recovery of the Restic password before the home/GPG setup has been restored.
-- The archive excludes home, the retired plaintext runtime password, runtime filesystem contents, and contents of `/tmp`, `/var/tmp`, and `/var/lib/restic/staging`. Staged restores and previous backup outputs must not accumulate inside new archives. Existing recovery evidence is preserved, not deleted by capture.
-- Ordinary root-resident files under `/mnt` are retained. Mounted filesystems are not crossed.
+The full export intentionally includes plaintext home and may include credentials, temporary files, staged restores and duplicated home history. This is accepted scope, not an exclusion bug. The owner relies on physical security for storage; the archive must nevertheless be treated as sensitive and must not be published or logged by content. An unencrypted VHDX is not a security boundary either.
 
-The plaintext `/etc/restic/home.password` has been removed after GPG and independent recovery checks. No new key, AK service, Windows password process or automated Bitwarden access is needed.
+This decision supersedes the exclusion-aware archive design of 8 September. `capture-offline-system` and its tests remain preserved prior-design implementation/evidence, not the selected production path. Do not complete its VHDX mount coordinator merely to satisfy that superseded plan.
 
-## Capture consistency and implementation boundary
+## Storage and capture
 
-`capture-offline-system` requires an isolated read-only ext4 mount with a pinned filesystem UUID, an embedded repository on that same mount with config/keys/data/index/snapshot directories and at least one snapshot, and an output filesystem different from the source. Structural repository checks are not authentication of its encrypted contents.
+The primary full export belongs on the Windows internal drive, outside Debian4's VHDX, including through aliases. External copying is separate replication. Storage on the same physical drive protects against logical loss, not failure or loss of that drive.
 
-It writes a new `.partial` archive, validates paths and presence of the embedded repository, checks source identity again, and publishes without overwriting existing output. The disposable self-contained test creates real snapshot history, archives it, unmounts the source, fully checks the recovered repository, and restores an older home version using only that recovered repository and a separate synthetic password. Metadata, corruption, producer-failure and overwrite checks also pass.
+Capture requires an approved maintenance window and a stopped source distro. Do not automatically terminate Debian4 or wake it for routine polling. The source must not be started during capture; before/after inventory checks alone do not establish exclusive access for the entire interval.
 
-The production coordinator remains disabled. Before enabling it, implement and verify a Windows/WSL procedure to stop Debian4 cleanly, obtain exclusive read-only VHDX access from an approved helper, capture to internal Windows storage, detach and restore the intended distro state. A read-only guest mount alone does not prove there are no other writers. The repository must not be copied as ordinary files while Restic is modifying it. No root freeze or new automatic schedule is enabled by the archive-helper change.
+`system/Export-WslFullBackup.ps1` is the current source candidate. It requires an already-stopped distro, rejects redirected destination components, runs `wsl --export --format tar.gz`, checks gzip and archive readability, and publishes a new generation with archive size, SHA-256, distro, time and empty exclusions. Failed partial output is retained. Its manifest explicitly says `restoreTested=false`.
 
-Ordinary `wsl --export` includes both plaintext home and its repository, duplicating data; it does not implement the selected exclusion-aware design.
+Source review and validation remain necessary before accepting this candidate for production. In particular, a drive-letter path alone does not prove an internal disk, and the stopped-state checks do not prevent a concurrent start. No old root-freeze controller is to be re-enabled.
 
-## Scheduling, manifest and replication
+## Home history and scheduling
 
-Linux systemd keeps the existing home-backup schedule, operation locks and deletion holds. Failed backups block later scheduler maintenance. Automatic archive orchestration and user-facing failure notification still need implementation; journal errors alone do not establish notification.
+Existing Linux-owned Restic home backups, systemd scheduling, operation locks and deletion holds remain unchanged. A full export does not replace incremental history, and the latest Restic snapshot can predate the export. Do not claim a single atomic snapshot spanning both operations.
 
-A completed-generation manifest must record the internal archive path/checksum, capture time, embedded repository ID, selected home snapshot ID and exclusions. The home snapshot may predate the offline system capture; do not claim a single atomic application snapshot. The self-contained artifact does not depend on an external snapshot ID.
+The existing GPG-backed Restic password provider and independent Bitwarden recovery route remain necessary implementation details, not a request for additional encryption. No new key, AK service, Windows password process or automated Bitwarden access is needed.
 
-Supported `restic copy` and the pinned USB configuration are retained for optional independent repository replication and historical recovery. They are not prerequisites for creating the internally stored archive. Do not delete historical two-part generations.
+Do not add Windows scheduling or polling of routine Linux-owned work. Backup cadence, deployment, retention and cleanup are not changed by this design decision.
 
 ## Recovery acceptance
 
-1. Verify the internally stored archive checksum and extract it into a new isolated ext4 root, including its Restic repository.
-2. Use `--acls --xattrs --xattrs-include='*' --numeric-owner` so non-user attributes such as Linux capabilities are restored.
-3. Retrieve the Restic password privately from Bitwarden, independent of the lost VHDX and backed-up GPG keys.
-4. Authenticate and check the extracted repository; verify its manifest-pinned ID and home snapshot.
-5. Restore that snapshot into the recovered root and verify actual content and permissions.
-6. Keep scheduling, networking and production services disabled before a separately reviewed disposable first boot.
-7. Deliberately resume GPG-backed runtime credentials and scheduling after recovery review.
+1. Verify the full archive's manifest, size and checksum.
+2. Import it into a new disposable destination, without replacing an existing distro.
+3. Establish isolation before first boot: prevent production services, schedules and networking from acting on restored state.
+4. Verify actual system/home content and relevant Linux ownership, modes, links and metadata after import and boot.
+5. Separately verify that retained Restic history can be authenticated and restored with the independently recoverable password. Direct full-system recovery does not require reconstructing home from Restic first.
+6. Preserve original distros and recovery evidence until the real recovery and reconciliation gates pass; retirement requires separate approval.
 
-No real self-contained recovery or automatic system archive is claimed until its production tests pass. The earlier real two-part restore and disposable VHDX tests remain useful evidence, but do not replace this gate. See `scripts/wsl-backup/STATUS.md` and `TASKS.md` for evidence and remaining work.
+`system/Test-WslFullExport.ps1` tests a synthetic export/import/boot round trip. Its repository landmark is a text fixture, not a real Restic repository. It retains imported fixture distros and generated files. It does not establish real Debian4 recovery, complete metadata preservation, independent password recovery or network isolation.
+
+This document records the owner's selected design, not a claim that production capture, real restore or source retirement has been verified in this session. Dated evidence belongs in `scripts/wsl-backup/STATUS.md`; outstanding work belongs in `TASKS.md`.

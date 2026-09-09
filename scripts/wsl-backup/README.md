@@ -22,6 +22,10 @@ For a distro whose registered name is not `Debian4`:
 ./scripts/wsl-backup/setup.sh --distro NAME
 ```
 
+## Selected backup design
+
+Use incremental Restic snapshots of `/home/jack` plus a separate complete-distro `wsl --export` tar/gzip without custom exclusions. Restic encryption is an implementation property, not an additional owner requirement. The full export includes plaintext home, credentials and the local repository; no additional archive encryption is required. See the [current contract](../../docs/DEBIAN4-BACKUP-CONTRACT.md) and [system candidates](system/README.md). The exclusion-aware archive design is superseded.
+
 ## Everyday commands
 
 Run the commands in this section inside WSL. Direct Windows execution requires PowerShell 7 (`pwsh.exe`); Windows PowerShell 5.1 is unsupported.
@@ -35,13 +39,11 @@ wsl-backup home snapshots
 wsl-backup home backup
 wsl-backup home check
 
-# Whole-system operations
-wsl-backup system Preflight
+# Retained controller status (not the new full-export candidate)
 wsl-backup system Status
-wsl-backup system Export -ConfirmMaintenanceWindow
 ```
 
-Whole-system export stops the source distro. It remains protected by the explicit `-ConfirmMaintenanceWindow` gate.
+The old controller's capture modes are disabled. The new full-export candidate requires an already-stopped distro and does not stop it automatically; it is not yet the installed `wsl-backup system` capture path.
 
 Restore home data only into an empty ext4 staging directory:
 
@@ -54,7 +56,7 @@ wsl-backup home restore latest /var/tmp/restic-home-restore
 | Path | Responsibility |
 |---|---|
 | [`home/`](home/README.md) | Frequent encrypted Restic snapshots, Linux-owned systemd scheduling, retention, checks, and staged restore |
-| [`system/`](system/README.md) | Cold complete-distro export, disposable-import validation, manifests, retention, crash recovery, and cleanup |
+| [`system/`](system/README.md) | Complete-distro export/import source candidates and preserved older archive implementations |
 | `setup.sh` | Non-destructive Linux installation/timer setup plus whole-system Windows integration |
 | `wsl-backup` | Installed operator command for home and system operations |
 | `Install-Windows.ps1` | Installs the system-export controller outside the distro so it remains available while the source is stopped |

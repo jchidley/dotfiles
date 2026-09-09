@@ -18,9 +18,9 @@ Completed on 7 September: boat-data-platform's 19 commits are pushed at `d18e28d
 
 1. GPG-backed credentials are deployed; fresh backup `3e313f1f`, status, source comparisons and ciphertext recovery passed without resetting the agent. Do not repeat enrollment or deployment.
 2. Independent Bitwarden recovery and plaintext removal are complete. Natural scheduling passed at 08:03–08:04 after correcting the obsolete unit condition; cached GPG access and snapshot status are healthy. Locked-agent behavior is fixture-tested; user-facing failure notification remains a separate visibility gap. Do not clear the real cache for testing. Preserve deletion holds and timer policy.
-3. Complete the primary internally stored, self-contained archive coordinator: include `/var/lib/restic/home`, exclude plaintext home and restore copies, write outside the source VHDX, and capture the repository consistently offline. The new self-contained fixture and fast gate pass. Disposable VHDX attach/read-only capture/detach also passed under the older layout; production exclusive-source handling, internal destination/manifest and safe automatic orchestration remain unfinished. The old freeze controller is disabled; do not retry it.
-4. Complete manifest validation and a real self-contained archive restore: extract its embedded repository, unlock independently through Bitwarden, restore home without the source VHDX or external repository, then verify isolated import/boot. Prior real two-part file recovery passed but does not prove this new artifact layout. Preserve old recovery evidence; external copying is a separate replication step.
-5. All local gates passed under temporary idle-sleep inhibition; see STATUS for logs. Publish a scoped source checkpoint without claiming that the disabled production VHDX coordinator or real paired recovery is complete.
+3. **Revised by owner on 9 September:** review/test the complete-distro export candidate in addition to the existing `/home/jack` Restic backup. Include the full root filesystem without custom exclusions; write to internal Windows storage outside the source VHDX. Resolve capture concurrency, destination identity and failure handling before production acceptance. The exclusion-aware VHDX coordinator is superseded; the old freeze controller remains disabled.
+4. Validate the full-export manifest and an isolated real import/boot, including actual home/system content and relevant Linux metadata. Separately retain independent Restic history/password recovery. Synthetic fixture import does not prove real Debian4 recovery. Preserve prior evidence; replication and source retirement remain separate operations.
+5. The 9 September complete fast gate and corrected synthetic export/import/boot test pass; see STATUS for retained evidence. Source publication does not establish production or real-recovery acceptance. Keep the remaining candidate review and real-recovery gates above open.
 
 ## Preserved prior generation — not the current design
 
@@ -37,7 +37,7 @@ Fixture and capture success do not prove isolated import or safe first boot.
 ## Deferred
 
 - PostgreSQL installation or activation on Debian4 pending a workflow decision.
-- Optional additional external replication and whole-distro archive storage/encryption choices; the local home repository and its recovery credential are already enrolled.
+- Optional additional external replication. The complete-distro archive needs no additional encryption; Restic encryption is incidental to its implementation. The local home repository and recovery credential are already enrolled.
 
 Windows default distro was changed to Debian4 and independently verified on 7 September 2026. AK routing already targets Debian4. Neither cutover remains pending.
 

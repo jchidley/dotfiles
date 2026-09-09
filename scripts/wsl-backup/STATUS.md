@@ -1,5 +1,19 @@
 # WSL backup and recovery status
 
+## Full-export source validation — 9 September 2026
+
+The complete canonical fast lane passed on an ext4 disposable copy of `cd66248` plus the current full-export candidates and documentation: `/var/tmp/dotfiles-review.kzUvnp/fast.log`, exit record `fast.exit` = 0. PSScriptAnalyzer 1.25.0 reported no findings across 24 paths. This supersedes the earlier incomplete 20-minute gate attempt as current source-validation evidence.
+
+The Windows synthetic full-export/import/boot test passed. An initial successful run exposed fixture startup warnings; the fixture now creates `/root` and disables Windows PATH translation and fstab processing. The corrected run passed without those warnings, verifying home, repository-landmark and staging fixture inclusion. Retained evidence: `C:/Users/jackc/AppData/Local/WslFullExportTests/63a1bff7829d45c9bfd06dfa7bbdf8fc/`; export generation `20260909T100855Z-b924843c`; registrations `FullExportTest-63a1bff7829d45c9bfd06dfa7bbdf8fc` and `FullRestoreTest-63a1bff7829d45c9bfd06dfa7bbdf8fc`. The earlier fixture `d9f907eb948b48169d46d2eb54662247` and both Linux seed directories remain preserved.
+
+These checks accept a source checkpoint, not production backup or real Debian4 recovery. The repository landmark is synthetic; metadata fidelity, internal-disk identity, capture concurrency and isolated real recovery remain review/acceptance work. No Debian4 export, source termination, production deployment, Restic credential operation or evidence cleanup occurred.
+
+## Owner clarification — 9 September 2026
+
+The selected design is a complete-distro `wsl --export` tar/gzip **in addition to** incremental Restic backups of `/home/jack`. No custom home/repository/staging exclusions apply to the full export. Restic encryption is how the chosen incremental tool works, not an independently requested encryption requirement; no additional archive encryption is required. The owner selected this combination for efficiency and security considerations. See the [current contract](../../docs/DEBIAN4-BACKUP-CONTRACT.md).
+
+This supersedes the exclusion-aware internal archive design immediately below, not its historical evidence. The two full-export scripts are current source candidates; their synthetic test does not establish real Debian4 recovery. The old root-freeze controller remains disabled. This documentation update performs no backup, import, deployment, cleanup or source retirement and makes no new production-verification claim. The previously reported lint pass and incomplete 20-minute fast-gate attempt remain their respective historical results.
+
 ## Self-contained internal archive design — 8 September 2026
 
 The owner clarified that the primary archive belongs on the Windows internal drive and must contain the encrypted `/var/lib/restic/home` repository, not depend on a separately copied external repository. Plaintext `/home/jack` and temporary restore/staging contents remain excluded to avoid duplication. The source repository is included only through a consistent offline capture; output must be outside the source VHDX. External copying is optional replication, not a completeness requirement.
