@@ -72,7 +72,7 @@ The completed first approval recorded the nonsecret source baseline, shut down W
 
 The shutdown stops Debian4 and any other WSL VM activity. The command creates a sensitive retained cold VHDX under `C:\WSL-Backups\Debian4\full\capture-sources`, registers it under a fresh generated `FullCapture-Debian4-*` name, and creates one schema-3 tar/gzip generation. Current source VHDX size is 16,502,489,088 bytes; the historical archive suggests roughly another 21.4 GB, with more than 500 GB free on C:. The clone registration and all files remain preserved. Any failure blocks publication but retains partial evidence. A final shutdown and stopped-state check follow the command.
 
-This replacement operation completed with the generation and evidence recorded above. It did not authorize a real recovery import/boot, cleanup, source restart or retirement; those still require a later exact reviewed operation and confirmation.
+This replacement operation completed with the generation and evidence recorded above. At that checkpoint it did not authorize a real recovery import/boot, cleanup, source restart or retirement. The later exact reviewed recovery operation completed as recorded below; cleanup, source restart and retirement remain separate decisions.
 
 Before capture, record path-only/hash/stat baselines for `/etc/os-release`, `/etc/wsl.conf`, `/etc/mtab`, `/home/jack/.ssh/id_ed25519`, `/home/jack/.pi/agent/sessions`, `/home/jack/.local/share/mcfly/history.db`, `/home/jack/git/dotfiles/.git`, `/var/lib/restic/home/config`, and the scheduler units. Include source UID/GID/mode, the `mtab` link target, one same-device hardlink pair, and available ACL, user-xattr and capability examples; do not print secret contents.
 
