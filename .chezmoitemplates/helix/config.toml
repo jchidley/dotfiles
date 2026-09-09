@@ -1,9 +1,6 @@
-# To change, edit this file:
-# .local\share\chezmoi\.chezmoitemplates\helix\config.toml
-# and then 
-# chezmoi apply $env:HOMEPATH\AppData\Roaming\helix\config.toml
-# or
-# chezmoi apply .config\helix\config.toml.tmpl
+# Source: {{ .chezmoi.sourceDir }}/.chezmoitemplates/helix/config.toml
+# Deploy on Windows with:
+# chezmoi apply "$env:APPDATA\helix\config.toml"
 #
 # local helix config files are in a local .helix directory, these include:
 # .helix/config.toml (configuration) and .helix/ignore (file-picker)
