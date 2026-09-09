@@ -4,7 +4,7 @@ Cross-platform dotfiles managed with [chezmoi](https://www.chezmoi.io/) for cons
 
 ## Current Debian4 work
 
-Follow the [Debian4 completion and selective-migration plan](docs/DEBIAN4-PLAN.md). Debian4 is the active distro and Windows default. Debian-Recovered remains an authoritative known-good recovery source. Debian-Backup is a stopped writable clone of the protected August forensic image for controlled inspection and recovery. Both source distros are temporary: extract everything useful into Debian4, prove independent recovery, then consider their separately approved removal. Generic setup examples below are not the Debian4 execution plan.
+Follow the [Debian4 completion and selective-migration plan](docs/DEBIAN4-PLAN.md). Debian4 is the active distro and Windows default. Debian-Recovered was permanently retired on 9 September 2026 after preservation reconciliation; its historical audit evidence remains retained. Debian-Backup is a stopped writable clone of the protected August forensic image for controlled inspection and recovery. Generic setup examples below are not the Debian4 execution plan.
 
 ## Quick Start
 
@@ -42,7 +42,7 @@ chezmoi update
 
 ### WSL backup and recovery
 
-For current work, start with the [Debian4 plan](docs/DEBIAN4-PLAN.md) and [build results](docs/DEBIAN4-RESULTS.md). Backup [status](scripts/wsl-backup/STATUS.md) preserves dated evidence; the retired [Debian3 recovery plan](scripts/wsl-backup/RECOVERY-PLAN.md) is only a historical pointer. Preserve Debian-Recovered, stopped Debian-Backup, the immutable August image, and relevant histories until extraction and recovery gates pass.
+For current work, start with the [Debian4 plan](docs/DEBIAN4-PLAN.md) and [build results](docs/DEBIAN4-RESULTS.md). Backup [status](scripts/wsl-backup/STATUS.md) preserves dated evidence; the retired [Debian3 recovery plan](scripts/wsl-backup/RECOVERY-PLAN.md) is only a historical pointer. Debian-Recovered has been retired; preserve stopped Debian-Backup, the immutable August image, and relevant historical evidence until their separate gates pass.
 
 For an explicitly approved installation/update of the backup toolset (not a recovery-verification command):
 

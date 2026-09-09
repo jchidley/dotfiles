@@ -33,16 +33,12 @@ try {
     Copy-Item -LiteralPath $inputFixture -Destination $settingsPath
 
     $debianRoot = Join-Path $work 'Debian'
-    $recoveredRoot = Join-Path $work 'Debian-Recovered'
     $null = New-Item -ItemType Directory -Path $debianRoot
-    $null = New-Item -ItemType Directory -Path $recoveredRoot
     [System.IO.File]::WriteAllBytes((Join-Path $debianRoot 'shortcut.ico'), [byte[]](1, 2, 3))
-    [System.IO.File]::WriteAllBytes((Join-Path $recoveredRoot 'shortcut.ico'), [byte[]](4, 5, 6))
 
     $distributions = @(
         [pscustomobject]@{ Name = 'Debian'; BasePath = $debianRoot },
-        [pscustomobject]@{ Name = 'Debian4'; BasePath = $debianRoot },
-        [pscustomobject]@{ Name = 'Debian-Recovered'; BasePath = $recoveredRoot }
+        [pscustomobject]@{ Name = 'Debian4'; BasePath = $debianRoot }
     )
 
     & $scriptPath -SettingsPath $settingsPath -Distributions $distributions
@@ -63,7 +59,6 @@ try {
     $windowsPowerShell = Get-Profile $settings '{61c54bbd-c2c6-5271-96e7-009a87ff44bf}'
     $powerShell7 = Get-Profile $settings '{574e775e-4f2a-5b96-ac1e-a2962a402336}'
     $debian = Get-Profile $settings '{58ad8b0c-3ef8-5f4d-bc6f-13e4c00f2530}'
-    $recovered = Get-Profile $settings '{7e3ad175-91fc-536c-b346-f9d77cce7280}'
     $arch = Get-Profile $settings '{a06ad568-9eae-4b45-98e1-d7b6a5309eec}'
     $alpine = Get-Profile $settings '{77526b00-08ae-4477-bddc-9587432a0901}'
 
@@ -73,18 +68,14 @@ try {
     Assert-Equal $powerShell7.commandline 'pwsh.exe' 'PowerShell 7 does not explicitly launch pwsh.exe'
     Assert-True (-not $powerShell7.PSObject.Properties['source']) 'PowerShell 7 remained dynamically sourced'
     Assert-Equal $debian.hidden $expected.profiles.debianHidden 'Debian visibility differs'
-    Assert-Equal $recovered.hidden $expected.profiles.debianRecoveredHidden 'Debian-Recovered visibility differs'
-    Assert-Equal @($settings.profiles.list | Where-Object { $_.guid -eq '{20517053-d9f3-52e4-b051-e3ddd867b0a3}' }).Count 0 'legacy Debian-Recovered profile was not removed'
+    Assert-Equal @($settings.profiles.list | Where-Object { $_.guid -in @('{7e3ad175-91fc-536c-b346-f9d77cce7280}', '{20517053-d9f3-52e4-b051-e3ddd867b0a3}') }).Count 0 'Debian-Recovered profiles were not removed'
     Assert-Equal $arch.hidden $expected.profiles.archHiddenWhenAbsent 'stale Arch profile was not hidden'
     Assert-Equal (@($settings.profiles.list | Where-Object { $_.guid -eq '{77526b00-08ae-4477-bddc-9587432a0901}' }).Count -eq 0) $expected.profiles.alpineAbsentWhenNotInstalled 'absent Alpine profile was created'
     Assert-True (-not $debian.PSObject.Properties['source']) 'Debian profile remained dynamically sourced'
-    Assert-True (-not $recovered.PSObject.Properties['source']) 'Debian-Recovered profile remained dynamically sourced'
     $debian4 = Get-Profile $settings '{4eeffcc0-18c0-5b29-b6c3-02305b49996d}'
     Assert-Equal $debian4.commandline 'wsl.exe -d Debian4 -u jack --exec bash --login' 'Debian4 must explicitly launch login Bash'
     Assert-Equal $debian.commandline 'wsl.exe -d Debian' 'Debian command line differs'
-    Assert-Equal $recovered.commandline 'wsl.exe -d Debian-Recovered' 'Debian-Recovered command line differs'
     Assert-True ($debian.icon -like '*shortcut.ico') 'Debian icon was not discovered'
-    Assert-True ($recovered.icon -like '*shortcut.ico') 'Debian-Recovered icon was not discovered'
 
     Assert-Equal $settings.disableAnimations $expected.preserved.disableAnimations 'unmanaged animation setting was not preserved'
     Assert-Equal @($settings.actions).Count $expected.preserved.actionsCount 'unmanaged actions were not preserved'

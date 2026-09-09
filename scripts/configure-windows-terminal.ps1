@@ -26,13 +26,6 @@ $wslProfileSpecs = @(
         Guid = '{58ad8b0c-3ef8-5f4d-bc6f-13e4c00f2530}'
     },
     [pscustomobject]@{
-        Distro = 'Debian-Recovered'
-        Name = 'Debian-Recovered'
-        # Adopt Windows Terminal's deterministic Microsoft.WSL profile identity.
-        Guid = '{7e3ad175-91fc-536c-b346-f9d77cce7280}'
-        LegacyGuids = @('{20517053-d9f3-52e4-b051-e3ddd867b0a3}')
-    },
-    [pscustomobject]@{
         Distro = 'Alpine'
         Name = 'Alpine Linux'
         Guid = '{77526b00-08ae-4477-bddc-9587432a0901}'
@@ -281,6 +274,15 @@ Ensure-Profile $settings @{
     commandline = 'pwsh.exe'
     source = $null
     hidden = $false
+}
+
+# Permanently remove profiles for retired distributions, including identities
+# previously created by Windows Terminal or this script.
+foreach ($retiredGuid in @(
+    '{7e3ad175-91fc-536c-b346-f9d77cce7280}',
+    '{20517053-d9f3-52e4-b051-e3ddd867b0a3}'
+)) {
+    Remove-Profile $settings $retiredGuid
 }
 
 foreach ($spec in $wslProfileSpecs) {

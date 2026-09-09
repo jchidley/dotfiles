@@ -44,6 +44,10 @@ On the next session, the owner explicitly confirmed permanent removal of Debian3
 
 The owner then discarded the unneeded September pre-rename VHDX and authorized rebuilding live Debian-Backup from the preserved August forensic image. A staged copy matched SHA-256 `6d475115d9f214bcaf0093820e095b7989347e65119fcfcad1507999983747e3` before registration. Debian-Backup is now a stopped, writable clone at `C:\WSL\Debian-Backup\ext4.vhdx`; it was not booted, and its imported default UID is `0`. The August source remains read-only. Debian-Recovered was set as the Windows default distro. Both source distros are retained only until useful current/deleted data is extracted into Debian4 and independent recovery is established; eventual removals remain separate approvals.
 
+## Subsequent Debian-Recovered retirement
+
+On 9 September 2026, after preservation reconciliation completed, the owner explicitly approved permanent removal. `wsl.exe --unregister Debian-Recovered` completed; independent checks confirmed its registration and 43.6 GB `C:\Users\jackc\wsl-recovery-20260802\Debian-Recovered` storage absent. The dedicated 1.38 GB `C:\WSL-Backups\Debian-Recovered` backup tree and both current and legacy Windows Terminal profile identities were removed. Debian-Recovery-Tools, Debian-Backup, the immutable August forensic VHDX, and historical audit/evidence were retained as explicitly directed. Earlier references below to Debian-Recovered being retained or authoritative are historical checkpoints.
+
 ## Installation and inputs
 
 Official installation command, executed from canonical Windows dotfiles:

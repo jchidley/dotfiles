@@ -17,7 +17,6 @@
     "windowsPowerShellHidden": true,
     "powerShell7Hidden": false,
     "debianHidden": false,
-    "debianRecoveredHidden": false,
     "archHiddenWhenAbsent": true,
     "alpineAbsentWhenNotInstalled": true
   },
