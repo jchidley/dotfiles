@@ -37,7 +37,7 @@ The owner approved and the controller verified these recovered-material disposit
 
 Debian-Backup's final non-booting inventory found the stopped registered clone redundant to the completed recovery. With explicit approval, `Debian-Backup` and its writable clone were removed. After the owner declared further forensic recovery exhausted, the immutable August image, raw carving/session recovery trees, final Windows recovery workspace, inspection evidence, and imported recovery-test distro were also removed.
 
-Approved cleanup additionally removed 21 disposable full-export/restore/capture registrations, all `WslFullExportTests` artifacts, `Debian-Recovery-Tools`, superseded schema-1 generation `20260908T083849Z-7dd5c580`, the production cold clone, prior combined-backup evidence, temporary assurance records, empty recovery/capture directories, and dated backup test logs. The final Windows recovery workspace's contents are gone; its empty zero-byte root remains held open by another process pending trivial removal. The accepted archive and Debian4 content were not removed.
+Approved cleanup additionally removed 21 disposable full-export/restore/capture registrations, all `WslFullExportTests` artifacts, `Debian-Recovery-Tools`, superseded schema-1 generation `20260908T083849Z-7dd5c580`, the production cold clone, prior combined-backup evidence, temporary assurance records, empty recovery/capture directories, and dated backup test logs. The final Windows recovery workspace and its formerly locked empty root are gone. The accepted archive and Debian4 content were not removed.
 
 ## Retained state
 
