@@ -4,7 +4,9 @@ Owner decisions reconciled 5 September 2026. This is the sole active plan for De
 
 ## Current position
 
-**Debian4 is the clean successor. Debian-Recovered and Debian-Backup are temporary extraction/verification sources. Extract everything useful from both, establish independent Debian4 recovery, and only then consider their separately approved removal. Choose capabilities and personal data before defining fresh Debian4 backups.**
+**Debian4 is the clean successor. Debian-Recovered was permanently retired on 9 September 2026 after its preservation reconciliation completed. Debian-Backup remains a temporary extraction/verification source; preserve it and the immutable forensic image until their separately approved retirement.**
+
+The owner selected this remaining order: close out the final recovered findings from the verified Debian4 evidence workspace; complete the Windows-owned full-export and real separate-distro recovery assurance; then separately approve retirement/cleanup and reconcile final documentation. The former Debian-Recovered bundle/old-archive replication is cancelled; optional Debian4 replication is deferred rather than cancelled or added to the current queue. Dirty-state classification is complete: Terminal/retirement and final-recovery records were published separately, the Helix installer was removed without uninstalling Helix, and the full-export candidate plus its mixed working records remain unstaged pending source/documentation integration review. Production cold capture and real recovery under the unique test distro name have completed. The owner explicitly rejected firewall changes and elevated offline-VHD modification as unnecessary; normal boot, actual landmarks, full Restic data check and verified older-snapshot restore passed. Source/documentation integration remains unpublished, and recovered-content review still precedes separately approved cleanup, Debian4 restart and Debian-Backup retirement.
 
 Debian4 already exists and passed its official Debian WSL install and core bootstrap. Do not rebuild it or replay the Debian3 migration. Debian2 and Debian3 have been intentionally unregistered. Their detailed history is not part of the active execution path.
 
@@ -15,14 +17,14 @@ Work from `C:\Users\jackc\git\dotfiles`. On 7 September it was preservation-firs
 | System | Role | Boundary |
 |---|---|---|
 | Debian4 | Clean successor and target for selected capabilities/data | Do not import accumulated system state wholesale. |
-| Debian-Recovered | Authoritative known-good source for current workflows, repositories, SSH, GPG/AK, histories, PostgreSQL, and its Restic history | Keep intact until selected extraction and independent Debian4 recovery complete. Inspect or transfer only selected data with appropriate approval. |
+| Debian-Recovered | Retired source; preservation and migration evidence is historical | Unregistered and local VHDX/backups deleted 9 September 2026 by explicit owner approval. Retain audit evidence only. |
 | Debian-Backup | Writable live clone of the immutable August forensic image, for controlled inspection and recovery | Keep stopped except for explicitly planned inspection. Do not compact, optimize, or repair it. The immutable source remains separate. |
 
 Debian-Backup was rebuilt without booting from the read-only August forensic image at `C:\Users\jackc\wsl-recovery-20260802\Debian-ext4-before-recovery.vhdx`. The staged live copy matched its recorded SHA-256 `6d475115d9f214bcaf0093820e095b7989347e65119fcfcad1507999983747e3` before registration. It is registered, writable and stopped at `C:\WSL\Debian-Backup\ext4.vhdx`; its imported default UID is currently root (`0`). Debian-Recovered was the Windows default at that reconstruction checkpoint; the separately approved 7 September cutover subsequently selected Debian4.
 
 Deleted-file recovery can alter metadata or overwrite recoverable blocks in the working clone, but the verified August source remains read-only. Preserve recovered file contents and provenance separately. Earlier recovery lost some date/time metadata, so capture filesystem metadata and recovery-tool evidence before normalizing, importing, or deduplicating recovered Pi sessions.
 
-Debian-Recovered, Debian-Backup, the immutable August source, existing Restic repositories, and old archives remain preserved through extraction and independent Debian4 recovery. The owner intends eventually to remove both source distros, but each removal requires a separate verified inventory and explicit approval.
+Debian-Recovered was unregistered and its local VHDX and dedicated Windows backup tree were deleted on 9 September 2026 after explicit owner approval. Debian-Backup, the immutable August source, existing unrelated Restic repositories, and historical audit evidence remain preserved. Debian-Backup retirement still requires a separate verified inventory and explicit approval.
 
 ## Completed clean baseline
 
