@@ -6,13 +6,13 @@ The final recovery classification and bounded curation are recorded in `C:/Users
 
 The 941-file / 143,060,136-byte review package was transferred to `/home/jack/recovery/debian-final-recovery-20260909` and verified with zero transfer failures. Closeout review promoted four isolated project snapshots and selected celestial-navigation/woodworking files with provenance and hash verification. The divergent boat-data-platform snapshot, research/prototype material, and private documents remain retained under their recorded dispositions; public duplicates and older public history required no promotion. `DISPOSITIONS.md` in the Debian4 workspace records the outcome.
 
-After a final non-booting inventory and explicit approval, Debian-Backup was unregistered and its writable clone removed. The disposable working VHDX and specialist tools distro were also removed; the immutable August image remains read-only and all report/evidence directories remain preserved. The combined Git fsck still has four metadata-blob errors, 57 maximal heads are incomplete, and the earlier full seal remains partial. Do not repeat the completed scans, execute recovered code, or delete retained evidence without new approval.
+After a final non-booting inventory and explicit approval, Debian-Backup and its writable clone were removed. The owner then accepted that further recovery was exhausted: the immutable August image, disposable copies, raw carving/session trees, Windows final-recovery workspace, imported recovery-test distro/restored tree, specialist tools, and all external inspection evidence were removed. These pages retain the outcome and known limitations; the deleted evidence cannot be re-audited or used for another recovery pass.
 
 ## Earlier inspection and migration history
 
 This page records the completed built-in forensic pass and the partial specialist follow-up for Debian4 selection. The procedure below is historical, not an instruction to repeat either pass. Review the completed curation and import preview through the next-session entry point below; the [Debian4 plan](DEBIAN4-PLAN.md) owns sequencing and approval boundaries.
 
-Debian-Backup and its disposable copies were preserved through curation and disposition, then removed under explicit closeout approvals. Preserve the immutable source and all retained report/evidence directories.
+Debian-Backup, its source images, disposable copies, and external evidence were preserved through curation and disposition, then removed under explicit closeout approvals. Paths below are historical and no longer exist.
 
 ## Fixed inputs and boundaries
 

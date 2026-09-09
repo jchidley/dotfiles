@@ -16,7 +16,7 @@ No required Debian4 backup-assurance closeout operation remains. [`STATUS.md`](S
 
 ## Preservation and deferred work
 
-- Preserve the accepted archive, retained recovery distro/restored tree, immutable forensic image, evidence/report directories, recovered-material workspaces, and promoted selections. Their recorded retention is not permission for later cleanup.
+- Preserve the accepted archive, Debian4 recovered-material workspace, and promoted selections. Their recorded retention is not permission for later cleanup.
 - The divergent recovered boat-data-platform snapshot remains available for a separately scoped branch-level review; it is not a backup-assurance closeout requirement.
 - Optional Debian4 replication is deferred and is not required. The cancelled Debian-Recovered replication must not be revived.
 - PostgreSQL activation, broader backup scheduling changes, long-job consent deployment, and prune/full-data-check scheduling remain separate workflow decisions.
