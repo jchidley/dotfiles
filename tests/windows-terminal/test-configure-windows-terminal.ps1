@@ -69,6 +69,7 @@ try {
     Assert-True (-not $powerShell7.PSObject.Properties['source']) 'PowerShell 7 remained dynamically sourced'
     Assert-Equal $debian.hidden $expected.profiles.debianHidden 'Debian visibility differs'
     Assert-Equal @($settings.profiles.list | Where-Object { $_.guid -in @('{7e3ad175-91fc-536c-b346-f9d77cce7280}', '{20517053-d9f3-52e4-b051-e3ddd867b0a3}') }).Count 0 'Debian-Recovered profiles were not removed'
+    Assert-Equal @($settings.profiles.list | Where-Object { $_.guid -eq '{99999999-9999-9999-9999-999999999999}' }).Count 0 'stale generated WSL profile was not removed'
     Assert-Equal $arch.hidden $expected.profiles.archHiddenWhenAbsent 'stale Arch profile was not hidden'
     Assert-Equal (@($settings.profiles.list | Where-Object { $_.guid -eq '{77526b00-08ae-4477-bddc-9587432a0901}' }).Count -eq 0) $expected.profiles.alpineAbsentWhenNotInstalled 'absent Alpine profile was created'
     Assert-True (-not $debian.PSObject.Properties['source']) 'Debian profile remained dynamically sourced'
@@ -109,6 +110,7 @@ try {
     $noWsl = Get-Content -LiteralPath $noWslPath -Raw | ConvertFrom-Json
     Assert-Equal $noWsl.defaultProfile $expected.noWslDefaultProfile 'PowerShell 7 was not selected when WSL was absent'
     Assert-Equal @($noWsl.profiles.list | Where-Object { $_.commandline -like 'wsl.exe -d *' }).Count 0 'WSL profiles were created when no distros were installed'
+    Assert-Equal @($noWsl.profiles.list | Where-Object { $_.source -eq 'Microsoft.WSL' }).Count 0 'stale generated WSL profiles remained when no distros were installed'
 
     $newWhatIfPath = Join-Path $work 'whatif-new\settings.json'
     & $scriptPath -SettingsPath $newWhatIfPath -Distributions @() -WhatIf

@@ -285,6 +285,24 @@ foreach ($retiredGuid in @(
     Remove-Profile $settings $retiredGuid
 }
 
+# Windows Terminal can retain generated profiles after a WSL distro is
+# unregistered. Remove only source-owned WSL profiles whose exact distro name
+# is absent; preserve custom/static profiles and every registered distro.
+$availableNames = [System.Collections.Generic.HashSet[string]]::new(
+    [System.StringComparer]::OrdinalIgnoreCase
+)
+foreach ($distro in $availableDistributions) {
+    if ($distro.Name) { [void]$availableNames.Add([string]$distro.Name) }
+}
+$profileList = Get-ProfileList $settings
+for ($index = $profileList.Count - 1; $index -ge 0; $index--) {
+    $profile = $profileList[$index]
+    if ($profile.source -eq 'Microsoft.WSL' -and -not $availableNames.Contains([string]$profile.name)) {
+        $profileList.RemoveAt($index)
+    }
+}
+Set-ProfileList $settings $profileList
+
 foreach ($spec in $wslProfileSpecs) {
     # Remove profiles created under superseded managed identities before adopting
     # the corresponding Windows Terminal-generated profile GUID.
