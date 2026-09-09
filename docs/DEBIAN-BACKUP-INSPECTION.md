@@ -2,19 +2,23 @@
 
 ## Latest follow-up — final recovery attempt, 9 September 2026
 
-The final recovery classification and bounded curation are recorded in `C:/Users/jackc/.local/state/debian-final-recovery-20260909/RESULTS.md`; `HANDOFF.md` remains the preceding scan handoff. The combined 163,818-object Git pool was separated into 406 commit components and compared with 43 current Windows repositories, seven current Debian4 repositories, preserved inventories, and selected public GitHub repositories. Eight useful complete Git snapshots and 20 session-derived files—especially otherwise-unmatched deleted `~/tmp` material—were copied into isolated evidence with provenance. A targeted validation of already-indexed tar headers recovered one additional boat-data-platform systemd unit absent from the Git pool, session candidates, current Debian4 Git, and the current checkout. `CURATION-VERIFICATION-v1.json` independently verifies 892 curated artifacts with zero hash/size failures; it is deliberately not a full evidence-root seal. A 941-file / 143,060,136-byte review package was subsequently transferred to `/home/jack/recovery/debian-final-recovery-20260909` in Debian4 and verified with zero transfer failures; review and promotion remain pending there. The combined Git fsck still has four metadata-blob errors, 57 maximal heads are incomplete, and the earlier full seal remains partial. Do not repeat the completed scans, execute recovered code, import into live projects without focused review, delete evidence, or retire Debian-Backup without separate approval.
+The final recovery classification and bounded curation are recorded in `C:/Users/jackc/.local/state/debian-final-recovery-20260909/RESULTS.md`; `HANDOFF.md` remains the preceding scan handoff. The combined 163,818-object Git pool was separated into 406 commit components and compared with 43 current Windows repositories, seven current Debian4 repositories, preserved inventories, and selected public GitHub repositories. Eight useful complete Git snapshots and 20 session-derived files—especially otherwise-unmatched deleted `~/tmp` material—were copied into isolated evidence with provenance. A targeted validation of already-indexed tar headers recovered one additional boat-data-platform systemd unit absent from the Git pool, session candidates, current Debian4 Git, and the current checkout. `CURATION-VERIFICATION-v1.json` independently verifies 892 curated artifacts with zero hash/size failures; it is deliberately not a full evidence-root seal.
+
+The 941-file / 143,060,136-byte review package was transferred to `/home/jack/recovery/debian-final-recovery-20260909` and verified with zero transfer failures. Closeout review promoted four isolated project snapshots and selected celestial-navigation/woodworking files with provenance and hash verification. The divergent boat-data-platform snapshot, research/prototype material, and private documents remain retained under their recorded dispositions; public duplicates and older public history required no promotion. `DISPOSITIONS.md` in the Debian4 workspace records the outcome.
+
+After a final non-booting inventory and explicit approval, Debian-Backup was unregistered and its writable clone removed. The disposable working VHDX and specialist tools distro were also removed; the immutable August image remains read-only and all report/evidence directories remain preserved. The combined Git fsck still has four metadata-blob errors, 57 maximal heads are incomplete, and the earlier full seal remains partial. Do not repeat the completed scans, execute recovered code, or delete retained evidence without new approval.
 
 ## Earlier inspection and migration history
 
 This page records the completed built-in forensic pass and the partial specialist follow-up for Debian4 selection. The procedure below is historical, not an instruction to repeat either pass. Review the completed curation and import preview through the next-session entry point below; the [Debian4 plan](DEBIAN4-PLAN.md) owns sequencing and approval boundaries.
 
-Keep the registered `Debian-Backup` distro stopped and preserve all source images, disposable copies, and partial evidence. Its purpose and lineage are represented by the immutable source and verified copy evidence; do not boot the registered clone for curation.
+Debian-Backup and its disposable copies were preserved through curation and disposition, then removed under explicit closeout approvals. Preserve the immutable source and all retained report/evidence directories.
 
 ## Fixed inputs and boundaries
 
 - Immutable input: `C:\Users\jackc\wsl-recovery-20260802\Debian-ext4-before-recovery.vhdx`
 - Expected input SHA-256: `6d475115d9f214bcaf0093820e095b7989347e65119fcfcad1507999983747e3`
-- Registered clone: `C:\WSL\Debian-Backup\ext4.vhdx`
+- Historical registered clone (removed at closeout): `C:\WSL\Debian-Backup\ext4.vhdx`
 - Existing raw-carving evidence: `C:\Users\jackc\wsl-recovery-20260802\pi-vhdx-carving\`
 - Existing reconstructed-session evidence: `C:\Users\jackc\wsl-recovery-20260802\pi-session-recovery\`
 - Prepared working copy: `C:\Users\jackc\wsl-recovery-20260802\debian-backup-inspection-20260905T120500Z\working\ext4.vhdx`

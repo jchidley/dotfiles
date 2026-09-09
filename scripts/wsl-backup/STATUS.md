@@ -6,14 +6,14 @@ This file records current operational truth and the evidence needed to continue 
 
 The Debian4 full-export implementation, production cold capture, real separate-distro recovery, and source integration are complete. Commit `285f28c` published the six-path implementation and evidence records after the canonical fast gate passed from an exact ext4 copy and pinned PSScriptAnalyzer 1.25.0 reported no findings.
 
-The remaining closeout starts with review of `/home/jack/recovery/debian-final-recovery-20260909`, followed by separately approved Debian-Backup retirement and artifact cleanup decisions. Optional replication is deferred. PostgreSQL activation and broader scheduler work are outside this closeout.
+The backup-assurance closeout is complete. The recovered-material package was reviewed, selected material was promoted with provenance and hash verification, Debian-Backup was retired, and approved superseded artifacts were removed. Optional replication is deferred. PostgreSQL activation and broader scheduler work remain outside this closeout.
 
-The current documentation reconciliation is intentionally unpublished pending review. See [`TASKS.md`](TASKS.md) for the exact remaining sequence and the [Debian4 plan](../../docs/DEBIAN4-PLAN.md) for approval boundaries.
+See [`TASKS.md`](TASKS.md) for deferred work and the [Debian4 plan](../../docs/DEBIAN4-PLAN.md) for the completed closeout record.
 
 ## Accepted full export and recovery
 
 - Accepted generation: `C:/WSL-Backups/Debian4/full/20260909T170315Z-091d2190/`.
-- Retained production clone: `FullCapture-Debian4-091d2190`.
+- Production cold clone `FullCapture-Debian4-091d2190`: removed after accepted archive and real-recovery evidence were retained.
 - Production evidence: `C:/Users/jackc/.local/state/debian4-backup-assurance-20260909/production-cold-export-20260909T170310Z/`.
 - Recovery distro and location: `Debian4-RecoveryTest-20260909A` at `C:/WSL-RecoveryTests/Debian4-RecoveryTest-20260909A`.
 - Recovery evidence inside the retained stopped distro: `/var/tmp/debian4-real-recovery-20260909A/`.
@@ -24,22 +24,29 @@ An external actor restarted Debian4 after the capture lock was released. Correct
 
 Exact ACL/user-xattr/capability comparison is not claimed because corresponding retained source examples were unavailable. Firewall changes and elevated offline-VHD isolation were rejected as unnecessary. These are not remaining acceptance gates.
 
-## Retained state and preservation holds
+## Closeout dispositions
 
-Preserve until separately dispositioned:
+The owner approved and the controller verified these recovered-material dispositions:
 
-- Debian-Backup and the immutable forensic image;
-- the accepted production archive and retained cold clone;
-- `Debian4-RecoveryTest-20260909A`, its restored tree, and recovery evidence;
-- failed generations, fixture/capture registrations, and test evidence;
-- `/home/jack/recovery/debian-final-recovery-20260909` and its source evidence.
+- promoted isolated snapshots to `/home/jack/recovered-projects/{energy-hub,life-fitness-console,octopus-tariff,whatsapp-sqlite-analysis}`;
+- promoted celestial-navigation forms/source and woodworking scripts to `/home/jack/recovered-material/`, with provenance manifests;
+- retained the divergent boat-data-platform snapshot for a future focused branch review, without changing the current checkout;
+- retained research notes, Symphony prototypes, and private personal material only in the evidence workspace;
+- required no promotion for public duplicate WSL Alpine/z2m-hub snapshots or the older public celnav snapshot.
 
-Do not unregister a distro or delete evidence without explicit owner approval. Starting Debian4 also requires separate approval; its enabled Linux timer may run naturally unless the approved operation explicitly controls that boundary. Do not run backup, retention, prune, production export, or recovery verification merely to inspect closeout state.
+`/home/jack/recovery/debian-final-recovery-20260909/DISPOSITIONS.md` records the per-group outcome. All promoted payloads matched their retained SHA-256 manifests; no recovered code or configuration was executed.
 
-## Unverified and unresolved
+Debian-Backup's final non-booting inventory found the stopped registered clone redundant to the immutable image and completed evidence. With explicit approval, `Debian-Backup` was unregistered and `C:/WSL/Debian-Backup/` was removed. The immutable 149,704,146,944-byte August image remains present and read-only.
 
-- The contents of `/home/jack/recovery/debian-final-recovery-20260909` have not been reviewed or promoted.
-- Debian-Backup has not received its final retirement inventory, and retirement is undecided.
-- Retention versus cleanup is undecided for recovery, fixture, failed-generation, clone, restored-tree, and evidence artifacts.
-- Optional Debian4 replication remains deferred, not required.
-- Current distro state, matching processes, branch alignment, and dirty paths are volatile and must be checked at the start of continuation work.
+Approved cleanup also removed 21 disposable full-export/restore/capture registrations, all 13 `WslFullExportTests` directories, `Debian-Recovery-Tools`, superseded schema-1 generation `20260908T083849Z-7dd5c580`, the production cold-clone registration/VHDX, and the disposable forensic working VHDX. The accepted archive and required evidence were not removed.
+
+## Retained state
+
+Retain:
+
+- accepted generation `20260909T170315Z-091d2190` and its production evidence;
+- stopped `Debian4-RecoveryTest-20260909A`, its restored tree, and recovery evidence;
+- the immutable read-only August forensic image and all evidence/report directories;
+- the Windows and Debian4 recovered-material workspaces and promoted selections.
+
+Debian4 and the retained recovery distro were stopped at final verification. Debian4's Linux backup timer remains enabled for its next natural start; no backup, retention, or prune operation ran during closeout. Optional Debian4 replication remains deferred and is not required.

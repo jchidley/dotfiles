@@ -4,11 +4,7 @@ Only current incomplete work belongs here. [`STATUS.md`](STATUS.md) records the 
 
 ## Current priority
 
-1. Review, commit and push the current four-file documentation reconciliation. It removes superseded claims that full-export recovery and source integration remain incomplete.
-2. Review and disposition `/home/jack/recovery/debian-final-recovery-20260909` in Debian4. Record each selected promotion or retention decision. Starting Debian4 requires separate owner approval and must account for its enabled Linux backup timer.
-3. Perform a final preservation inventory for Debian-Backup. If the inventory supports retirement, obtain explicit owner approval before unregistering it. Preserve the immutable forensic image unless its removal is separately approved.
-4. Decide retention or cleanup separately for the recovery distro and restored tree, fixture and capture-clone distros, failed generations, and evidence directories. Preserve the accepted production archive and evidence required to demonstrate recovery. Any unregister or deletion requires explicit owner approval.
-5. Reconcile the records after those decisions, including recovered-content dispositions, Debian4 running/stopped state, Debian-Backup outcome, and retained artifacts; then commit and push one final closeout record.
+No required Debian4 backup-assurance closeout operation remains. [`STATUS.md`](STATUS.md) records the accepted archive/recovery, recovered-material dispositions, Debian-Backup retirement, approved cleanup, final stopped state, and retained artifacts.
 
 ## Completed work that must not be repeated
 
@@ -20,7 +16,8 @@ Only current incomplete work belongs here. [`STATUS.md`](STATUS.md) records the 
 
 ## Preservation and deferred work
 
-- Preserve Debian-Backup, the immutable forensic image, the accepted archive and cold clone, the recovery distro and restored tree, failed generations, fixtures, and prior evidence until their individual dispositions are approved.
-- Optional Debian4 replication is deferred and is not required for closeout. The cancelled Debian-Recovered replication must not be revived.
-- PostgreSQL activation, broader backup scheduling changes, long-job consent deployment, and prune/full-data-check scheduling are outside this closeout.
-- Debian2 and Debian3 are retired. Debian-Recovered was retired under its separate approval. Historical fixtures that name retired systems remain evidence unless separately approved for cleanup.
+- Preserve the accepted archive, retained recovery distro/restored tree, immutable forensic image, evidence/report directories, recovered-material workspaces, and promoted selections. Their recorded retention is not permission for later cleanup.
+- The divergent recovered boat-data-platform snapshot remains available for a separately scoped branch-level review; it is not a backup-assurance closeout requirement.
+- Optional Debian4 replication is deferred and is not required. The cancelled Debian-Recovered replication must not be revived.
+- PostgreSQL activation, broader backup scheduling changes, long-job consent deployment, and prune/full-data-check scheduling remain separate workflow decisions.
+- Debian-Recovered, Debian-Backup, Debian2, and Debian3 are retired.
