@@ -22,9 +22,9 @@ The native comparison matrix is `/home/jack/.local/state/dotfiles-debian4-reconc
 
 ## Validation and cleanup readiness
 
-The canonical fast gate passes its Linux setup/CLI, scheduler, and semantic-mutation stages, then fails when Windows execution policy rejects the unsigned PowerShell test script. Treat the full gate as incomplete until that policy interaction is diagnosed separately; do not bypass or weaken policy as part of recovered-data work.
+The canonical fast gate passes. Under PowerShell 7.6.6, `RemoteSigned` treated scripts reached through the WSL UNC path as remote and rejected their missing signatures. The test runner now copies its PowerShell test tree to a disposable local Windows temp directory, runs it under the unchanged policy, and removes the copy on exit; `bash scripts/wsl-backup/test-all fast` validates the correction without elevation, a policy change, or an execution-policy override on the test invocation.
 
-The boat suite after relocation passed 46 tests, skipped 3, and failed 5: four failures require absent `rsync`; the archive-validation failure follows the missing-command path and exposes existing undefined-`stderr` handling. The path move and `.gitignore` change did not alter that implementation. Compatibility-path resolution and relocated PostgreSQL checksums pass.
+The latest boat evidence records 46 passes, 3 skips, and 5 failures after relocation. Four failures require absent `rsync`; the archive-validation failure follows that missing-command path and also exposes undefined-`stderr` handling. Revalidate both conditions in a separate boat project session before changing boat code or prerequisites. Compatibility-path resolution and relocated PostgreSQL checksums pass.
 
 Redundant-copy cleanup and boat-project consolidation are complete. The three recovered boat children are unique, ignored local project material—not duplicate cleanup candidates.
 

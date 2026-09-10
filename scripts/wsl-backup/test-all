@@ -7,10 +7,29 @@ LANE=${1:-fast}
 case "$LANE" in fast|integration|all) ;; *) echo "Unknown test lane: $LANE" >&2; exit 2 ;; esac
 
 require() { command -v "$1" >/dev/null 2>&1 || { echo "Required test tool is missing: $1" >&2; exit 1; }; }
+
+WINDOWS_TEST_ROOT=''
+cleanup_windows_tests() {
+  if [[ -n $WINDOWS_TEST_ROOT ]]; then rm -rf -- "$WINDOWS_TEST_ROOT"; fi
+}
+stage_windows_tests() {
+  local windows_temp windows_temp_linux
+  windows_temp=$(pwsh.exe -NoLogo -NoProfile -NonInteractive -Command '[IO.Path]::GetTempPath()')
+  windows_temp=${windows_temp//$'\r'/}
+  [[ -n $windows_temp ]] || { echo 'Windows TEMP path is empty' >&2; exit 1; }
+  windows_temp_linux=$(wslpath -u "$windows_temp")
+  WINDOWS_TEST_ROOT=$(mktemp -d -- "${windows_temp_linux%/}/wsl-backup-fast.XXXXXX")
+  cp -a -- "$ROOT/." "$WINDOWS_TEST_ROOT/"
+  trap cleanup_windows_tests EXIT
+}
 run_windows_test() {
-  local path
-  path=$(wslpath -w "$1")
+  local relative path
+  relative=${1#"$ROOT"/}
+  [[ $relative != "$1" ]] || { echo "Windows test is outside test root: $1" >&2; exit 1; }
+  path=$(wslpath -w "$WINDOWS_TEST_ROOT/$relative")
   printf 'test_start file=%s\n' "$path"
+  # RemoteSigned treats WSL's UNC path as remote. Run the unchanged fixture copy
+  # from local Windows TEMP instead of weakening or bypassing execution policy.
   pwsh.exe -NoLogo -NoProfile -NonInteractive -File "$path" </dev/null
   printf 'test_pass file=%s\n' "$path"
 }
@@ -42,6 +61,7 @@ run_fast() {
   "$ROOT/tests/test-setup-and-cli.sh"
   "$ROOT/home/test-scheduler.sh"
   "$ROOT/home/test-scheduler-mutations.sh"
+  stage_windows_tests
   run_windows_test "$ROOT/tests/Test-TestProcess.ps1"
   run_windows_test "$ROOT/home/Test-WslHomeWindows.ps1"
   run_windows_test "$ROOT/home/Test-WslHomeSchedulingShadow.ps1"

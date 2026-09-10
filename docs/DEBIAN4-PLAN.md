@@ -33,10 +33,8 @@ Dated build, inventory, inspection, recovery, and session records are historical
 
 ## Sequence
 
-1. The eight approved OneDrive files are complete and hash-verified; their redundant recovered roots and temporary provenance copies are deleted.
-2. Keep the three ignored recovered boat groups inert under the boat project. Selective integration, database restore, service installation, or retirement remains separately approval-required.
-3. In a separate bounded operation, diagnose the Windows PowerShell execution-policy rejection in the canonical fast gate. Do not weaken policy or elevate merely to make the test pass.
-4. Only with explicit owner approval, restore PostgreSQL, reconcile private Pi material, or pursue any boat integration candidate.
+1. Keep the three ignored recovered boat groups inert under the boat project. Diagnose the recorded boat test failures only in a separate boat project session; selective integration, database restore, service installation, or retirement remains separately approval-required.
+2. Only with explicit owner approval, restore PostgreSQL, reconcile private Pi material, or pursue any boat integration candidate.
 
 ## Stopping condition
 
