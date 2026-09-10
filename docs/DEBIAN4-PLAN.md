@@ -1,52 +1,50 @@
-# Debian4 completion and selective migration plan
+# Debian4 native restored-data reconciliation plan
 
-This is the active plan for Debian4. It authorizes no secret access, production operation, service change, external write, privilege elevation, distro removal, or evidence deletion by itself.
+## Objective
 
-## Current position
+Enable native Pi work on Debian4 to compare all restored data with existing data, retain unique material, and remove verified duplicates safely.
 
-Debian4 is the clean successor. Full-export implementation, production cold capture, real separate-distro recovery assurance, source integration, Debian-Backup retirement, external forensic cleanup, post-promotion backup verification, a one-off Windows-side Restic repository replica, retained-material disposition, documentation reconciliation, Terminal UI verification, the canonical source gate, and the final running-state decision are complete.
+This plan authorizes read-only local comparison and reporting. It does not authorize deletion, overwrite, merge, database restore, service installation, production backup operation, privilege elevation, remote write, or publication.
 
-Debian-Recovered, Debian-Backup, Debian2, and Debian3 are retired. After selected recovery material was verified in Debian4 and the owner declared further forensic recovery exhausted, the Debian-Backup clone, immutable August image, Windows recovery workspaces/evidence, and imported recovery-test distro were removed by explicit approval.
+## Sources of truth
 
-The accepted backup is Linux-owned incremental Restic history for `/home/jack` plus a Windows-owned complete Debian4 export on internal Windows storage. See the [backup contract](DEBIAN4-BACKUP-CONTRACT.md) for durable design and recovery constraints, [`STATUS.md`](../scripts/wsl-backup/STATUS.md) for current evidence locations, and [`TASKS.md`](../scripts/wsl-backup/TASKS.md) for the incomplete queue.
+- [`scripts/wsl-backup/STATUS.md`](../scripts/wsl-backup/STATUS.md): current verified state and uncertainty.
+- [`scripts/wsl-backup/TASKS.md`](../scripts/wsl-backup/TASKS.md): incomplete work only.
+- Native matrix `/home/jack/.local/state/dotfiles-debian4-reconciliation-matrix-20260910.md`: per-group comparison evidence and current disposition proposals.
+- [`DEBIAN4-BACKUP-CONTRACT.md`](DEBIAN4-BACKUP-CONTRACT.md): backup, recovery, and preservation boundaries.
+- Provenance directories within each promoted tree: source commit/file identity and retained manifests.
+- Git repositories and current files inside Debian4: implementation and live-data truth, subject to worktree preservation.
 
-## Completed closeout
+Dated build, source-inventory, inspection, and recovery-result documents are historical evidence, not current execution plans.
 
-- Reviewed the transferred recovered-material package inside Debian4 with its Linux timer controlled; promoted four isolated project snapshots plus selected celestial-navigation and woodworking files with provenance and SHA-256 verification.
-- During final reconciliation, promoted the divergent boat-data-platform snapshot as a fifth inert project tree and promoted the archive-only boat service, research notes, Symphony prototypes, and private personal files under `/home/jack/recovered-material/`. Independent SHA-256 verification passed, private modes were restricted, and no recovered content was executed.
-- Completed Debian-Backup's non-booting inventory, then removed its redundant writable clone with explicit approval.
-- Removed explicitly approved fixture registrations/directories, specialist tools and recovery-test distros, superseded generation, production cold clone, immutable August image, Windows recovery workspaces/evidence, and dated test artifacts.
-- Retained the accepted archive, Windows-side Restic replica, and promoted selections; removed `/home/jack/recovery/debian-final-recovery-20260909` after its wanted material was promoted and verified.
-- Verified Debian4 stopped at the cleanup checkpoint; after a later unknown restart, the owner explicitly selected the running final state so the enabled Linux timer can continue normally.
+## Current decisions
 
-## System roles and boundaries
+- Preserve all 16 recovered groups; the current exact deletion preview is empty.
+- Keep `/home/jack/boat-data-platform` authoritative for live boat work and retain the divergent recovered `17b6592` tree for focused path-level review.
+- Retain `life-fitness-console` as unique until usable history can be found or reconstructed without invention.
+- Treat all recovered-material groups as locally unique. Keep personal material private; database restore and service installation remain separate operations.
+- Preserve the complete Pi corpus and wrappers because they contain absent records, variants, and unique provenance despite partial active-history duplication.
 
-| System or artifact | Current role | Boundary |
-|---|---|---|
-| Debian4 | Clean successor and home of promoted recovered selections plus the intentionally retained private Pi recovery corpus | Running by owner decision. Its Linux backup timer is enabled. Do not query or operate production backup state, delete retained content, or stop/restart it without the applicable review and approval. |
-| Debian-Backup | Retired after final preservation inventory | Registration and writable clone storage are absent. |
-| Immutable August forensic image | Exhausted forensic source | Removed after explicit owner acceptance that no further recovery was wanted. |
-| `Debian4-RecoveryTest-20260909A` | Completed proof of real recovery | Registration, restored tree, and internal evidence were removed after the result was recorded and accepted. |
-| Production archive | Accepted full-export backup | Preserve generation `20260909T170315Z-091d2190` and its manifest. The cold clone was removed by explicit approval. |
-| Windows-side Restic replica | One-off encrypted copy outside Debian4's VHDX | Preserve `C:/WSL-Backups/Debian4/restic/20260910T000023Z-6090f188/`. It contains pinned snapshot `6090f188…`, passed `restic check`, and remains on the same physical disk. |
-| Fixture and superseded artifacts | Completed disposable assurance evidence | Registrations, directories, reports, and superseded generation were removed by explicit approval. |
+## Sequence
 
-## Completed constraints that remain operational
+1. Reconcile the clean native dotfiles checkout with the authoritative Windows branch through reviewed Git commit/push/fast-forward operations. Stop if either worktree changes or diverges.
+2. With explicit approval, clone the remotes for `energy-hub`, `octopus-tariff`, and `whatsapp-sqlite-analysis` into new `/home/jack/git/` paths. Verify recovered commit/tree ancestry and submodule identities against those local repositories; execute no project content.
+3. Preserve recovery provenance independently of payload duplication, then prepare a new exact deletion preview for any remote-retained recovered project roots. Verify current backup coverage before asking to delete them.
+4. Compare the 141 non-identical/recovered-only boat paths semantically and by history. Propose selective integration only where unique value is established; never replace the live repository wholesale.
+5. Investigate `life-fitness-console` history sources without initializing `.git` in the recovered tree or fabricating ancestry.
+6. Select authoritative live destinations for unique recovered-material groups. Review PostgreSQL only through manifests/dump metadata unless restore is approved; keep the boat service inert unless installation is approved.
+7. Reconcile Pi recovery at item level only if the owner wants active-session integration. Preserve session IDs, record identities, branches, variants, and wrapper provenance; never bulk-import or overwrite active sessions.
+8. After each approved integration, verify independently, update present-tense records, confirm backup coverage, and request separate approval for exact deletions.
 
-- Do not repeat production export, archive hashing/full listing, real import/boot, Restic full-data checking, or older-snapshot restore. Existing evidence is referenced from [`STATUS.md`](../scripts/wsl-backup/STATUS.md).
-- Do not claim an exact ACL/user-xattr/capability comparison; retained source examples were unavailable and this limitation is accepted.
-- Firewall changes and elevated offline-VHD isolation are not required for the accepted recovery.
-- Linux owns routine Restic scheduling. Do not add Windows polling, waking, or routine scheduling.
-- Any future cleanup of the accepted archive or Debian4 recovered/promoted material remains a separate approval boundary.
+## Stopping condition
 
-## Completion result
+For the next bounded operation, stop after the three approved local clones and identity revalidation produce a provenance-preservation and deletion proposal. Stop earlier if checkout authority, remote identity, submodule identity, or native worktree state differs from the matrix.
 
-No required post-closeout operation remains. Future work begins from [`TASKS.md`](../scripts/wsl-backup/TASKS.md) and requires its own scope and approvals.
+## Constraints
 
-## Deferred and out of scope
-
-The completed Windows-side Restic replica protects against VHDX loss but not physical-disk loss. Further external replication is optional and not a closeout prerequisite. PostgreSQL activation, broader backup scheduling changes, long-job consent deployment, and prune/full-data-check scheduling are separate workflow decisions. Do not revive the cancelled Debian-Recovered replication.
-
-## Current stopping point
-
-Debian-Backup recovery and Debian4 post-closeout reconciliation are complete. External forensic artifacts, the final in-Debian4 recovery workspace, redundant import staging, disposable import fixtures, and public-duplicate source snapshots are removed. Wanted selections and the verified PostgreSQL package are promoted; the private Pi recovery corpus is intentionally retained; backup coverage is verified; Terminal UI is accepted; the canonical gate passed; and Debian4 is intentionally running. No retained artifact may be removed without explicit approval.
+- Work natively on Debian4 from canonical project roots.
+- Preserve worktrees, untracked files, histories, remotes, provenance, branch variants, and private modes.
+- Do not execute recovered code, hooks, scripts, services, databases, or configuration during comparison.
+- Never infer duplicate status from names, timestamps, apparent purpose, or similar prose alone.
+- Do not recreate retired forensic evidence or repeat completed export/recovery assurance.
+- Deletion, overwrite, merge, database restore, service change, production Restic access, distro stop/restart, privilege elevation, publication, and other external writes require explicit approval.
