@@ -1,21 +1,24 @@
 # Debian4 restored-data reconciliation tasks
 
-Only current incomplete work belongs here. [`STATUS.md`](STATUS.md) records verified state and uncertainty; the [Debian4 plan](../../docs/DEBIAN4-PLAN.md) owns sequence and approval boundaries; the [backup contract](../../docs/DEBIAN4-BACKUP-CONTRACT.md) owns backup and recovery constraints.
+Only current incomplete work belongs here. [`STATUS.md`](STATUS.md) records verified state and uncertainty; the [Debian4 plan](../../docs/DEBIAN4-PLAN.md) owns sequence and approval boundaries.
 
-## Current priority
+## Debian4-owned work
 
-1. Synchronize the clean Debian4 dotfiles checkout with the authoritative reconciled Windows branch through reviewed Git operations; preserve any newly appearing native work.
-2. After exact approval, clone `energy-hub`, `octopus-tariff`, and `whatsapp-sqlite-analysis` into their proposed `/home/jack/git/` paths. Reverify recovered commit/tree ancestry and submodule identities locally without executing project content.
-3. Preserve all 16 recovered groups. The current deletion preview is empty because local project counterparts, unique material, provenance, and Pi variants are not yet safely reducible.
-4. Review the 141 non-identical or recovered-only boat paths against `/home/jack/boat-data-platform` before proposing selective integration. Keep the live repository authoritative and the recovered `17b6592` snapshot inert.
-5. Decide how to preserve or reconstruct usable history for `life-fitness-console`, whose recovered snapshot has no available local or remote counterpart.
-6. Treat every `/home/jack/recovered-material/` group as locally unique until an evidence-backed integration destination is selected. Database restore, service installation, and execution remain separate approvals.
-7. Preserve the complete private Pi recovery corpus and active wrappers. Any consolidation must retain absent records, branch variants, and source-to-wrapper provenance.
-8. After approved integration work, verify current backup coverage and produce a new exact deletion preview before removing any recovered path.
+1. Review the 141 non-identical or recovered-only boat paths against `/home/jack/boat-data-platform` by content and history. Keep the live repository authoritative and the recovered `17b6592` snapshot inert; propose only selective integrations supported by evidence.
+2. Investigate usable history sources for `life-fitness-console` without initializing `.git` in the recovered tree or inventing ancestry.
+3. Select authoritative live destinations for unique recovered-material groups. Keep PostgreSQL restore, boat-service installation, and all execution as separate operations.
+4. If requested, reconcile private Pi material item by item while preserving session IDs, record identities, branches, variants, wrappers, and source provenance. Do not bulk-import or overwrite active records.
+5. Before proposing any deletion, reverify relevant identities and worktrees, confirm current backup coverage, and preserve unique provenance independently. The exact payload-only proposal for the three validated project roots remains in `/home/jack/.local/state/dotfiles-debian4-clone-validation-20260910.md` and requires separate approval.
 
-## Preservation boundaries
+## Windows-owned work
 
-- Preserve the native reconciliation report at `/home/jack/.local/state/dotfiles-debian4-reconciliation-matrix-20260910.md`.
-- Preserve `C:/WSL-Backups/Debian4/full/20260909T170315Z-091d2190/` and `C:/WSL-Backups/Debian4/restic/20260910T000023Z-6090f188/`.
-- Do not execute recovered content, initialize replacement repositories, invent ancestry, flatten Pi variants, or infer duplicates from names.
-- Deletion, overwrite, merge, database restore, service change, production Restic access, privilege elevation, and external writes require explicit approval.
+Windows Pi owns only Windows checkout integrity, current project-record reconciliation, publication after approval, and Windows-side backup references. It must not compare, integrate, delete, or otherwise operate on Debian4 recovered data.
+
+Commit or publish these reconciled records only with the applicable approval.
+
+## Boundaries
+
+- Preserve both native reports under `/home/jack/.local/state/`, every recovered root, and every `.recovery-provenance` directory.
+- No recovered path is approved for deletion.
+- Deletion, merge, overwrite, database restore, service change, production Restic access, execution, privilege elevation, distro state change, and remote write require explicit approval.
+- Keep private material and Pi records out of logs and reports.

@@ -1,50 +1,47 @@
-# Debian4 native restored-data reconciliation plan
+# Debian4 restored-data reconciliation plan
 
 ## Objective
 
-Enable native Pi work on Debian4 to compare all restored data with existing data, retain unique material, and remove verified duplicates safely.
+Continue native Debian4 restored-data reconciliation after successful local clone validation, preserving unique material and requiring evidence and separate approval before any integration or deletion.
 
-This plan authorizes read-only local comparison and reporting. It does not authorize deletion, overwrite, merge, database restore, service installation, production backup operation, privilege elevation, remote write, or publication.
+All restored-data work belongs to native Pi on Debian4. Windows Pi owns only Windows checkout/record integrity, approved publication, and Windows-side backup references.
 
 ## Sources of truth
 
 - [`scripts/wsl-backup/STATUS.md`](../scripts/wsl-backup/STATUS.md): current verified state and uncertainty.
-- [`scripts/wsl-backup/TASKS.md`](../scripts/wsl-backup/TASKS.md): incomplete work only.
-- Native matrix `/home/jack/.local/state/dotfiles-debian4-reconciliation-matrix-20260910.md`: per-group comparison evidence and current disposition proposals.
-- [`DEBIAN4-BACKUP-CONTRACT.md`](DEBIAN4-BACKUP-CONTRACT.md): backup, recovery, and preservation boundaries.
-- Provenance directories within each promoted tree: source commit/file identity and retained manifests.
-- Git repositories and current files inside Debian4: implementation and live-data truth, subject to worktree preservation.
+- [`scripts/wsl-backup/TASKS.md`](../scripts/wsl-backup/TASKS.md): incomplete work.
+- `/home/jack/.local/state/dotfiles-debian4-reconciliation-matrix-20260910.md`: classification and identity evidence for all 16 recovered groups.
+- `/home/jack/.local/state/dotfiles-debian4-clone-validation-20260910.md`: successful local validation of three recovered project identities, provenance hashes, and the unexecuted payload-only deletion proposal.
+- Provenance manifests within each `/home/jack/recovered-projects/` root.
+- [`DEBIAN4-BACKUP-CONTRACT.md`](DEBIAN4-BACKUP-CONTRACT.md): preservation boundaries.
 
-Dated build, source-inventory, inspection, and recovery-result documents are historical evidence, not current execution plans.
+## Verified position
 
-## Current decisions
+The native clone validation completed from clean dotfiles commit `5697681`. Clean local clones now retain the verified Git identities for `energy-hub`, `octopus-tariff`, and `whatsapp-sqlite-analysis`; `octopus-tariff` has advanced three commits beyond its matching recovered ancestor. Energy Hub's three recorded gitlinks also match without submodule initialization.
 
-- Preserve all 16 recovered groups; the current exact deletion preview is empty.
-- Keep `/home/jack/boat-data-platform` authoritative for live boat work and retain the divergent recovered `17b6592` tree for focused path-level review.
-- Retain `life-fitness-console` as unique until usable history can be found or reconstructed without invention.
-- Treat all recovered-material groups as locally unique. Keep personal material private; database restore and service installation remain separate operations.
-- Preserve the complete Pi corpus and wrappers because they contain absent records, variants, and unique provenance despite partial active-history duplication.
+The recovered roots and their unique `.recovery-provenance` directories remain intact. No deletion, integration, execution, production backup access, or remote write was performed. The deletion proposal in the native result is not approved and cannot be considered until current backup coverage and identities are reverified.
 
-## Sequence
+## Native sequence
 
-1. Reconcile the clean native dotfiles checkout with the authoritative Windows branch through reviewed Git commit/push/fast-forward operations. Stop if either worktree changes or diverges.
-2. With explicit approval, clone the remotes for `energy-hub`, `octopus-tariff`, and `whatsapp-sqlite-analysis` into new `/home/jack/git/` paths. Verify recovered commit/tree ancestry and submodule identities against those local repositories; execute no project content.
-3. Preserve recovery provenance independently of payload duplication, then prepare a new exact deletion preview for any remote-retained recovered project roots. Verify current backup coverage before asking to delete them.
-4. Compare the 141 non-identical/recovered-only boat paths semantically and by history. Propose selective integration only where unique value is established; never replace the live repository wholesale.
-5. Investigate `life-fitness-console` history sources without initializing `.git` in the recovered tree or fabricating ancestry.
-6. Select authoritative live destinations for unique recovered-material groups. Review PostgreSQL only through manifests/dump metadata unless restore is approved; keep the boat service inert unless installation is approved.
-7. Reconcile Pi recovery at item level only if the owner wants active-session integration. Preserve session IDs, record identities, branches, variants, and wrapper provenance; never bulk-import or overwrite active sessions.
-8. After each approved integration, verify independently, update present-tense records, confirm backup coverage, and request separate approval for exact deletions.
+1. Compare the divergent recovered boat snapshot with authoritative `/home/jack/boat-data-platform` at path and history level. Propose only selective integration of demonstrated unique value; never replace the live repository wholesale.
+2. Investigate `life-fitness-console` history sources without initializing a repository in the recovered tree or fabricating ancestry.
+3. Select authoritative live destinations for unique recovered-material groups. Review PostgreSQL through manifests and dump metadata unless restore is separately approved; keep the recovered boat service inert unless installation is approved.
+4. Reconcile private Pi material item by item only if requested. Preserve session IDs, record identities, branches, variants, wrappers, and source provenance; never bulk-import or overwrite active records.
+5. After each separately approved integration, verify the result independently and update present-tense records.
+6. Before seeking approval for any exact deletion, reverify affected source/destination identities and clean worktrees, verify retained provenance, and confirm current backup coverage.
 
-## Stopping condition
+## Windows sequence
 
-For the next bounded operation, stop after the three approved local clones and identity revalidation produce a provenance-preservation and deletion proposal. Stop earlier if checkout authority, remote identity, submodule identity, or native worktree state differs from the matrix.
+Do not perform Debian4 restored-data work from Windows Pi. Windows may reconcile and validate repository records against supplied native results, then present exact commit and publication actions for approval.
+
+## Stopping conditions
+
+Stop a native operation if checkout authority, identity, ancestry, provenance, destination choice, or worktree state differs from recorded evidence. Stop before integration, deletion, restore, installation, service change, production backup access, privilege elevation, distro state change, or remote write unless that exact action has been separately approved.
 
 ## Constraints
 
 - Work natively on Debian4 from canonical project roots.
-- Preserve worktrees, untracked files, histories, remotes, provenance, branch variants, and private modes.
-- Do not execute recovered code, hooks, scripts, services, databases, or configuration during comparison.
+- Preserve worktrees, histories, recovered roots, provenance, branch variants, private modes, and backup artifacts.
+- Do not execute recovered code, hooks, scripts, builds, tests, services, databases, or configuration during comparison.
 - Never infer duplicate status from names, timestamps, apparent purpose, or similar prose alone.
-- Do not recreate retired forensic evidence or repeat completed export/recovery assurance.
-- Deletion, overwrite, merge, database restore, service change, production Restic access, distro stop/restart, privilege elevation, publication, and other external writes require explicit approval.
+- Publication and every destructive or external write remain explicit approval boundaries.
