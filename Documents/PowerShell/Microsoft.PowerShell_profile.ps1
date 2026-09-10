@@ -22,6 +22,11 @@ function Add-PathOnce([string]$Dir) {
 Add-PathOnce "$env:USERPROFILE\scoop\apps\git\current\usr\bin"
 Add-PathOnce "$env:USERPROFILE\scoop\apps\git\current\mingw64\bin"
 
+# --- WSL shortcuts ---
+function deb {
+    wsl.exe -d Debian4 -u jack --cd '~' --exec bash --login
+}
+
 # Python: use uv/uvx instead of pip
 Write-Host "uv: run, init, add, pip install | uvx <tool>" -ForegroundColor Cyan
 
