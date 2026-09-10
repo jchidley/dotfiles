@@ -4,14 +4,13 @@ Only current incomplete work belongs here. [`STATUS.md`](STATUS.md) records veri
 
 ## Current priority
 
-1. Compare the four retained private Pi recovery roots with active `~/.pi` read-only. Classify each item as an exact duplicate, complete import candidate, conflicting variant, or incomplete/provenance-only evidence. Produce an exact no-overwrite import preview and stop for owner approval before any active-state write.
-2. After explicit approval, import only unambiguous complete items while preserving session IDs, associations, branches, wrappers, and provenance. Validate the result and report every unresolved item with a recommended next action; never bulk-import or overwrite active sessions.
+Private Pi remediation has no incomplete repair action. Use and observe the marked recovered sessions normally; any future preferred-version choice among the 118 genuine contradictions requires a new explicit owner decision.
 
 Boat tests, selective integrations, and PostgreSQL restoration are owned by separate boat project operations, not this task list.
 
 ## Preservation boundaries
 
-- Preserve the matrix, clone-validation record, boat review, superseded local-only life-fitness search, destination report, and `/home/jack/.local/state/dotfiles-debian4-github-destination-follow-up-20260910.md` as evidence.
+- Preserve the private Pi preview chain and `/home/jack/.local/state/pi-recovery-import/20260910T134153Z-remainder-resolution/` result authority; preserve the verbatim/consolidated evidence root and the 118 contradictory originals.
 - Preserve the three unique ignored children under `~/git/boat-data-platform/recovered/` and unrelated work until a reviewed operation explicitly changes them. All redundant recovered roots are intentionally absent following owner-authorized cleanup.
-- Do not execute recovered content, initialize replacement repositories, invent ancestry, flatten Pi variants, infer duplicates from names, or run the superseded `/home/jack/.pi/next/dotfiles-debian4-0856.md` handoff.
+- Do not execute recovered content, initialize replacement repositories, invent ancestry, flatten Pi variants, infer duplicates from names, or run the superseded `/home/jack/.pi/next/dotfiles-debian4-0856.md` or `/home/jack/.pi/next/boat-1058.md` handoffs.
 - Deletion, overwrite, merge, database restore, service change, production Restic access, privilege elevation, publication, and other external writes require explicit approval.
