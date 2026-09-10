@@ -16,13 +16,13 @@ backup deployment, restore validation, scheduling, or source retirement.
 
 Execution evidence for the [Debian4 plan](DEBIAN4-PLAN.md). The owner authorized the official clean install, bootstrap, and comparison. **Debian4 was built and the bootstrap completed; it is not yet a fully validated daily-use successor.** No selected personal-data migration or service cutover has occurred.
 
-## Session closeout — governing decisions
+## Session closeout — historical decisions
 
-The [active plan](DEBIAN4-PLAN.md) owns next actions: extract useful current and recoverable data from Debian-Recovered and Debian-Backup, repair the reproducible baseline, then define and test fresh Debian4 backups. Debian4's clean baseline exists; do not rebuild it or replay an old migration.
+At this 5 September checkpoint, the [active plan](DEBIAN4-PLAN.md) called for extracting useful data from Debian-Recovered and Debian-Backup, repairing the reproducible baseline, and defining fresh Debian4 backups. Those actions and later source retirement are now complete; the active plan and [`STATUS.md`](../scripts/wsl-backup/STATUS.md) supersede this section for current operations. Debian4's clean baseline exists; do not rebuild it or replay an old migration.
 
-Subsequent checks confirmed Debian-Recovered's original Restic repository and authoritative SSH/GPG/AK material remain present. Debian-Recovered is the known-good source and Windows default. Debian-Backup is now a stopped writable clone of the protected August forensic image for controlled inspection and recovery. The [Debian3 comparison report](DEBIAN3-RECOVERED-COMPARISON.md) is non-operational historical evidence. Debian2 and Debian3 were subsequently retired.
+Checks at that checkpoint confirmed Debian-Recovered's original Restic repository and authoritative SSH/GPG/AK material. Debian-Recovered was then the known-good source and Windows default, while Debian-Backup was a stopped writable clone for controlled inspection. Both were subsequently retired after preservation and recovery gates passed. The [Debian3 comparison report](DEBIAN3-RECOVERED-COMPARISON.md) remains non-operational historical evidence; Debian2 and Debian3 were also retired.
 
-The selected AK direction is **new GPG key on Debian4, selected existing credentials re-encrypted from Debian-Recovered**. No key generation, secret transfer, API-key rotation or Windows AK route change has occurred.
+The selected AK direction at that checkpoint was **new GPG key on Debian4, selected existing credentials re-encrypted from Debian-Recovered**. The later transfer and Windows route cutover completed as recorded in current status; this sentence preserves the earlier pre-execution state.
 
 A later, separately requested Windows Terminal change is complete: Debian4 uses the exact recovered Debian2 red swirl; Debian2/Debian3 Terminal entries were removed, not merely hidden. That Terminal-only action did not delete distros; Debian3 was removed later through the separately authorized action recorded below. See [Terminal configuration](windows-terminal.md) for source assets, deployed paths, backups, verification and WSL regeneration caveat. This supersedes the earlier build-stage statement that Terminal was untouched, not the clean-build evidence itself.
 

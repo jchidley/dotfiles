@@ -1,6 +1,6 @@
 # Debian bootstrap
 
-For the current clean successor objective, follow the [Debian4 plan](../../docs/DEBIAN4-PLAN.md): official Debian WSL distribution, default user `jack`, reviewed bootstrap, then selective comparison/migration. The retained-builder default described below uses the earlier pinned rootfs and is **not** the approved Debian4 installation source.
+For current Debian4 operational state and remaining closeout work, follow the [Debian4 plan](../../docs/DEBIAN4-PLAN.md) and backup [status](../wsl-backup/STATUS.md). Debian4 was created from the official Debian WSL distribution with default user `jack`; the retained-builder default described below uses the earlier pinned rootfs and is **not** the Debian4 installation source.
 
 `debian-bootstrap-safe.sh` rebuilds the declared WSL workspace without relying on tools, credentials, or shell state inherited from an older installation. It is repository-only code: chezmoi does not render it into `~/scripts`.
 
@@ -104,11 +104,9 @@ Use only a new disposable install path and a distribution name beginning `Dotfil
 
 The default interactive bootstrap creates and selects the fresh AK/GnuPG identity, but it never copies GPG private keys, encrypted AK service files, SSH keys, credentials, or history.
 
-For Debian4, the selected design is a **new passphrase-protected GPG identity created on Debian4**, followed by direct re-encryption of explicitly selected existing AK values from authoritative Debian-Recovered. Do not use `Copy-WslAkSecrets.ps1` for this: that helper copies the source identity and complete encrypted vault. The selected transfer and routing cutover are recorded complete in the [current tasks](../wsl-backup/TASKS.md); do not replay them. Any later transfer must first pass disposable-key tests and must never place plaintext in files, arguments, environment variables, logs, or agent output. Owner passphrase interaction remains private.
+For Debian4, the completed design used a **new passphrase-protected GPG identity created on Debian4**, followed by direct re-encryption of explicitly selected existing AK values from Debian-Recovered. Do not use `Copy-WslAkSecrets.ps1` to replay this migration: that helper copies the source identity and complete encrypted vault. The selected transfer, verification, recovery protection, and routing cutover are recorded complete; any later transfer is a new operation and must never place plaintext in files, arguments, environment variables, logs, or agent output. Owner passphrase interaction remains private.
 
-Verify selected values by decryption on Debian4 without printing them, and establish protected recovery of the new private key and passphrase before relying on the vault. Keep Debian-Recovered intact through extraction and independent Debian4 recovery.
-
-After target validation and explicit approval, the Windows wrapper and managed WSL configuration now route to Debian4. `Set-WindowsAkRoute.ps1` remains the reviewed preview/`-Execute` mechanism for any later route change. Debian-Backup is not an AK routing target; it is a stopped inspection/recovery clone of the August forensic image.
+After target validation and explicit approval, the Windows wrapper and managed WSL configuration route to Debian4. `Set-WindowsAkRoute.ps1` remains the reviewed preview/`-Execute` mechanism for any later route change. Retired Debian-Backup was never an AK routing target.
 
 `Copy-WslAkSecrets.ps1` and `migrate-ak-secrets.sh` remain implementation/history for same-identity migrations and disposable testing. They are not the current Debian4 migration path.
 

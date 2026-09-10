@@ -1,6 +1,6 @@
 # WSL backup and recovery
 
-This directory owns the WSL backup implementation and local operational records. The [Debian4 plan](../../docs/DEBIAN4-PLAN.md) owns the immediate objective. Debian4 is the active distro and Windows default. Debian-Recovered remains an authoritative recovery source, and Debian-Backup is a stopped writable clone of the separately protected August forensic image for controlled inspection and recovery. Both are temporary extraction sources pending a complete Debian4 and independently tested recovery. Debian2 and Debian3 are retired. Historical research and benchmark evidence also live in the `jchidley/tools` WSL backup reference.
+This directory owns the WSL backup implementation and local operational records. The [Debian4 plan](../../docs/DEBIAN4-PLAN.md) owns the immediate objective. Debian4 is the active distro and Windows default. Debian-Recovered, Debian-Backup, Debian2, and Debian3 are retired after completed preservation, recovery assurance, and approved cleanup. The accepted full export and one-off encrypted Restic repository replica are retained on Windows. Historical research and benchmark evidence also live in the `jchidley/tools` WSL backup reference.
 
 Start with [`STATUS.md`](STATUS.md) for dated evidence and [`TASKS.md`](TASKS.md) for current incomplete work. [`RECOVERY-PLAN.md`](RECOVERY-PLAN.md) is now a short historical pointer. Setup and operation examples below describe interfaces, not authorization to change an existing installation.
 
@@ -43,7 +43,7 @@ wsl-backup home check
 wsl-backup system Status
 ```
 
-The old controller's capture modes are disabled. The new full-export candidate requires an already-stopped distro and does not stop it automatically; it is not yet the installed `wsl-backup system` capture path.
+The old controller's capture modes are disabled. The accepted full export used the reviewed cold-copy implementation recorded in the [backup contract](../../docs/DEBIAN4-BACKUP-CONTRACT.md); do not repeat that production capture merely because the generic installed `wsl-backup system` interface still describes retained controller operations.
 
 Restore home data only into an empty ext4 staging directory:
 
@@ -90,7 +90,7 @@ Fresh Debian4 backup scope follows selected capabilities and data. The old six-t
 - This README and component READMEs: current commands and operational behaviour.
 - [`STATUS.md`](STATUS.md): canonical local evidence, current limitations, and historical integration outcomes.
 - [`TASKS.md`](TASKS.md): incomplete work only.
-- [Debian4 plan](../../docs/DEBIAN4-PLAN.md): current clean-build, selected-capability/data and subsequent fresh-backup sequence.
+- [Debian4 plan](../../docs/DEBIAN4-PLAN.md): current sequence, retained-state decisions, and approval boundaries.
 - [`RECOVERY-PLAN.md`](RECOVERY-PLAN.md): historical pointer for the retired Debian3 plan; durable safeguards now live in the Debian4 plan.
 - [`LAPTOP-SCHEDULING-PLAN.md`](LAPTOP-SCHEDULING-PLAN.md): historical scheduling design and deferred long-job requirements, not an active deployment plan.
 - [`PRODUCTION-HEALTH-STATE-DECISION.md`](PRODUCTION-HEALTH-STATE-DECISION.md): retained policy/fixture acceptance contract; the Windows routine-controller deployment design is superseded.

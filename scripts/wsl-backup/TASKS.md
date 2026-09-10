@@ -4,7 +4,7 @@ Only current incomplete work belongs here. [`STATUS.md`](STATUS.md) records the 
 
 ## Current priority
 
-No required Debian4 backup-assurance closeout operation remains. [`STATUS.md`](STATUS.md) records the accepted archive/recovery, recovered-material dispositions, Debian-Backup retirement, approved cleanup, final stopped state, and retained artifacts.
+No required Debian4 post-closeout operation remains. [`STATUS.md`](STATUS.md) records the accepted backups, retained promotions and Pi recovery corpus, approved cleanup, Terminal acceptance, canonical test result, and final running state.
 
 ## Completed work that must not be repeated
 
@@ -16,8 +16,8 @@ No required Debian4 backup-assurance closeout operation remains. [`STATUS.md`](S
 
 ## Preservation and deferred work
 
-- Preserve the accepted archive, Debian4 recovered-material workspace, and promoted selections. Their recorded retention is not permission for later cleanup.
-- The divergent recovered boat-data-platform snapshot remains available for a separately scoped branch-level review; it is not a backup-assurance closeout requirement.
-- Optional Debian4 replication is deferred and is not required. The cancelled Debian-Recovered replication must not be revived.
+- Preserve the accepted archive, Windows-side Restic replica, promoted selections, and published private Pi recovery corpus. Approved recovery-workspace and redundant-staging deletions are complete; do not recreate them.
+- Do not recreate deleted forensic/recovery evidence or repeat production export/recovery tests merely to replace intentionally removed proof.
+- The one-off encrypted Restic repository replica under `C:/WSL-Backups/Debian4/restic/20260910T000023Z-6090f188/` protects against VHDX loss but not failure or loss of the internal physical disk. Further external replication remains optional; the cancelled Debian-Recovered replication must not be revived.
 - PostgreSQL activation, broader backup scheduling changes, long-job consent deployment, and prune/full-data-check scheduling remain separate workflow decisions.
 - Debian-Recovered, Debian-Backup, Debian2, and Debian3 are retired.

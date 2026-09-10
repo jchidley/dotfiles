@@ -2,7 +2,7 @@
 
 This document is a historical pointer, not an execution plan. Debian3 was permanently unregistered by explicit owner authorization after the selected comparison found no important unique application data requiring whole-distro retention.
 
-Current Debian4 capability/data selection, Debian-Backup forensic preservation, and fresh-backup work are governed solely by the [Debian4 plan](../../docs/DEBIAN4-PLAN.md). Dated Debian3 evidence remains in [`STATUS.md`](STATUS.md), the [Debian4 build results](../../docs/DEBIAN4-RESULTS.md), and the explicitly historical [Debian3 comparison](../../docs/DEBIAN3-RECOVERED-COMPARISON.md).
+Current Debian4 state and remaining post-closeout work are governed solely by the [Debian4 plan](../../docs/DEBIAN4-PLAN.md), [`STATUS.md`](STATUS.md), and [`TASKS.md`](TASKS.md). Debian-Backup forensic work, fresh-backup assurance, and source retirement are complete. Dated Debian3 evidence remains in the [Debian4 build results](../../docs/DEBIAN4-RESULTS.md) and explicitly historical [Debian3 comparison](../../docs/DEBIAN3-RECOVERED-COMPARISON.md).
 
 Durable requirements retained from the retired plan are incorporated into the active plan:
 
@@ -14,4 +14,4 @@ Durable requirements retained from the retired plan are incorporated into the ac
 - failed or interrupted validation must not promote an archive or delete source evidence;
 - existing Restic repositories and old archives must not be overwritten, transplanted, or pruned merely to initialize Debian4.
 
-The unfinished local exporter/password candidate remains source work for review. It must not be deployed as a Debian3 procedure or treated as the Debian4 recovery contract without adapting it to Debian4's deliberately selected contents.
+Historical exporter/password candidates remain source evidence only. Do not deploy them as a Debian3 procedure or substitute them for the completed Debian4 backup contract.

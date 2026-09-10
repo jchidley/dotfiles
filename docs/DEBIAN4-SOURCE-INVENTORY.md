@@ -4,7 +4,7 @@ This reference records dated source-selection snapshots and the later verified P
 
 ## Latest migration pointer — 7 September 2026
 
-The [current tasks](../scripts/wsl-backup/TASKS.md) supersede the earlier missing-tool, unexecuted credential/history-transfer and unresolved repository statements below. Selected data, AK routing and required bootstrap changes were subsequently integrated; fresh restore-tested Debian4 backups remain incomplete. These dated inventories are provenance, not a current transfer manifest or permission to replay work.
+The [current tasks](../scripts/wsl-backup/TASKS.md) and [`STATUS.md`](../scripts/wsl-backup/STATUS.md) supersede the earlier missing-tool, unexecuted credential/history-transfer, unresolved repository, and incomplete-backup statements below. Selected data, AK routing, required bootstrap changes, full-export recovery assurance, and source retirement subsequently completed. These dated inventories are provenance, not a current transfer manifest or permission to replay work.
 
 ## Verified Pi import — 6 September 2026, 11:49 UTC
 
