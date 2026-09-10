@@ -26,7 +26,7 @@ The older Windows `~/.local/share/chezmoi/` checkout is not the active source. R
 These are retained in place because a cosmetic move is not worth breaking deployments, services, large data/build trees, or established references:
 
 - `~/projects/heatpump-analysis/`: active operational heat-pump project with deployment paths, submodules, data, and large build output. Reassess only as a dedicated migration.
-- `~/boat-data-platform/`: active boat data platform; retain until service and path references are audited.
+- `~/git/boat-data-platform/`: canonical active boat data platform checkout. The legacy `~/boat-data-platform` path is a compatibility symlink because deployed scripts and service definitions intentionally use that target-host path; do not remove it without a dedicated deployment-path migration.
 - `~/src/celnav/`: substantial source/build tree; retain until references and large generated content are separated.
 - `~/research/`: small clean Git research checkout; its destination remains an ownership decision rather than an automatic move.
 - `~/src/boat-study/` and `~/boat-data-staging/`: non-Git study/staging data. They are not authoritative source projects; classify individual contents before moving or deleting them.

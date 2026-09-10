@@ -14,6 +14,8 @@ This plan authorizes read-only local comparison and reporting. It does not autho
 - Clone validation `/home/jack/.local/state/dotfiles-debian4-clone-validation-20260910.md`: local repository identities and payload-only cleanup proposal.
 - Boat review `/home/jack/.local/state/dotfiles-debian4-boat-selective-integration-proposal-20260910.md`: path/hash/history evidence and bounded integration candidates.
 - Life-fitness history search `/home/jack/.local/state/dotfiles-debian4-life-fitness-history-search-20260910.md`: verified snapshot identity, bounded local-source search, and remote approval boundary.
+- Recovered-material destination proposals `/home/jack/.local/state/dotfiles-debian4-recovered-material-destination-proposals-20260910.md`: protected archival destinations and inert retention methods.
+- Authenticated GitHub follow-up `/home/jack/.local/state/dotfiles-debian4-github-destination-follow-up-20260910.md`: exact `life_cycle` identity, new `celnav` and `research` checkouts, destination corrections, and the owner’s Symphony discard decision.
 - [`DEBIAN4-BACKUP-CONTRACT.md`](DEBIAN4-BACKUP-CONTRACT.md): backup, recovery, and preservation boundaries.
 - Provenance directories within each recovered tree: source commit/file identity and retained manifests.
 - Current Git repositories and files inside Debian4: implementation and live-data truth, subject to worktree preservation.
@@ -22,22 +24,23 @@ Dated build, inventory, inspection, recovery, and session records are historical
 
 ## Current decisions
 
-- Keep `/home/jack/boat-data-platform` authoritative for live boat work and retain the recovered `17b6592` tree as an inert variant. Consider only the four selective integration candidates in the boat-review record; none is approved for merge or deployment.
-- Accept the completed local `life-fitness-console` search and keep the recovered snapshot unique and inert. Its provenance retains no superproject origin URL. The two weak remote leads are optional follow-up only and require owner approval for authenticated access; do not initialize Git in the recovered tree or invent ancestry.
-- Keep all recovered-material groups protected until each has an authoritative destination. PostgreSQL restoration and boat-service installation are separate approval-required operations.
+- `/home/jack/git/boat-data-platform` is the canonical physical checkout; `/home/jack/boat-data-platform` is a compatibility symlink for intentional local and target-host path references. The divergent `17b6592` snapshot, retired-service archive, and PostgreSQL package each have one visible home under the checkout’s ignored `recovered/` directory. Directories use normal mode `0755`; regular PostgreSQL package files use mode `0644`.
+- The authenticated follow-up supersedes the local-only `life-fitness-console` disposition: clean `/home/jack/git/life_cycle` is the exact recovered commit/tree authority. Its duplicate recovered root and temporary provenance copy are deleted.
+- All seven celestial forms/variants are published in `jchidley/celnav` at `8e96795`; both recovered notes are published in `jchidley/research` at `6ba358d` with machine-specific SMB identifiers generalized. Their redundant recovered roots and provenance are deleted.
+- The Git-retained `energy-hub`, `octopus-tariff`, and `whatsapp-sqlite-analysis` recovered roots are deleted after exact commit/tree revalidation. The verified PostgreSQL boat-data package has one protected home at `/home/jack/git/boat-data-platform/recovered/postgresql-boatdata`. The Symphony prototype root is deleted.
 - Reconcile private Pi material only if the owner opts in, item by item, preserving session IDs, branches, variants, wrappers, and provenance.
-- The payload-only cleanup proposal is not approved for execution. Any cleanup requires fresh identity, worktree, provenance-hash, and backup-coverage checks followed by separate explicit approval.
+- Redundant project/material cleanup is complete under the owner’s explicit no-duplicate direction. The remaining boat roots are unique and are not deletion candidates.
 
 ## Sequence
 
-1. Choose an authoritative destination and proposed inert transfer or integration method for each unique group under `/home/jack/recovered-material/`. Keep PostgreSQL restoration and boat-service installation outside this operation.
-2. In a separate bounded operation, diagnose the Windows PowerShell execution-policy rejection in the canonical fast gate before treating that gate as complete. Do not weaken policy or elevate merely to make the test pass.
-3. Only with explicit owner approval, pursue optional work: authenticated checks of the two weak life-fitness remote leads, item-level private Pi reconciliation, or any of the four boat integration candidates.
-4. Before requesting cleanup approval, revalidate relevant repository identities and worktrees, verify retained provenance hashes, and confirm current backup coverage. Review the exact payload-only proposal in the clone-validation record and stop before deletion.
+1. The eight approved OneDrive files are complete and hash-verified; their redundant recovered roots and temporary provenance copies are deleted.
+2. Keep the three ignored recovered boat groups inert under the boat project. Selective integration, database restore, service installation, or retirement remains separately approval-required.
+3. In a separate bounded operation, diagnose the Windows PowerShell execution-policy rejection in the canonical fast gate. Do not weaken policy or elevate merely to make the test pass.
+4. Only with explicit owner approval, restore PostgreSQL, reconcile private Pi material, or pursue any boat integration candidate.
 
 ## Stopping condition
 
-For the next bounded operation, stop after authoritative destinations and inert transfer/integration proposals are recorded for the unique recovered-material groups. Stop earlier if identity, provenance, privacy, worktree, or destination-authority assumptions differ from retained evidence. Do not restore databases, install services, execute recovered content, or move material.
+Owner-directed placement, redundant-copy cleanup, and publication of boat consolidation commit `5758ab8` are complete. Stop before changing recovered boat material, restoring PostgreSQL, installing services, or integrating private Pi/boat material.
 
 ## Constraints
 
