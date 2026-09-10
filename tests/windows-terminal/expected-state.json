@@ -4,8 +4,6 @@
   "tabWidthMode": "equal",
   "useAcrylicInTabRow": false,
   "defaultProfile": "{574e775e-4f2a-5b96-ac1e-a2962a402336}",
-  "debianOnlyDefaultProfile": "{574e775e-4f2a-5b96-ac1e-a2962a402336}",
-  "noWslDefaultProfile": "{574e775e-4f2a-5b96-ac1e-a2962a402336}",
   "profileDefaults": {
     "colorScheme": "Gruvbox Dark (Hard)",
     "fontFace": "SauceCodePro Nerd Font",
@@ -15,15 +13,11 @@
   },
   "profiles": {
     "windowsPowerShellHidden": true,
-    "powerShell7Hidden": false,
-    "debianHidden": false,
-    "archHiddenWhenAbsent": true,
-    "alpineAbsentWhenNotInstalled": true
+    "powerShell7Hidden": false
   },
   "preserved": {
     "disableAnimations": true,
     "actionsCount": 1,
-    "commandPrompt": true,
     "customProfile": true,
     "customRetroEffect": true,
     "keepMeScheme": true

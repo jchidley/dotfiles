@@ -4,38 +4,17 @@
 
 [CmdletBinding(SupportsShouldProcess = $true)]
 param(
-    [string]$SettingsPath = (Join-Path $env:LOCALAPPDATA 'Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json'),
-    [object[]]$Distributions
+    [string]$SettingsPath = (Join-Path $env:LOCALAPPDATA 'Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json')
 )
 
 $ErrorActionPreference = 'Stop'
 
 $windowsPowerShellGuid = '{61c54bbd-c2c6-5271-96e7-009a87ff44bf}'
+$commandPromptGuid = '{0caa0dad-35be-5f56-a8ff-afceeeaa6101}'
 $powerShellCoreGuid = '{574e775e-4f2a-5b96-ac1e-a2962a402336}'
-
-# Profile policy is data, while profile mutation remains generic below.
-$wslProfileSpecs = @(
-    [pscustomobject]@{
-        Distro = 'Debian4'
-        Name = 'Debian4'
-        Guid = '{4eeffcc0-18c0-5b29-b6c3-02305b49996d}'
-    },
-    [pscustomobject]@{
-        Distro = 'Debian'
-        Name = 'Debian'
-        Guid = '{58ad8b0c-3ef8-5f4d-bc6f-13e4c00f2530}'
-    },
-    [pscustomobject]@{
-        Distro = 'Alpine'
-        Name = 'Alpine Linux'
-        Guid = '{77526b00-08ae-4477-bddc-9587432a0901}'
-    },
-    [pscustomobject]@{
-        Distro = 'archlinux'
-        Name = 'Arch Linux'
-        Guid = '{a06ad568-9eae-4b45-98e1-d7b6a5309eec}'
-    }
-)
+$debian4Guid = '{4eeffcc0-18c0-5b29-b6c3-02305b49996d}'
+$lfsBuilderGuid = '{019eae77-1a16-5569-b272-c73b29fdf035}'
+$herdrGuid = '{ed03c588-ea88-47d4-9e2d-ebfb2913b0ba}'
 
 function New-ObjectFromHashtable([hashtable]$Hash) {
     $obj = [pscustomobject]@{}
@@ -54,36 +33,6 @@ function Remove-JsonProperty($Object, [string]$Name) {
     if ($prop) {
         $Object.PSObject.Properties.Remove($Name)
     }
-}
-
-function Get-LxssDistributions {
-    $lxssKey = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Lxss'
-    if (-not (Test-Path $lxssKey)) { return @() }
-
-    return @(Get-ChildItem $lxssKey | ForEach-Object { Get-ItemProperty $_.PSPath } |
-        Where-Object { $_.DistributionName -and $_.BasePath } |
-        ForEach-Object {
-            [pscustomobject]@{
-                Name = [string]$_.DistributionName
-                BasePath = [string]$_.BasePath
-            }
-        })
-}
-
-function Find-Distribution([object[]]$Available, [string]$Name) {
-    return $Available | Where-Object { $_.Name -eq $Name -and $_.BasePath } | Select-Object -First 1
-}
-
-function Get-DistroIcon($Distro) {
-    if (-not $Distro -or -not $Distro.BasePath) { return $null }
-
-    $icon = [System.IO.Path]::Combine([string]$Distro.BasePath, 'shortcut.ico')
-    if ($icon.StartsWith('\\?\')) {
-        $icon = $icon.Substring(4)
-    }
-    if (-not [System.IO.File]::Exists($icon)) { return $null }
-
-    return $icon -replace [regex]::Escape($env:LOCALAPPDATA), '%LOCALAPPDATA%'
 }
 
 function Get-ProfileList($Settings) {
@@ -137,25 +86,20 @@ function Ensure-Profile($Settings, [hashtable]$Desired) {
     Set-ProfileList $Settings $list
 }
 
-function Remove-Profile($Settings, [string]$Guid) {
+function Set-ProfileOrder($Settings, [string[]]$Guids) {
     $list = Get-ProfileList $Settings
-    for ($index = $list.Count - 1; $index -ge 0; $index--) {
-        if ($list[$index].guid -eq $Guid) {
-            $list.RemoveAt($index)
-        }
-    }
-    Set-ProfileList $Settings $list
-}
+    $ordered = New-Object System.Collections.ArrayList
 
-function Set-ExistingProfileHidden($Settings, [string]$Guid, [bool]$Hidden) {
-    $list = Get-ProfileList $Settings
     foreach ($profile in $list) {
-        if ($profile.guid -eq $Guid) {
-            Set-JsonProperty $profile 'hidden' $Hidden
-            Set-ProfileList $Settings $list
-            return
+        if ($profile.guid -notin $Guids) { [void]$ordered.Add($profile) }
+    }
+    foreach ($guid in $Guids) {
+        foreach ($profile in $list) {
+            if ($profile.guid -eq $guid) { [void]$ordered.Add($profile); break }
         }
     }
+
+    Set-ProfileList $Settings $ordered
 }
 
 function Ensure-Scheme($Settings, [hashtable]$Desired) {
@@ -198,12 +142,6 @@ function Write-JsonAtomically([string]$Path, [string]$Content) {
         Remove-Item -LiteralPath $tempPath -Force -ErrorAction SilentlyContinue
         Remove-Item -LiteralPath $backupPath -Force -ErrorAction SilentlyContinue
     }
-}
-
-if ($PSBoundParameters.ContainsKey('Distributions')) {
-    $availableDistributions = @($Distributions)
-} else {
-    $availableDistributions = @(Get-LxssDistributions)
 }
 
 if (Test-Path -LiteralPath $SettingsPath) {
@@ -259,15 +197,20 @@ Ensure-Scheme $settings @{
     selectionBackground = '#7C6F64'
 }
 
-# Keep Windows PowerShell 5.1 unavailable in the Terminal UI.
+# The menu is intentionally small: three primary profiles, Command Prompt last,
+# and only generated profiles that cannot be removed are hidden.
 Ensure-Profile $settings @{
     guid = $windowsPowerShellGuid
     name = 'Windows PowerShell (unsupported)'
     commandline = '%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe'
     hidden = $true
 }
+Ensure-Profile $settings @{
+    guid = $lfsBuilderGuid
+    name = 'LFS-Builder'
+    hidden = $true
+}
 
-# PowerShell 7 is the only managed Windows PowerShell profile.
 Ensure-Profile $settings @{
     guid = $powerShellCoreGuid
     name = 'PowerShell 7'
@@ -275,57 +218,32 @@ Ensure-Profile $settings @{
     source = $null
     hidden = $false
 }
-
-# Permanently remove profiles for retired distributions, including identities
-# previously created by Windows Terminal or this script.
-foreach ($retiredGuid in @(
-    '{7e3ad175-91fc-536c-b346-f9d77cce7280}',
-    '{20517053-d9f3-52e4-b051-e3ddd867b0a3}'
-)) {
-    Remove-Profile $settings $retiredGuid
+Ensure-Profile $settings @{
+    guid = $herdrGuid
+    name = 'herdr'
+    commandline = '%USERPROFILE%\.herdr\packages\standalone\current\herdr.exe'
+    icon = '%LOCALAPPDATA%\dotfiles\icons\herdr-logo.png'
+    hidden = $false
+}
+Ensure-Profile $settings @{
+    guid = $debian4Guid
+    name = 'Debian4'
+    commandline = 'wsl.exe -d Debian4 -u jack --exec bash --login'
+    startingDirectory = '~'
+    icon = '%LOCALAPPDATA%\dotfiles\icons\debian-official-swirl.png'
+    hidden = $false
+}
+Ensure-Profile $settings @{
+    guid = $commandPromptGuid
+    name = 'Command Prompt'
+    commandline = '%SystemRoot%\System32\cmd.exe'
+    icon = '%SystemRoot%\System32\cmd.exe'
+    hidden = $false
 }
 
-# Windows Terminal can retain generated profiles after a WSL distro is
-# unregistered. Remove only source-owned WSL profiles whose exact distro name
-# is absent; preserve custom/static profiles and every registered distro.
-$availableNames = [System.Collections.Generic.HashSet[string]]::new(
-    [System.StringComparer]::OrdinalIgnoreCase
-)
-foreach ($distro in $availableDistributions) {
-    if ($distro.Name) { [void]$availableNames.Add([string]$distro.Name) }
-}
-$profileList = Get-ProfileList $settings
-for ($index = $profileList.Count - 1; $index -ge 0; $index--) {
-    $profile = $profileList[$index]
-    if ($profile.source -eq 'Microsoft.WSL' -and -not $availableNames.Contains([string]$profile.name)) {
-        $profileList.RemoveAt($index)
-    }
-}
-Set-ProfileList $settings $profileList
-
-foreach ($spec in $wslProfileSpecs) {
-    # Remove profiles created under superseded managed identities before adopting
-    # the corresponding Windows Terminal-generated profile GUID.
-    foreach ($legacyGuid in @($spec.LegacyGuids)) {
-        Remove-Profile $settings $legacyGuid
-    }
-
-    $distro = Find-Distribution $availableDistributions $spec.Distro
-    if ($distro) {
-        Ensure-Profile $settings @{
-            guid = $spec.Guid
-            name = $spec.Name
-            commandline = $(if ($spec.Distro -eq 'Debian4') { 'wsl.exe -d Debian4 -u jack --exec bash --login' } else { "wsl.exe -d $($spec.Distro)" })
-            startingDirectory = '~'
-            icon = Get-DistroIcon $distro
-            hidden = $false
-        }
-    } else {
-        # Hide a stale managed profile, but do not create one for an absent distro.
-        Set-ExistingProfileHidden $settings $spec.Guid $true
-    }
-}
-
+# Windows Terminal renders profiles in list order. Keep Command Prompt available
+# for compatibility while placing it after the primary profiles.
+Set-ProfileOrder $settings @($powerShellCoreGuid, $herdrGuid, $debian4Guid, $commandPromptGuid)
 Set-JsonProperty $settings 'defaultProfile' $powerShellCoreGuid
 
 $newJson = $settings | ConvertTo-Json -Depth 100

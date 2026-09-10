@@ -8,28 +8,34 @@ Windows Terminal owns and rewrites its live `settings.json`, so chezmoi does not
 - Equal-width tabs with no tab-row acrylic.
 - `SauceCodePro Nerd Font` at 12 pt.
 - The complete `Gruvbox Dark (Hard)` color scheme.
-- Windows PowerShell 5.1 is marked unsupported and hidden.
-- PowerShell 7 is visible and explicitly launches `pwsh.exe`.
-- Registered WSL distributions in the profile table receive static profiles and their registered `shortcut.ico`.
-- Managed profiles use Windows Terminal's generated GUIDs so dynamic WSL profiles are adopted rather than duplicated; superseded managed GUIDs are removed during migration.
-- Stale managed profiles are hidden; profiles are not created for absent distributions.
-- PowerShell 7 is always the default profile; WSL profiles remain available explicitly.
+- PowerShell 7 is the default and first visible managed profile.
+- `herdr` launches the stable `current\herdr.exe` installation directly with Herdr's official logo.
+- Debian4 launches login Bash with the preserved red-swirl icon.
+- Command Prompt remains available with its standard icon and appears last.
+- Windows PowerShell 5.1 and LFS-Builder are hidden to suppress their generated profiles.
 
-Command Prompt, actions, keybindings, menus, themes, unrelated schemes, custom profiles, and unmanaged profile-default properties remain Windows Terminal-owned.
+Actions, keybindings, menus, themes, unrelated schemes, custom profiles, and unmanaged profile-default properties remain Windows Terminal-owned.
 
 ## Source layout
 
 ```text
-scripts/configure-windows-terminal.ps1       policy, discovery, and safe mutation
-run_onchange_after_50-windows-terminal.*     chezmoi invocation plus helper hash
-tests/windows-terminal/                      non-live fixtures and regression test
+scripts/configure-windows-terminal.ps1       profile policy and safe settings mutation
+AppData/Local/Microsoft/Windows Terminal/     Debian4 generated-profile override
+AppData/Local/dotfiles/icons/                 stable custom profile icons
+run_onchange_after_50-windows-terminal.*      chezmoi invocation plus helper hash
+tests/windows-terminal/                       non-live fixtures and regression test
 ```
 
-The WSL profile policy is the `$wslProfileSpecs` table near the top of the helper. Add or rename a managed distro there rather than duplicating profile mutation code.
+The Herdr profile icon is the upstream `assets/logo.png` from
+[`herdrdev/herdr`](https://github.com/herdrdev/herdr), retained at
+`AppData/Local/dotfiles/icons/herdr-logo.png` and deployed to the matching
+`%LOCALAPPDATA%` path. Its SHA-256 is
+`56fc2db845c16eb521022549890fbe239659957caee1f4fc718a634d7a66cf0a`.
+Herdr is licensed under Apache-2.0.
 
 ## Debian4 profile and preserved Debian swirl
 
-WSL supplies Debian4's profile through its `Microsoft.WSL` fragment. The targeted override at `AppData/Local/Microsoft/Windows Terminal/Fragments/Dotfiles/debian4.json` updates that existing profile GUID; it does not add a second profile or change Terminal/WSL defaults. It launches `wsl.exe -d Debian4 -u jack`, starts in the Linux home, and uses the preserved Debian2 red-swirl icon.
+WSL supplies Debian4's generated profile. The settings helper adopts that GUID as a static profile, while the matching override at `AppData/Local/Microsoft/Windows Terminal/Fragments/Dotfiles/debian4.json` keeps the generated profile consistent. Both launch `wsl.exe -d Debian4 -u jack --exec bash --login`, start in the Linux home, and use the preserved Debian2 red-swirl icon.
 
 The icon, official SVG, license attribution and exact reproduction hashes live in [`../AppData/Local/dotfiles/icons/`](../AppData/Local/dotfiles/icons/README.md). Windows deployment is `%LOCALAPPDATA%\dotfiles\icons\debian-official-swirl.png`, independent of distro deletion. The PNG exactly matches Debian2's historical icon, not the stock `shortcut.ico` used by Debian3/4.
 

@@ -32,16 +32,7 @@ try {
     $settingsPath = Join-Path $work 'settings.json'
     Copy-Item -LiteralPath $inputFixture -Destination $settingsPath
 
-    $debianRoot = Join-Path $work 'Debian'
-    $null = New-Item -ItemType Directory -Path $debianRoot
-    [System.IO.File]::WriteAllBytes((Join-Path $debianRoot 'shortcut.ico'), [byte[]](1, 2, 3))
-
-    $distributions = @(
-        [pscustomobject]@{ Name = 'Debian'; BasePath = $debianRoot },
-        [pscustomobject]@{ Name = 'Debian4'; BasePath = $debianRoot }
-    )
-
-    & $scriptPath -SettingsPath $settingsPath -Distributions $distributions
+    & $scriptPath -SettingsPath $settingsPath
     $settings = Get-Content -LiteralPath $settingsPath -Raw | ConvertFrom-Json
 
     Assert-Equal $settings.copyFormatting $expected.copyFormatting 'copyFormatting policy differs'
@@ -58,29 +49,32 @@ try {
 
     $windowsPowerShell = Get-Profile $settings '{61c54bbd-c2c6-5271-96e7-009a87ff44bf}'
     $powerShell7 = Get-Profile $settings '{574e775e-4f2a-5b96-ac1e-a2962a402336}'
-    $debian = Get-Profile $settings '{58ad8b0c-3ef8-5f4d-bc6f-13e4c00f2530}'
-    $arch = Get-Profile $settings '{a06ad568-9eae-4b45-98e1-d7b6a5309eec}'
-    $alpine = Get-Profile $settings '{77526b00-08ae-4477-bddc-9587432a0901}'
+    $herdr = Get-Profile $settings '{ed03c588-ea88-47d4-9e2d-ebfb2913b0ba}'
+    $debian4 = Get-Profile $settings '{4eeffcc0-18c0-5b29-b6c3-02305b49996d}'
+    $lfsBuilder = Get-Profile $settings '{019eae77-1a16-5569-b272-c73b29fdf035}'
+    $commandPrompt = Get-Profile $settings '{0caa0dad-35be-5f56-a8ff-afceeeaa6101}'
 
     Assert-Equal $windowsPowerShell.hidden $expected.profiles.windowsPowerShellHidden 'Windows PowerShell visibility differs'
     Assert-Equal $windowsPowerShell.name 'Windows PowerShell (unsupported)' 'Windows PowerShell was not marked unsupported'
     Assert-Equal $powerShell7.hidden $expected.profiles.powerShell7Hidden 'PowerShell 7 visibility differs'
     Assert-Equal $powerShell7.commandline 'pwsh.exe' 'PowerShell 7 does not explicitly launch pwsh.exe'
     Assert-True (-not $powerShell7.PSObject.Properties['source']) 'PowerShell 7 remained dynamically sourced'
-    Assert-Equal $debian.hidden $expected.profiles.debianHidden 'Debian visibility differs'
-    Assert-Equal @($settings.profiles.list | Where-Object { $_.guid -in @('{7e3ad175-91fc-536c-b346-f9d77cce7280}', '{20517053-d9f3-52e4-b051-e3ddd867b0a3}') }).Count 0 'Debian-Recovered profiles were not removed'
-    Assert-Equal @($settings.profiles.list | Where-Object { $_.guid -eq '{99999999-9999-9999-9999-999999999999}' }).Count 0 'stale generated WSL profile was not removed'
-    Assert-Equal $arch.hidden $expected.profiles.archHiddenWhenAbsent 'stale Arch profile was not hidden'
-    Assert-Equal (@($settings.profiles.list | Where-Object { $_.guid -eq '{77526b00-08ae-4477-bddc-9587432a0901}' }).Count -eq 0) $expected.profiles.alpineAbsentWhenNotInstalled 'absent Alpine profile was created'
-    Assert-True (-not $debian.PSObject.Properties['source']) 'Debian profile remained dynamically sourced'
-    $debian4 = Get-Profile $settings '{4eeffcc0-18c0-5b29-b6c3-02305b49996d}'
+    Assert-Equal $herdr.name 'herdr' 'herdr profile name differs'
+    Assert-Equal $herdr.commandline '%USERPROFILE%\.herdr\packages\standalone\current\herdr.exe' 'herdr profile command line differs'
+    Assert-Equal $herdr.icon '%LOCALAPPDATA%\dotfiles\icons\herdr-logo.png' 'herdr profile icon differs'
+    Assert-Equal $herdr.hidden $false 'herdr profile is hidden'
+    Assert-Equal $debian4.hidden $false 'Debian4 profile is hidden'
     Assert-Equal $debian4.commandline 'wsl.exe -d Debian4 -u jack --exec bash --login' 'Debian4 must explicitly launch login Bash'
-    Assert-Equal $debian.commandline 'wsl.exe -d Debian' 'Debian command line differs'
-    Assert-True ($debian.icon -like '*shortcut.ico') 'Debian icon was not discovered'
+    Assert-Equal $debian4.icon '%LOCALAPPDATA%\dotfiles\icons\debian-official-swirl.png' 'Debian4 custom icon differs'
+    Assert-True (-not $debian4.PSObject.Properties['source']) 'Debian4 profile remained dynamically sourced'
+    Assert-Equal $lfsBuilder.hidden $true 'LFS-Builder profile was not suppressed'
+    Assert-Equal $commandPrompt.hidden $false 'Command Prompt is hidden'
+    Assert-Equal $commandPrompt.commandline '%SystemRoot%\System32\cmd.exe' 'Command Prompt command line differs'
+    Assert-Equal $commandPrompt.icon '%SystemRoot%\System32\cmd.exe' 'Command Prompt standard icon differs'
+    Assert-Equal @($settings.profiles.list)[-1].guid $commandPrompt.guid 'Command Prompt is not last in the managed menu order'
 
     Assert-Equal $settings.disableAnimations $expected.preserved.disableAnimations 'unmanaged animation setting was not preserved'
     Assert-Equal @($settings.actions).Count $expected.preserved.actionsCount 'unmanaged actions were not preserved'
-    Assert-Equal ([bool](Get-Profile $settings '{0caa0dad-35be-5f56-a8ff-afceeeaa6101}')) $expected.preserved.commandPrompt 'Command Prompt profile was not preserved'
     $custom = Get-Profile $settings '{11111111-1111-1111-1111-111111111111}'
     Assert-Equal ([bool]$custom) $expected.preserved.customProfile 'custom profile was not preserved'
     Assert-Equal $custom.'experimental.retroTerminalEffect' $expected.preserved.customRetroEffect 'custom profile property was not preserved'
@@ -88,32 +82,25 @@ try {
     Assert-Equal ($settings.schemes | Where-Object { $_.name -eq 'Gruvbox Dark (Hard)' }).background $expected.gruvboxBackground 'managed Gruvbox scheme was not replaced'
 
     $firstHash = (Get-FileHash -Algorithm SHA256 -LiteralPath $settingsPath).Hash
-    & $scriptPath -SettingsPath $settingsPath -Distributions $distributions
+    & $scriptPath -SettingsPath $settingsPath
     $secondHash = (Get-FileHash -Algorithm SHA256 -LiteralPath $settingsPath).Hash
     Assert-Equal $secondHash $firstHash 'second application was not idempotent'
 
     $whatIfPath = Join-Path $work 'whatif-settings.json'
     Copy-Item -LiteralPath $inputFixture -Destination $whatIfPath
     $beforeWhatIf = (Get-FileHash -Algorithm SHA256 -LiteralPath $whatIfPath).Hash
-    & $scriptPath -SettingsPath $whatIfPath -Distributions $distributions -WhatIf
+    & $scriptPath -SettingsPath $whatIfPath -WhatIf
     $afterWhatIf = (Get-FileHash -Algorithm SHA256 -LiteralPath $whatIfPath).Hash
     Assert-Equal $afterWhatIf $beforeWhatIf '-WhatIf modified settings'
 
-    $debianOnlyPath = Join-Path $work 'debian-only-settings.json'
-    Copy-Item -LiteralPath $inputFixture -Destination $debianOnlyPath
-    & $scriptPath -SettingsPath $debianOnlyPath -Distributions @($distributions[0])
-    $debianOnly = Get-Content -LiteralPath $debianOnlyPath -Raw | ConvertFrom-Json
-    Assert-Equal $debianOnly.defaultProfile $expected.debianOnlyDefaultProfile 'PowerShell 7 was not retained as the default with only Debian installed'
-
-    $noWslPath = Join-Path $work 'new\settings.json'
-    & $scriptPath -SettingsPath $noWslPath -Distributions @()
-    $noWsl = Get-Content -LiteralPath $noWslPath -Raw | ConvertFrom-Json
-    Assert-Equal $noWsl.defaultProfile $expected.noWslDefaultProfile 'PowerShell 7 was not selected when WSL was absent'
-    Assert-Equal @($noWsl.profiles.list | Where-Object { $_.commandline -like 'wsl.exe -d *' }).Count 0 'WSL profiles were created when no distros were installed'
-    Assert-Equal @($noWsl.profiles.list | Where-Object { $_.source -eq 'Microsoft.WSL' }).Count 0 'stale generated WSL profiles remained when no distros were installed'
+    $newSettingsPath = Join-Path $work 'new\settings.json'
+    & $scriptPath -SettingsPath $newSettingsPath
+    $newSettings = Get-Content -LiteralPath $newSettingsPath -Raw | ConvertFrom-Json
+    Assert-Equal $newSettings.defaultProfile $expected.defaultProfile 'PowerShell 7 was not selected for new settings'
+    Assert-Equal @($newSettings.profiles.list)[-1].guid '{0caa0dad-35be-5f56-a8ff-afceeeaa6101}' 'Command Prompt is not last in new settings'
 
     $newWhatIfPath = Join-Path $work 'whatif-new\settings.json'
-    & $scriptPath -SettingsPath $newWhatIfPath -Distributions @() -WhatIf
+    & $scriptPath -SettingsPath $newWhatIfPath -WhatIf
     Assert-True (-not (Test-Path -LiteralPath (Split-Path -Parent $newWhatIfPath))) '-WhatIf created a settings directory'
 
     $leftovers = @(Get-ChildItem -LiteralPath $work -Recurse -File | Where-Object { $_.Name -match '\.(tmp|bak)$' })

@@ -3,7 +3,7 @@
     {
       "updates": "{4eeffcc0-18c0-5b29-b6c3-02305b49996d}",
       "name": "Debian4",
-      "commandline": "wsl.exe -d Debian4 -u jack",
+      "commandline": "wsl.exe -d Debian4 -u jack --exec bash --login",
       "startingDirectory": "~",
       "hidden": false,
       "icon": "%LOCALAPPDATA%\\dotfiles\\icons\\debian-official-swirl.png"
