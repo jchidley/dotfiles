@@ -4,9 +4,10 @@ Only current incomplete work belongs here. [`STATUS.md`](STATUS.md) records veri
 
 ## Current priority
 
-1. Diagnose the recorded boat test failures in a separate project session from physical checkout `/home/jack/git/boat-data-platform`, after reading that repository's `AGENTS.md`, `docs/development.md`, and `docs/operations.md`. Revalidate the absent-`rsync` prerequisite separately from the undefined-`stderr` defect with targeted tests. Stop before package installation, sudo, deployment, service/database action, or push without approval; do not edit boat code from this dotfiles session.
-2. Only if the owner wants it, reconcile private Pi material item by item while preserving session IDs, branches, variants, wrappers, and provenance. Do not bulk-import or overwrite active sessions.
-3. If the owner authorizes boat integration or PostgreSQL restore, use the retained boat review and treat each action as a separate design/test operation. Do not merge, execute, or delete material under `~/git/boat-data-platform/recovered/` or deploy recovered content as part of reconciliation.
+1. Compare the four retained private Pi recovery roots with active `~/.pi` read-only. Classify each item as an exact duplicate, complete import candidate, conflicting variant, or incomplete/provenance-only evidence. Produce an exact no-overwrite import preview and stop for owner approval before any active-state write.
+2. After explicit approval, import only unambiguous complete items while preserving session IDs, associations, branches, wrappers, and provenance. Validate the result and report every unresolved item with a recommended next action; never bulk-import or overwrite active sessions.
+
+Boat tests, selective integrations, and PostgreSQL restoration are owned by separate boat project operations, not this task list.
 
 ## Preservation boundaries
 

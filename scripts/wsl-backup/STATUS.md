@@ -18,17 +18,17 @@ The native comparison matrix is `/home/jack/.local/state/dotfiles-debian4-reconc
 - The explicitly authorized `symphony-typescript-prototypes` root was deleted after the owner waived backup retention.
 - Owner-approved OneDrive placement is complete: two woodworking scripts under `Documents\Woodworking`, five CV/recruiter documents under `Documents\Job CV`, and the medication log under `Documents\Health\Medication`. All eight destination SHA-256 values match their sources. Both recovered roots and temporary provenance copies were deleted.
 - The former recovered-project/material parent roots are gone. The divergent boat snapshot, retired-service archive, and verified PostgreSQL package each have one home under `/home/jack/git/boat-data-platform/recovered/`; directories use normal mode `0755` and regular PostgreSQL package files use mode `0644`, and all identities/checksums match their pre-move values.
-- The private Pi recovery corpus contains retained-history overlap plus absent records, branch variants, wrappers, and unique provenance. Active-session reconciliation is optional and cannot be a bulk import.
+- The four private Pi recovery roots contain retained-history overlap plus absent records, branch variants, wrappers, associations, and unique provenance. The owner wants item-level reconciliation, beginning with a fresh read-only comparison and no-overwrite import preview; no active Pi write is approved yet.
 
 ## Validation and cleanup readiness
 
 The canonical fast gate passes. Under PowerShell 7.6.6, `RemoteSigned` treated scripts reached through the WSL UNC path as remote and rejected their missing signatures. The test runner now copies its PowerShell test tree to a disposable local Windows temp directory, runs it under the unchanged policy, and removes the copy on exit; `bash scripts/wsl-backup/test-all fast` validates the correction without elevation, a policy change, or an execution-policy override on the test invocation.
 
-The latest boat evidence records 46 passes, 3 skips, and 5 failures after relocation. Four failures require absent `rsync`; the archive-validation failure follows that missing-command path and also exposes undefined-`stderr` handling. Revalidate both conditions in a separate boat project session before changing boat code or prerequisites. Compatibility-path resolution and relocated PostgreSQL checksums pass.
+Debian4 has `rsync` 3.4.1 installed, and the Debian bootstrap now retains it explicitly. Boat suite verification and the archive validator's missing-command correction are transferred to the boat project through `/home/jack/.pi/next/boat-1058.md`; they are not dotfiles reconciliation work.
 
 Redundant-copy cleanup and boat-project consolidation are complete. The three recovered boat children are unique, ignored local project material—not duplicate cleanup candidates.
 
 ## Remaining uncertainty
 
-- Whether and when to authorize any of the four boat integration candidates; none is approved by the review.
-- Whether the owner wants private Pi records reconciled into active storage.
+- Which complete Pi candidates, if any, the owner will approve after the current-state preview, and how each conflict or incomplete fragment should be retained or exposed.
+- Whether and when to authorize any boat integration candidate; none is approved by the review.

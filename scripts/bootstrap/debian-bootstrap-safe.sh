@@ -207,7 +207,7 @@ expand_destination() { case "$1" in \~) printf '%s\n' "$HOME" ;; \~/*) printf '%
 
 if [[ "$SKIP_SYSTEM_PACKAGES" != 1 ]]; then
   run sudo apt-get update
-  run sudo apt-get install -y build-essential mold rustup ca-certificates curl direnv dirmngr fd-find gh git git-delta gnupg2 jq neovim openssh-client pinentry-curses restic ripgrep shellcheck sqlite3 sudo tmux unzip xz-utils zoxide
+  run sudo apt-get install -y build-essential mold rustup ca-certificates curl direnv dirmngr fd-find gh git git-delta gnupg2 jq neovim openssh-client pinentry-curses restic ripgrep rsync shellcheck sqlite3 sudo tmux unzip xz-utils zoxide
 fi
 if [[ "$BOOTSTRAP_DRY_RUN" != 1 ]]; then
   for required in /usr/bin/delta /usr/bin/fdfind /usr/bin/gh /usr/bin/nvim /usr/bin/rg; do

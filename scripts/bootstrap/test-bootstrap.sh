@@ -25,7 +25,7 @@ grep -q 'DOTFILES_APPLY_WSL_INTEGRATION' "$template"
 grep -q 'DOTFILES_APPLY_WSL_INTEGRATION' "$terminal_linux_template"
 grep -q 'DOTFILES_APPLY_WSL_INTEGRATION' "$terminal_windows_template"
 grep -q 'https://github.com/${repository}.git' "$bootstrap"
-for package in build-essential mold rustup fd-find gh git-delta neovim ripgrep; do
+for package in build-essential mold rustup fd-find gh git-delta neovim ripgrep rsync; do
   grep -Eq "apt-get install .* ${package}( |$)" "$bootstrap"
 done
 grep -q 'install_uv' "$bootstrap"

@@ -28,17 +28,17 @@ Dated build, inventory, inspection, recovery, and session records are historical
 - The authenticated follow-up supersedes the local-only `life-fitness-console` disposition: clean `/home/jack/git/life_cycle` is the exact recovered commit/tree authority. Its duplicate recovered root and temporary provenance copy are deleted.
 - All seven celestial forms/variants are published in `jchidley/celnav` at `8e96795`; both recovered notes are published in `jchidley/research` at `6ba358d` with machine-specific SMB identifiers generalized. Their redundant recovered roots and provenance are deleted.
 - The Git-retained `energy-hub`, `octopus-tariff`, and `whatsapp-sqlite-analysis` recovered roots are deleted after exact commit/tree revalidation. The verified PostgreSQL boat-data package has one protected home at `/home/jack/git/boat-data-platform/recovered/postgresql-boatdata`. The Symphony prototype root is deleted.
-- Reconcile private Pi material only if the owner opts in, item by item, preserving session IDs, branches, variants, wrappers, and provenance.
+- Reconcile private Pi material item by item. Start with a read-only comparison and exact import preview; preserve session IDs, branches, associations, variants, wrappers, and provenance, and stop for explicit approval before writing active Pi state.
 - Redundant project/material cleanup is complete under the owner’s explicit no-duplicate direction. The remaining boat roots are unique and are not deletion candidates.
 
 ## Sequence
 
-1. Keep the three ignored recovered boat groups inert under the boat project. Diagnose the recorded boat test failures only in a separate boat project session; selective integration, database restore, service installation, or retirement remains separately approval-required.
-2. Only with explicit owner approval, restore PostgreSQL, reconcile private Pi material, or pursue any boat integration candidate.
+1. Compare the four retained private Pi recovery roots with current active `~/.pi` state read-only. Classify exact duplicates, complete import candidates, conflicting variants, and incomplete/provenance-only material, then produce an exact no-overwrite import preview.
+2. Stop for owner approval before any active Pi write. If approved later, import only unambiguous complete items, validate active state, and report every unresolved item with a recommended disposition.
 
 ## Stopping condition
 
-Owner-directed placement, redundant-copy cleanup, and publication of boat consolidation commit `5758ab8` are complete. Stop before changing recovered boat material, restoring PostgreSQL, installing services, or integrating private Pi/boat material.
+The next Pi operation stops after current-state classification and an exact import preview. Do not write active Pi state, alter or delete recovery evidence, or begin boat/database work without the applicable separate approval.
 
 ## Constraints
 
