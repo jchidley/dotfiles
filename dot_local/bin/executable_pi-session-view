@@ -1,0 +1,94 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+usage() {
+  cat <<'EOF'
+Usage:
+  pi-session-view conversation [--last N]
+  pi-session-view users [--last N]
+  pi-session-view assistants [--last N]
+  pi-session-view entry ENTRY_ID
+
+Select messages from the current Herdr pane's Pi session and write Markdown to stdout.
+EOF
+}
+
+mode=${1:-conversation}
+if (($#)); then shift; fi
+entry_id=
+last=0
+
+case "$mode" in
+  conversation|users|assistants)
+    if [[ ${1:-} == --last ]]; then
+      [[ ${2:-} =~ ^[1-9][0-9]*$ ]] || {
+        echo "pi-session-view: --last requires a positive integer" >&2
+        exit 2
+      }
+      last=$2
+      shift 2
+    fi
+    ;;
+  entry)
+    [[ -n ${1:-} ]] || { usage >&2; exit 2; }
+    entry_id=$1
+    shift
+    ;;
+  -h|--help|help)
+    usage
+    exit 0
+    ;;
+  *)
+    echo "pi-session-view: unknown mode: $mode" >&2
+    usage >&2
+    exit 2
+    ;;
+esac
+(($# == 0)) || { usage >&2; exit 2; }
+
+[[ ${HERDR_ENV:-} == 1 ]] || {
+  echo "pi-session-view: not running inside Herdr" >&2
+  exit 1
+}
+
+session=$(
+  herdr pane current --current |
+    jq -er '.result.pane.agent_session.value | select(endswith(".jsonl"))'
+)
+
+jq -rs --arg mode "$mode" --arg entry "$entry_id" --argjson last "$last" '
+  def text:
+    if type == "string" then .
+    elif type == "array" then
+      [ .[] |
+        if .type == "text" then .text
+        elif .type == "image" then "[image]"
+        else empty
+        end
+      ] | join("\n")
+    else ""
+    end;
+
+  [ .[]
+    | select(.type == "message")
+    | {
+        id,
+        role: .message.role,
+        stop: .message.stopReason,
+        text: (.message.content | text)
+      }
+    | select(.text != "")
+    | select(
+        if $mode == "conversation" then
+          .role == "user" or (.role == "assistant" and .stop == "stop")
+        elif $mode == "users" then .role == "user"
+        elif $mode == "assistants" then .role == "assistant" and .stop == "stop"
+        else .id == $entry
+        end
+      )
+  ]
+  | if $last > 0 then .[-$last:] else . end
+  | if length == 0 then error("no matching messages") else . end
+  | .[]
+  | "<!-- entry:\(.id) -->\n## \(.role | ascii_upcase)\n\n\(.text)\n"
+' "$session"

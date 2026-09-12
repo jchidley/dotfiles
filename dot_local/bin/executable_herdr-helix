@@ -9,6 +9,7 @@ Usage:
   herdr-helix keys esc g g           Send logical keys
   herdr-helix text 'literal text'    Send literal text
   herdr-helix recent [LINES]          Open recent output (default: 1000 lines)
+  command-producing-output | hh -     Open standard input as a temporary file
   herdr-helix focus                   Focus the Helix tab
 EOF
 }
@@ -32,7 +33,7 @@ action=${1:-ensure}
 if (($#)); then shift; fi
 
 case "$action" in
-  ensure|focus)
+  ensure|focus|-)
     (($# == 0)) || { usage >&2; exit 2; }
     ;;
   recent)
@@ -144,6 +145,14 @@ case "$action" in
     source_pane=$(herdr pane current --current | jq -er '.result.pane.pane_id')
     snapshot=$(mktemp /tmp/herdr-recent.XXXXXX.txt)
     herdr pane read "$source_pane" --source recent --lines "$lines" >"$snapshot"
+    herdr pane send-keys "$pane_id" esc >/dev/null
+    herdr pane send-text "$pane_id" ":open $snapshot" >/dev/null
+    herdr pane send-keys "$pane_id" enter >/dev/null
+    printf 'snapshot=%s\n' "$snapshot"
+    ;;
+  -)
+    snapshot=$(mktemp /tmp/herdr-stdin.XXXXXX.txt)
+    cat >"$snapshot"
     herdr pane send-keys "$pane_id" esc >/dev/null
     herdr pane send-text "$pane_id" ":open $snapshot" >/dev/null
     herdr pane send-keys "$pane_id" enter >/dev/null
