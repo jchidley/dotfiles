@@ -5,12 +5,13 @@ usage() {
   cat <<'EOF'
 Usage:
   herdr-helix                         Ensure the Helix tab exists
-  herdr-helix command ':tutor'       Run a Helix command
-  herdr-helix keys esc g g           Send logical keys
-  herdr-helix text 'literal text'    Send literal text
-  herdr-helix recent [LINES]          Open recent output (default: 1000 lines)
-  command-producing-output | hh -     Open stdin as detected Markdown, HTML, or text
-  herdr-helix focus                   Focus the Helix tab
+  herdr-helix command ':tutor'       Run a Helix command after sending Escape
+  herdr-helix keys esc g g           Send state-dependent logical keys
+  herdr-helix text 'literal text'    Send state-dependent literal text
+  herdr-helix open FILE              Open an existing file
+  herdr-helix recent [LINES]         Open recent output (default: 1000 lines)
+  command-producing-output | hh - md Open stdin using the declared extension
+  herdr-helix focus                  Focus the Helix tab
 EOF
 }
 
@@ -33,8 +34,19 @@ action=${1:-ensure}
 if (($#)); then shift; fi
 
 case "$action" in
-  ensure|focus|-)
+  ensure|focus)
     (($# == 0)) || { usage >&2; exit 2; }
+    ;;
+  -)
+    (($# == 1)) || {
+      echo "herdr-helix: stdin requires one file extension, for example: hh - md" >&2
+      exit 2
+    }
+    extension=$1
+    [[ $extension =~ ^[[:alnum:]][[:alnum:]_-]*$ ]] || {
+      echo "herdr-helix: invalid file extension: $extension" >&2
+      exit 2
+    }
     ;;
   recent)
     (($# <= 1)) || { usage >&2; exit 2; }
@@ -44,7 +56,7 @@ case "$action" in
       exit 2
     }
     ;;
-  command|text)
+  command|open|text)
     (($# == 1)) || { usage >&2; exit 2; }
     ;;
   keys)
@@ -62,6 +74,7 @@ case "$action" in
 esac
 
 stdin_snapshot=
+open_file=
 if [[ $action == - ]]; then
   snapshot_base=$(mktemp /tmp/herdr-stdin.XXXXXX)
   cat >"$snapshot_base"
@@ -70,17 +83,19 @@ if [[ $action == - ]]; then
     echo "herdr-helix: standard input was empty; the producing command may have failed" >&2
     exit 1
   fi
-
-  first_content_line=$(grep -m1 -v '^[[:space:]]*$' "$snapshot_base" || true)
-  if grep -Eiq '^[[:space:]]*<(\!doctype[[:space:]]+html|html|head|body|main|article|section|div|table)([[:space:]>])' <<<"$first_content_line"; then
-    extension=html
-  elif [[ $first_content_line =~ ^[[:space:]]*(\<\!--[[:space:]]*entry:|#{1,6}[[:space:]]) ]]; then
-    extension=md
-  else
-    extension=txt
-  fi
   stdin_snapshot="${snapshot_base}.${extension}"
   mv -- "$snapshot_base" "$stdin_snapshot"
+elif [[ $action == open ]]; then
+  case $1 in
+    \~) open_file=$HOME ;;
+    \~/*) open_file="$HOME/${1:2}" ;;
+    *) open_file=$1 ;;
+  esac
+  [[ -f $open_file ]] || {
+    echo "herdr-helix: file not found: $open_file" >&2
+    exit 1
+  }
+  open_file=$(realpath -- "$open_file")
 fi
 
 mapfile -t tab_ids < <(
@@ -142,6 +157,19 @@ if ! jq -e '.result.process_info.foreground_processes[]? | select(.name == "hx")
   herdr pane wait-output "$pane_id" --match NOR --source visible --timeout 5000 >/dev/null
 fi
 
+run_helix_command() {
+  herdr pane send-keys "$pane_id" esc >/dev/null
+  herdr pane send-text "$pane_id" "$1" >/dev/null
+  herdr pane send-keys "$pane_id" enter >/dev/null
+}
+
+open_in_helix() {
+  local escaped=$1
+  escaped=${escaped//\\/\\\\}
+  escaped=${escaped//\"/\\\"}
+  run_helix_command ":open \"$escaped\""
+}
+
 case "$action" in
   ensure)
     ;;
@@ -153,9 +181,10 @@ case "$action" in
       echo "herdr-helix: Helix commands must begin with ':'" >&2
       exit 2
     }
-    herdr pane send-keys "$pane_id" esc >/dev/null
-    herdr pane send-text "$pane_id" "$1" >/dev/null
-    herdr pane send-keys "$pane_id" enter >/dev/null
+    run_helix_command "$1"
+    ;;
+  open)
+    open_in_helix "$open_file"
     ;;
   keys)
     herdr pane send-keys "$pane_id" "$@" >/dev/null
@@ -167,15 +196,11 @@ case "$action" in
     source_pane=$(herdr pane current --current | jq -er '.result.pane.pane_id')
     snapshot=$(mktemp /tmp/herdr-recent.XXXXXX.txt)
     herdr pane read "$source_pane" --source recent --lines "$lines" >"$snapshot"
-    herdr pane send-keys "$pane_id" esc >/dev/null
-    herdr pane send-text "$pane_id" ":open $snapshot" >/dev/null
-    herdr pane send-keys "$pane_id" enter >/dev/null
+    open_in_helix "$snapshot"
     printf 'snapshot=%s\n' "$snapshot"
     ;;
   -)
-    herdr pane send-keys "$pane_id" esc >/dev/null
-    herdr pane send-text "$pane_id" ":open $stdin_snapshot" >/dev/null
-    herdr pane send-keys "$pane_id" enter >/dev/null
+    open_in_helix "$stdin_snapshot"
     printf 'snapshot=%s\n' "$stdin_snapshot"
     ;;
 esac
