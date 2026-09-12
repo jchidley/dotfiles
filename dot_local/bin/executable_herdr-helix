@@ -61,6 +61,17 @@ case "$action" in
     ;;
 esac
 
+stdin_snapshot=
+if [[ $action == - ]]; then
+  stdin_snapshot=$(mktemp /tmp/herdr-stdin.XXXXXX.txt)
+  cat >"$stdin_snapshot"
+  if [[ ! -s $stdin_snapshot ]]; then
+    rm -f -- "$stdin_snapshot"
+    echo "herdr-helix: standard input was empty; the producing command may have failed" >&2
+    exit 1
+  fi
+fi
+
 mapfile -t tab_ids < <(
   herdr tab list --workspace "$workspace_id" |
     jq -er '.result.tabs[] | select(.label == "helix") | .tab_id'
@@ -151,12 +162,10 @@ case "$action" in
     printf 'snapshot=%s\n' "$snapshot"
     ;;
   -)
-    snapshot=$(mktemp /tmp/herdr-stdin.XXXXXX.txt)
-    cat >"$snapshot"
     herdr pane send-keys "$pane_id" esc >/dev/null
-    herdr pane send-text "$pane_id" ":open $snapshot" >/dev/null
+    herdr pane send-text "$pane_id" ":open $stdin_snapshot" >/dev/null
     herdr pane send-keys "$pane_id" enter >/dev/null
-    printf 'snapshot=%s\n' "$snapshot"
+    printf 'snapshot=%s\n' "$stdin_snapshot"
     ;;
 esac
 
