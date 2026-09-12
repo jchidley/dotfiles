@@ -9,7 +9,7 @@ Usage:
   herdr-helix keys esc g g           Send logical keys
   herdr-helix text 'literal text'    Send literal text
   herdr-helix recent [LINES]          Open recent output (default: 1000 lines)
-  command-producing-output | hh -     Open standard input as a temporary file
+  command-producing-output | hh -     Open stdin as detected Markdown, HTML, or text
   herdr-helix focus                   Focus the Helix tab
 EOF
 }
@@ -63,13 +63,24 @@ esac
 
 stdin_snapshot=
 if [[ $action == - ]]; then
-  stdin_snapshot=$(mktemp /tmp/herdr-stdin.XXXXXX.txt)
-  cat >"$stdin_snapshot"
-  if [[ ! -s $stdin_snapshot ]]; then
-    rm -f -- "$stdin_snapshot"
+  snapshot_base=$(mktemp /tmp/herdr-stdin.XXXXXX)
+  cat >"$snapshot_base"
+  if [[ ! -s $snapshot_base ]]; then
+    rm -f -- "$snapshot_base"
     echo "herdr-helix: standard input was empty; the producing command may have failed" >&2
     exit 1
   fi
+
+  first_content_line=$(grep -m1 -v '^[[:space:]]*$' "$snapshot_base" || true)
+  if grep -Eiq '^[[:space:]]*<(\!doctype[[:space:]]+html|html|head|body|main|article|section|div|table)([[:space:]>])' <<<"$first_content_line"; then
+    extension=html
+  elif [[ $first_content_line =~ ^[[:space:]]*(\<\!--[[:space:]]*entry:|#{1,6}[[:space:]]) ]]; then
+    extension=md
+  else
+    extension=txt
+  fi
+  stdin_snapshot="${snapshot_base}.${extension}"
+  mv -- "$snapshot_base" "$stdin_snapshot"
 fi
 
 mapfile -t tab_ids < <(
