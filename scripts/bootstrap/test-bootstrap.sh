@@ -6,13 +6,15 @@ bootstrap="$root/debian-bootstrap-safe.sh"
 secret_helper="$root/migrate-ak-secrets.sh"
 bash_custom="$root/../../dot_bashrc_custom"
 web_search="$root/../../bin/executable_web-search"
+herdr_helix="$root/../../dot_local/bin/executable_herdr-helix"
+hh_link="$root/../../dot_local/bin/symlink_hh"
 template="$root/../../run_onchange_after_20-wsl-config.sh.tmpl"
 terminal_linux_template="$root/../../run_onchange_after_50-windows-terminal.sh.tmpl"
 terminal_windows_template="$root/../../run_onchange_after_50-windows-terminal.ps1.tmpl"
 
-bash -n "$bootstrap" "$secret_helper" "$bash_custom" "$web_search" "$root/setup-rust.sh"
+bash -n "$bootstrap" "$secret_helper" "$bash_custom" "$web_search" "$herdr_helix" "$root/setup-rust.sh"
 if command -v shellcheck >/dev/null 2>&1; then
-  shellcheck -x "$bootstrap" "$secret_helper" "$root/setup-rust.sh"
+  shellcheck -x "$bootstrap" "$secret_helper" "$herdr_helix" "$root/setup-rust.sh"
 fi
 
 ! grep -q 'releases/latest' "$bootstrap"
@@ -25,9 +27,12 @@ grep -q 'DOTFILES_APPLY_WSL_INTEGRATION' "$template"
 grep -q 'DOTFILES_APPLY_WSL_INTEGRATION' "$terminal_linux_template"
 grep -q 'DOTFILES_APPLY_WSL_INTEGRATION' "$terminal_windows_template"
 grep -q 'https://github.com/${repository}.git' "$bootstrap"
-for package in build-essential mold rustup fd-find gh git-delta neovim ripgrep rsync; do
+for package in build-essential mold rustup fd-find gh git-delta helix neovim ripgrep rsync; do
   grep -Eq "apt-get install .* ${package}( |$)" "$bootstrap"
 done
+grep -q 'install_herdr' "$bootstrap"
+grep -q '/usr/bin/hx' "$bootstrap"
+grep -qx 'herdr-helix' "$hh_link"
 grep -q 'install_uv' "$bootstrap"
 grep -q 'DOTFILES_WORKSPACE=.*git/dotfiles' "$bootstrap"
 grep -q 'BOOTSTRAP_SETUP_AK=0' "$root/New-BootstrappedDebianWsl.ps1"
@@ -57,6 +62,7 @@ for output in "$first" "$second"; do
   grep -q 'install chezmoi 2.69.4' <<<"$output"
   grep -q 'install fnm 1.38.1 and Node v22.19.0' <<<"$output"
   grep -q 'install Pi 0.85.0' <<<"$output"
+  grep -q 'install Herdr 0.9.0' <<<"$output"
   grep -q 'install uv 0.8.18' <<<"$output"
   grep -q 'configure native Cargo mold default' <<<"$output"
   grep -q 'ln -sfn /usr/bin/fdfind .*\.local/bin/fd' <<<"$output"

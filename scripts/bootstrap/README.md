@@ -8,7 +8,7 @@ The script must run as the target Linux user, not root. It uses `sudo` only for 
 
 ## Reproducible inputs
 
-`bootstrap-versions.env` pins the exact x86-64 versions, URLs, and SHA-256 hashes of chezmoi, fnm, Node.js, McFly, and Pi. Downloads enter `~/.cache/dotfiles-bootstrap` only after hash verification and are moved into place atomically.
+`bootstrap-versions.env` pins the exact x86-64 versions, URLs, and SHA-256 hashes of chezmoi, fnm, Node.js, McFly, Herdr, uv, and Pi. Downloads enter `~/.cache/dotfiles-bootstrap` only after hash verification and are moved into place atomically.
 
 Normal mode downloads a missing or invalid cached artifact. Offline mode accepts verified cache hits only:
 
@@ -16,7 +16,7 @@ Normal mode downloads a missing or invalid cached artifact. Offline mode accepts
 BOOTSTRAP_OFFLINE=1 bash ./debian-bootstrap-safe.sh
 ```
 
-Updating a tool requires updating its version, URL, filename, and hash together and then passing the clean-room test. System packages come from the Debian sources configured on the target; the bootstrap does not silently rewrite those sources. They include `gh`, `git-delta`, Neovim, ripgrep, and `fd-find` because managed Git and agent workflows depend on their commands. Bootstrap verifies their Debian paths, exposes `fd` as a user-local link to Debian's `fdfind`, installs the locked standalone `uv`/`uvx` release, and records relevant versions.
+Updating a tool requires updating its version, URL, filename, and hash together and then passing the clean-room test. System packages come from the Debian sources configured on the target; the bootstrap does not silently rewrite those sources. They include `gh`, `git-delta`, Helix, Neovim, ripgrep, and `fd-find` because managed Git and agent workflows depend on their commands. Bootstrap verifies their Debian paths, exposes `fd` as a user-local link to Debian's `fdfind`, installs the locked standalone Herdr and `uv`/`uvx` releases, and records relevant versions.
 
 ## Rust development
 

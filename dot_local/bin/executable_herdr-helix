@@ -1,0 +1,154 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+usage() {
+  cat <<'EOF'
+Usage:
+  herdr-helix                         Ensure the Helix tab exists
+  herdr-helix command ':tutor'       Run a Helix command
+  herdr-helix keys esc g g           Send logical keys
+  herdr-helix text 'literal text'    Send literal text
+  herdr-helix recent [LINES]          Open recent output (default: 1000 lines)
+  herdr-helix focus                   Focus the Helix tab
+EOF
+}
+
+if [[ ${HERDR_ENV:-} != 1 ]]; then
+  echo "herdr-helix: not running inside a Herdr-managed pane" >&2
+  exit 1
+fi
+
+command -v herdr >/dev/null || {
+  echo "herdr-helix: herdr is not available" >&2
+  exit 1
+}
+command -v jq >/dev/null || {
+  echo "herdr-helix: jq is not available" >&2
+  exit 1
+}
+
+workspace_id=${HERDR_WORKSPACE_ID:?HERDR_WORKSPACE_ID is not set}
+action=${1:-ensure}
+if (($#)); then shift; fi
+
+case "$action" in
+  ensure|focus)
+    (($# == 0)) || { usage >&2; exit 2; }
+    ;;
+  recent)
+    (($# <= 1)) || { usage >&2; exit 2; }
+    lines=${1:-1000}
+    [[ $lines =~ ^[1-9][0-9]*$ ]] || {
+      echo "herdr-helix: LINES must be a positive integer" >&2
+      exit 2
+    }
+    ;;
+  command|text)
+    (($# == 1)) || { usage >&2; exit 2; }
+    ;;
+  keys)
+    (($# > 0)) || { usage >&2; exit 2; }
+    ;;
+  -h|--help|help)
+    usage
+    exit 0
+    ;;
+  *)
+    echo "herdr-helix: unknown action: $action" >&2
+    usage >&2
+    exit 2
+    ;;
+esac
+
+mapfile -t tab_ids < <(
+  herdr tab list --workspace "$workspace_id" |
+    jq -er '.result.tabs[] | select(.label == "helix") | .tab_id'
+)
+
+case ${#tab_ids[@]} in
+  0)
+    created=$(herdr tab create \
+      --workspace "$workspace_id" \
+      --cwd "$PWD" \
+      --label helix \
+      --no-focus)
+    tab_id=$(jq -er '.result.tab.tab_id' <<<"$created")
+    pane_id=$(jq -er '.result.root_pane.pane_id' <<<"$created")
+    ;;
+  1)
+    tab_id=${tab_ids[0]}
+    mapfile -t pane_ids < <(
+      herdr pane list --workspace "$workspace_id" |
+        jq -er --arg tab "$tab_id" '.result.panes[] | select(.tab_id == $tab) | .pane_id'
+    )
+    if ((${#pane_ids[@]} == 1)); then
+      pane_id=${pane_ids[0]}
+    else
+      hx_panes=()
+      for candidate in "${pane_ids[@]}"; do
+        info=$(herdr pane process-info --pane "$candidate")
+        if jq -e '.result.process_info.foreground_processes[]? | select(.name == "hx")' \
+          >/dev/null <<<"$info"; then
+          hx_panes+=("$candidate")
+        fi
+      done
+      if ((${#hx_panes[@]} != 1)); then
+        echo "herdr-helix: tab 'helix' has ${#pane_ids[@]} panes and no unique Helix pane" >&2
+        exit 1
+      fi
+      pane_id=${hx_panes[0]}
+    fi
+    ;;
+  *)
+    echo "herdr-helix: multiple tabs are labelled 'helix'" >&2
+    exit 1
+    ;;
+esac
+
+info=$(herdr pane process-info --pane "$pane_id")
+if ! jq -e '.result.process_info.foreground_processes[]? | select(.name == "hx")' \
+  >/dev/null <<<"$info"; then
+  shell_pid=$(jq -er '.result.process_info.shell_pid' <<<"$info")
+  if ! jq -e --argjson shell_pid "$shell_pid" \
+    'all(.result.process_info.foreground_processes[]?; .pid == $shell_pid)' \
+    >/dev/null <<<"$info"; then
+    echo "herdr-helix: pane $pane_id is occupied by a non-Helix process" >&2
+    exit 1
+  fi
+  herdr pane run "$pane_id" hx >/dev/null
+  herdr pane wait-output "$pane_id" --match NOR --source visible --timeout 5000 >/dev/null
+fi
+
+case "$action" in
+  ensure)
+    ;;
+  focus)
+    herdr tab focus "$tab_id" >/dev/null
+    ;;
+  command)
+    [[ $1 == :* ]] || {
+      echo "herdr-helix: Helix commands must begin with ':'" >&2
+      exit 2
+    }
+    herdr pane send-keys "$pane_id" esc >/dev/null
+    herdr pane send-text "$pane_id" "$1" >/dev/null
+    herdr pane send-keys "$pane_id" enter >/dev/null
+    ;;
+  keys)
+    herdr pane send-keys "$pane_id" "$@" >/dev/null
+    ;;
+  text)
+    herdr pane send-text "$pane_id" "$1" >/dev/null
+    ;;
+  recent)
+    source_pane=$(herdr pane current --current | jq -er '.result.pane.pane_id')
+    snapshot=$(mktemp /tmp/herdr-recent.XXXXXX.txt)
+    herdr pane read "$source_pane" --source recent --lines "$lines" >"$snapshot"
+    herdr pane send-keys "$pane_id" esc >/dev/null
+    herdr pane send-text "$pane_id" ":open $snapshot" >/dev/null
+    herdr pane send-keys "$pane_id" enter >/dev/null
+    printf 'snapshot=%s\n' "$snapshot"
+    ;;
+esac
+
+printf 'tab=%s pane=%s\n' "$tab_id" "$pane_id"

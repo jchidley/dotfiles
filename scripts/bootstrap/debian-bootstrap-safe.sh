@@ -135,6 +135,21 @@ install_mcfly() {
   marker mcfly "$MCFLY_VERSION"
 }
 
+install_herdr() {
+  local artifact temporary binary="$HOME/.local/bin/herdr"
+  artifact=$(fetch_locked herdr "$HERDR_FILE" "$HERDR_URL" "$HERDR_SHA256")
+  if [[ "$BOOTSTRAP_DRY_RUN" == 1 ]]; then echo "DRY-RUN: install Herdr $HERDR_VERSION at $binary"; return; fi
+  if [[ ! -x "$binary" || $($binary --version) != "herdr $HERDR_VERSION" ]]; then
+    temporary=$(mktemp "$HOME/.local/bin/.herdr.XXXXXX")
+    trap 'rm -f "${temporary:-}"' RETURN
+    install -m 0755 "$artifact" "$temporary"
+    mv -f "$temporary" "$binary"
+    trap - RETURN
+  fi
+  [[ $($binary --version) == "herdr $HERDR_VERSION" ]] || fail "Herdr version verification failed"
+  marker herdr "$HERDR_VERSION"
+}
+
 install_uv() {
   local archive tmp binary="$HOME/.local/bin/uv"
   archive=$(fetch_locked uv "$UV_FILE" "$UV_URL" "$UV_SHA256")
@@ -207,10 +222,10 @@ expand_destination() { case "$1" in \~) printf '%s\n' "$HOME" ;; \~/*) printf '%
 
 if [[ "$SKIP_SYSTEM_PACKAGES" != 1 ]]; then
   run sudo apt-get update
-  run sudo apt-get install -y build-essential mold rustup ca-certificates curl direnv dirmngr fd-find gh git git-delta gnupg2 jq neovim openssh-client pinentry-curses restic ripgrep rsync shellcheck sqlite3 sudo tmux unzip xz-utils zoxide
+  run sudo apt-get install -y build-essential mold rustup ca-certificates curl direnv dirmngr fd-find gh git git-delta gnupg2 helix jq neovim openssh-client pinentry-curses restic ripgrep rsync shellcheck sqlite3 sudo tmux unzip xz-utils zoxide
 fi
 if [[ "$BOOTSTRAP_DRY_RUN" != 1 ]]; then
-  for required in /usr/bin/delta /usr/bin/fdfind /usr/bin/gh /usr/bin/nvim /usr/bin/rg; do
+  for required in /usr/bin/delta /usr/bin/fdfind /usr/bin/gh /usr/bin/hx /usr/bin/nvim /usr/bin/rg; do
     [[ -x "$required" ]] || fail "required Debian tool is unavailable: $required"
   done
   marker gh "$(gh --version | head -n 1)"
@@ -220,6 +235,7 @@ run ln -sfn /usr/bin/fdfind "$HOME/.local/bin/fd"
 install_chezmoi
 install_fnm_and_node
 install_mcfly
+install_herdr
 install_uv
 install_pi
 bash "$SCRIPT_DIR/setup-rust.sh"
@@ -290,8 +306,8 @@ if [[ "$BOOTSTRAP_DRY_RUN" != 1 ]]; then
     --arg profile "$BOOTSTRAP_PROFILE" --arg groups "$BOOTSTRAP_GROUPS" \
     --arg chezmoi "$("$HOME/.local/bin/chezmoi" --version)" --arg fnm "$(fnm --version)" \
     --arg node "$(node --version)" --arg npm "$(npm --version)" --arg pi "$(pi --version)" \
-    --arg mcfly "$("$HOME/.local/bin/mcfly" --version)" --arg uv "$(uv --version)" --arg gh "$(gh --version | head -n 1)" --argjson repositories "$repositories" \
-    '{schema:1,createdUtc:$createdUtc,profile:$profile,groups:$groups,chezmoi:$chezmoi,fnm:$fnm,node:$node,npm:$npm,pi:$pi,mcfly:$mcfly,uv:$uv,gh:$gh,repositories:$repositories,secrets:"not-copied"}' \
+    --arg mcfly "$("$HOME/.local/bin/mcfly" --version)" --arg herdr "$("$HOME/.local/bin/herdr" --version)" --arg uv "$(uv --version)" --arg gh "$(gh --version | head -n 1)" --argjson repositories "$repositories" \
+    '{schema:1,createdUtc:$createdUtc,profile:$profile,groups:$groups,chezmoi:$chezmoi,fnm:$fnm,node:$node,npm:$npm,pi:$pi,mcfly:$mcfly,herdr:$herdr,uv:$uv,gh:$gh,repositories:$repositories,secrets:"not-copied"}' \
     >"$BOOTSTRAP_STATE_DIR/installed-manifest.json"
   chmod 0600 "$BOOTSTRAP_STATE_DIR/installed-manifest.json"
   marker manifest "$BOOTSTRAP_STATE_DIR/installed-manifest.json"

@@ -4,17 +4,24 @@
 
 - Relay preparation and execution use machine-local run records and immutable run artifacts. Do not create or edit Relay `draft.md` or `contract.md` files outside an active `/relay` builder.
 
+## Debian bootstrap and managed dotfiles
+
+For changes under `scripts/bootstrap/` or its managed dotfile inputs, run `bash scripts/bootstrap/test-bootstrap.sh` from WSL. Do not run WSL backup tests for those changes.
+
 ## WSL backup component
 
 The commands and boundaries below apply only to work under `scripts/wsl-backup/`.
 
 ### Commands
 
+Run the smallest test that covers the changed paths. Use mutation tests as targeted strength evidence after changing the protected logic or tests, when test strength is uncertain, or when explicitly requested. Do not run every mutation harness as a routine gate.
+
 | Task | Command |
 |---|---|
-| WSL backup fast gate | `bash scripts/wsl-backup/test-all fast` (from WSL) |
+| Directly affected WSL backup behavior | Run its test under `scripts/wsl-backup/` |
+| WSL backup subsystem-wide gate | `bash scripts/wsl-backup/test-all fast` (from WSL) |
 | WSL backup integration (requires approval: uses sudo and may query production status) | `bash scripts/wsl-backup/test-all integration` (from WSL) |
-| WSL backup PowerShell lint | Use the component fast lane; it runs pinned PSScriptAnalyzer 1.25.0 |
+| WSL backup PowerShell lint | Use the component fast lane when subsystem-wide lint is warranted; it runs pinned PSScriptAnalyzer 1.25.0 |
 
 ### OS ownership boundary
 
