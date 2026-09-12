@@ -15,6 +15,12 @@ prn
 ./.bashrc_debian
 .config/helix
 ./bash_shell_hints
+.local/bin/pi-session-history
+.local/bin/psh
+{{ end }}
+{{ if ne .chezmoi.os "windows" }}
+.local/bin/pi-session-history.ps1
+.local/bin/psh.ps1
 {{ end }}
 
 # Repository-only programs and documentation (not rendered home state)

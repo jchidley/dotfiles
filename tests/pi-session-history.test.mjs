@@ -5,8 +5,32 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import test from 'node:test';
 
-const launcher = path.resolve(import.meta.dirname, '../dot_local/bin/executable_pi-session-history');
+const repositoryRoot = path.resolve(import.meta.dirname, '..');
+const launcher = path.join(repositoryRoot, 'dot_local/bin/executable_pi-session-history');
 const canonicalRelative = path.join('git', 'agent-skills', 'skills', 'pi-session-history', 'scripts', 'psh.mjs');
+const powershellLaunchers = [
+  path.join(repositoryRoot, 'dot_local/bin/pi-session-history.ps1'),
+  path.join(repositoryRoot, 'dot_local/bin/psh.ps1'),
+];
+
+function renderIgnoreForOs(source, operatingSystem) {
+  const included = [true];
+  const output = [];
+  for (const line of source.split('\n')) {
+    const condition = line.match(/^\{\{ if (eq|ne) \.chezmoi\.os "([^"]+)" \}\}$/);
+    if (condition) {
+      const matches = operatingSystem === condition[2];
+      included.push(included.at(-1) && (condition[1] === 'eq' ? matches : !matches));
+    } else if (line === '{{ end }}') {
+      assert.ok(included.length > 1, 'unexpected template end');
+      included.pop();
+    } else if (included.at(-1)) {
+      output.push(line);
+    }
+  }
+  assert.equal(included.length, 1, 'unterminated template condition');
+  return output;
+}
 
 function writeCommand(bin, name, body) {
   const file = path.join(bin, name);
@@ -167,6 +191,32 @@ test('fails clearly when node or the canonical script is missing', async (t) => 
       clean(context);
     }
   });
+});
+
+test('chezmoi ignore conditions select only the platform-appropriate launchers', () => {
+  const source = fs.readFileSync(path.join(repositoryRoot, '.chezmoiignore'), 'utf8');
+  const linux = renderIgnoreForOs(source, 'linux');
+  const windows = renderIgnoreForOs(source, 'windows');
+  const targets = [
+    '.local/bin/pi-session-history',
+    '.local/bin/psh',
+    '.local/bin/pi-session-history.ps1',
+    '.local/bin/psh.ps1',
+  ];
+
+  assert.deepEqual(linux.filter((line) => targets.includes(line)), targets.slice(2));
+  assert.deepEqual(windows.filter((line) => targets.includes(line)), targets.slice(0, 2));
+});
+
+test('PowerShell launchers enforce and preserve the canonical delegation contract', () => {
+  for (const launcherPath of powershellLaunchers) {
+    const source = fs.readFileSync(launcherPath, 'utf8');
+    assert.match(source, /^#requires -Version 7\.0\r?$/m, launcherPath);
+    assert.match(source, /Get-Command -Name node -CommandType Application\b/, launcherPath);
+    assert.match(source, /Join-Path \$HOME 'git\/agent-skills\/skills\/pi-session-history\/scripts\/psh\.mjs'/, launcherPath);
+    assert.match(source, /^& \$nodePath \$canonicalScript @args\r?$/m, launcherPath);
+    assert.match(source, /^exit \$LASTEXITCODE\r?$/m, launcherPath);
+  }
 });
 
 test('fails clearly when a Herdr discovery command is missing', async (t) => {
