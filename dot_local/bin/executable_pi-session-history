@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+canonical_script="$HOME/git/agent-skills/skills/pi-session-history/scripts/psh.mjs"
+
+die() {
+  printf 'pi-session-history: %s\n' "$1" >&2
+  exit 1
+}
+
+command -v node >/dev/null 2>&1 || die "node is required but was not found in PATH"
+[[ -f $canonical_script ]] || die "canonical psh script not found: $canonical_script"
+
+delegate() {
+  exec node "$canonical_script" "$@"
+}
+
+case ${1:-} in
+  -h|--help|help)
+    delegate "$@"
+    ;;
+esac
+
+for arg in "$@"; do
+  if [[ $arg == --session ]]; then
+    delegate "$@"
+  fi
+done
+
+if [[ ${PI_SESSION_FILE+x} ]]; then
+  delegate "$@"
+fi
+
+if [[ ${HERDR_ENV:-} == 1 ]]; then
+  command -v herdr >/dev/null 2>&1 || die "herdr is required for current-pane session discovery"
+  command -v jq >/dev/null 2>&1 || die "jq is required for current-pane session discovery"
+
+  if ! session=$(
+    herdr pane current --current |
+      jq -er '.result.pane.agent_session.value | select(endswith(".jsonl"))'
+  ); then
+    die "could not resolve the current Herdr pane session"
+  fi
+  delegate "$@" --session "$session"
+fi
+
+delegate "$@"
