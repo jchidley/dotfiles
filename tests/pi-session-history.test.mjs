@@ -106,7 +106,7 @@ test('delegates help without requiring Herdr or a session', () => {
 test('PI_SESSION_FILE suppresses Herdr discovery and is left for Node to consume', () => {
   const context = fixture();
   try {
-    const args = ['assistants', '--last', '2'];
+    const args = ['conversation', '--last', '2'];
     const result = run(context, args, {
       HERDR_ENV: '1',
       PI_SESSION_FILE: '/tmp/session selected by environment.jsonl',
@@ -136,7 +136,7 @@ test('appends the current Herdr pane session when no session was supplied', () =
       'printf \'%s\\0\' "$@" > "$JQ_ARGS_CAPTURE"\nwhile IFS= read -r _; do :; done\nprintf \'%s\\n\' "$HERDR_SESSION"\n',
     );
 
-    const args = ['users', '--last', '1'];
+    const args = ['conversation', '--last', '1'];
     const result = run(context, args, {
       HERDR_ENV: '1',
       HERDR_ARGS_CAPTURE: herdrArgs,
