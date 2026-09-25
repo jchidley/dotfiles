@@ -16,6 +16,10 @@ if [[ \${TEST_EXPLICIT:-0} == 1 ]]; then
   credential_login() { echo EXPLICIT_UNLOCK; }
   credential-unlock
 fi
+if [[ \${TEST_RESET:-0} == 1 ]]; then
+  credential_login() { printf 'RESET_ARG=%s\n' "\${1:-}"; }
+  credential-reset
+fi
 exit
 EOF
 TERM=dumb script -q -e -c "bash --noprofile --norc -i $work/visibility" /dev/null </dev/null >"$work/hidden"
@@ -34,6 +38,11 @@ grep -q LOGIN_MANUAL "$work/ssh"
 grep -q EXPLICIT_UNLOCK "$work/ssh"
 TERM=xterm-256color TEST_EXPLICIT=1 script -q -e -c "bash --noprofile --norc -i $work/visibility" /dev/null </dev/null >"$work/explicit"
 grep -q EXPLICIT_UNLOCK "$work/explicit"
+TERM=xterm-256color TEST_RESET=1 script -q -e -c "bash --noprofile --norc -i $work/visibility" /dev/null </dev/null >"$work/reset-visible"
+grep -q RESET_ARG=reset "$work/reset-visible"
+TERM=dumb TEST_RESET=1 script -q -c "bash --noprofile --norc -i $work/visibility" /dev/null </dev/null >"$work/reset-hidden"
+grep -q 'credential-reset requires a visible interactive WSL terminal' "$work/reset-hidden"
+! grep -q RESET_ARG "$work/reset-hidden"
 
 # Test session state and deadline logic independently of real secret stores.
 credential_login_visible() { return 0; }
@@ -47,8 +56,24 @@ credential_agent_load_ssh_key() {
   touch "$work/loaded"
 }
 ssh-add() { [[ $1 == -d ]] || return 1; rm -f "$work/loaded"; }
-gpgconf() { [[ $* == '--kill gpg-agent' ]] || return 1; echo reset >>"$work/resets"; }
+gpgconf() {
+  [[ $* == '--kill gpg-agent' ]] || return 1
+  echo reset >>"$work/resets"
+  printf '%s\n' "$(wc -l <"$work/resets")" >"$work/agent-generation"
+}
 gpg-connect-agent() { printf 'D %s\nOK\n' "$$"; }
+# Model the old agent process exiting and a new agent starting after gpgconf.
+awk() {
+  if [[ ${2:-} == /proc/*/stat ]]; then
+    if [[ -f $work/agent-generation ]]; then
+      command cat "$work/agent-generation"
+    else
+      printf '0\n'
+    fi
+  else
+    command awk "$@"
+  fi
+}
 export TEST_WORK="$work" TEST_UNLOCK_FAIL=0 TEST_UNLOCK_SLEEP=0
 cat >"$HOME/.local/bin/ak" <<'AK'
 #!/usr/bin/env bash
@@ -73,9 +98,16 @@ credential_login
 TEST_NOW=121
 credential_login
 [[ $(wc -l <"$work/unlocks") == 2 && $(tail -n 1 "$work/loads") == 20 ]]
+TEST_NOW=125
+credential-reset
+[[ $(wc -l <"$work/unlocks") == 3 && $(wc -l <"$work/resets") == 3 ]]
+[[ $(tail -n 1 "$work/loads") == 20 ]]
+TEST_NOW=135
+credential_login
+[[ $(wc -l <"$work/unlocks") == 3 ]]
 
 # A cancelled unlock cannot mark the session unlocked or load SSH.
-TEST_NOW=142
+TEST_NOW=146
 TEST_UNLOCK_FAIL=1
 if credential_login; then echo 'cancelled unlock accepted' >&2; exit 1; fi
 [[ ! -e $work/loaded && ! -e $XDG_RUNTIME_DIR/credential-session ]]
@@ -84,11 +116,11 @@ credential_login
 [[ -f $work/loaded ]]
 
 # Concurrent logins serialize the unlock, without refreshing the second key.
-TEST_NOW=163
+TEST_NOW=167
 TEST_UNLOCK_SLEEP=1
 before=$(wc -l <"$work/unlocks")
 credential_login & first=$!
 credential_login & second=$!
 wait "$first"; wait "$second"
 [[ $(wc -l <"$work/unlocks") == $((before+1)) ]]
-printf 'PASS: hidden/headless refusal, fixed deadline, remaining SSH TTL, expiry, cancellation and concurrent login\n'
+printf 'PASS: hidden/headless refusal, explicit reset, fixed deadline, remaining SSH TTL, expiry, cancellation and concurrent login\n'

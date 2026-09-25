@@ -264,6 +264,9 @@ fi
 # Prefer personal launchers over fnm's global npm executables.
 export PATH="$HOME/.local/bin:$PATH"
 
+# Open files in locally registered Windows applications.
+winapp() { bash "$HOME/.local/bin/winapp-open.sh" "$@"; }
+
 # uv shell completions
 [ -t 1 ] && command -v uv >/dev/null 2>&1 && eval "$(uv generate-shell-completion bash)"
 [ -t 1 ] && command -v uvx >/dev/null 2>&1 && eval "$(uvx --generate-shell-completion bash)"

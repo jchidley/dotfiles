@@ -3,29 +3,25 @@
 # Search/history
 rg <pattern> <path>              # fast search
 fd <name>                        # fast find
-history -a, history, !<num>      # flush/save, show, rerun by number
-Ctrl-R                           # McFly history search
+history                         # show shell history (McFly normally saves it automatically)
+Ctrl-R                          # McFly history search
+history -a                      # manually flush current shell history when needed
+!<num>                          # rerun history entry by number
 
 # Secrets (GPG/ak)
 ak list                          # show configured services + status
-ak get <service>                 # decrypt one secret
-cat ~/.envrc                     # reviewed service allowlist for WSL direnv + Windows PowerShell
-direnv reload                    # refresh allowlisted WSL exports after vault/profile changes
-export OPENROUTER_API_KEY="$(ak get openrouter)"  # one-off service outside/replacing profile state
-export DEEPINFRA_API_KEY="$(ak get deepinfra)"    # load just DeepInfra
-export DEEPSEEK_API_KEY="$(ak get deepseek)"      # load just DeepSeek
-gpgconf --kill gpg-agent          # lock GPG cache immediately (default TTL: 20h)
-ssh-add -l                        # list SSH identities (default TTL: 20h)
+ak get <service>                 # decrypt one secret; capture inside the consuming command, not agent output
+~/.envrc                         # reviewed allowlist; direnv loads these services on entering the directory
+direnv reload                    # refresh exports after changing the vault or profile
+gpgconf --kill gpg-agent         # lock GPG cache immediately (default TTL: 20h)
+credential-reset                # visible WSL terminal: start fresh GPG + SSH window (prompts again)
+ssh-add -l                       # check SSH identities when needed (default TTL: 20h)
 
 # WSL/Windows helpers
-clipcopy                         # alias -> win-clipboard set
-clippaste                        # alias -> win-clipboard get
-snip                             # alias -> win-clipboard snip (save screenshot clipboard to /tmp)
-shot                             # alias -> win-clipboard shot
-screenshot                       # alias -> win-clipboard screenshot
 wslpath "C:\Users\jackc\Downloads"  # Windows path -> WSL path
+# Optional shell aliases: clipcopy, clippaste, snip, shot, screenshot
 
-# tmux helpers
-tmux ls                          # list tmux sessions
-t                                # new isolated socketed session
-tclean                           # cleanup unattached sessions
+# tmux helpers (optional)
+t                               # new isolated socketed session
+tmux ls                         # default socket only; does not list sessions created by t
+tclean                          # cleanup unattached t sessions

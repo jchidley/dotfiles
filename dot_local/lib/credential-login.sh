@@ -19,6 +19,15 @@ credential-unlock() {
     credential_login
 }
 
+# Explicitly start a fresh GPG and SSH window, including the session record.
+credential-reset() {
+    if ! credential_login_visible; then
+        printf 'credential-reset requires a visible interactive WSL terminal.\n' >&2
+        return 1
+    fi
+    credential_login reset
+}
+
 credential_login_seconds() {
     local seconds rest
     read -r seconds rest </proc/uptime
@@ -30,7 +39,7 @@ credential_login() {
     local directory=${XDG_RUNTIME_DIR:-$HOME/.ssh}
     local key=${SSH_KEY_PATH:-$HOME/.ssh/id_ed25519}
     local ttl=${SSH_KEY_CACHE_TTL:-72000}
-    local now deadline=0 boot saved_boot='' pid='' start='' saved_start='' lock_fd
+    local now deadline=0 boot saved_boot='' pid='' start='' saved_start='' lock_fd old_pid old_start
     local record="$directory/credential-session"
     [[ $ttl =~ ^[1-9][0-9]*$ ]] && ((ttl <= 72000)) || return 1
     [[ -f $key && -x $HOME/.local/bin/ak ]] || return 0
@@ -54,12 +63,27 @@ credential_login() {
             if [[ $saved_boot != "$boot" || ! $deadline =~ ^[0-9]+$ ||
                   -z $start || $start != "$saved_start" ]]; then deadline=0; fi
         fi
-        if ((now >= deadline)); then
+        if [[ ${1:-} == reset ]] || ((now >= deadline)); then
             # Start one known cache window. Do not reuse an untracked older
             # GPG unlock and accidentally give SSH a later expiry.
             if credential_agent_key_loaded "$key"; then ssh-add -d "$key.pub" >/dev/null 2>&1 || exit 1; fi
             rm -f -- "$record" || exit 1
+            old_pid=$(gpg-connect-agent 'GETINFO pid' /bye | awk '$1=="D" {print $2}') || exit 1
+            [[ $old_pid =~ ^[0-9]+$ ]] || exit 1
+            old_start=$(awk '{print $22}' "/proc/$old_pid/stat") || exit 1
             gpgconf --kill gpg-agent || exit 1
+            # gpgconf may return before the old agent exits. Never decrypt
+            # against its still-live cache and record a false new deadline.
+            for ((attempt=0; attempt<50; attempt++)); do
+                [[ -r /proc/$old_pid/stat ]] || break
+                [[ $(awk '{print $22}' "/proc/$old_pid/stat" 2>/dev/null) == "$old_start" ]] || break
+                sleep 0.1
+            done
+            if [[ -r /proc/$old_pid/stat && $(awk '{print $22}' "/proc/$old_pid/stat" 2>/dev/null) == "$old_start" ]]; then
+                printf 'GPG agent did not exit; credential window was not reset.\n' >&2
+                exit 1
+            fi
+            now=$(credential_login_seconds)
             deadline=$((now + ttl))
             printf 'Unlock GPG for this login; SSH will share its maximum %s-second window.\n' "$ttl" >&2
             AK_INTERACTIVE_UNLOCK=1 "$HOME/.local/bin/ak" get ssh-key >/dev/null || exit 1
