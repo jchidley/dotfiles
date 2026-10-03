@@ -1,35 +1,80 @@
+{{- /* Preserve this installation's identity; never copy an ID between machines. */ -}}
+{{- $liveSettings := dict -}}
+{{- $settingsPath := joinPath .chezmoi.homeDir ".pi" "agent" "settings.json" -}}
+{{- if stat $settingsPath -}}
+{{- $liveSettings = include $settingsPath | fromJson -}}
+{{- end -}}
 {
-  "lastChangelogVersion": "0.85.1",
-  "defaultProvider": "openai-codex",
-  "defaultModel": "gpt-5.6-sol",
+  "lastChangelogVersion": "1.0.1",
+  "defaultProvider": "openai",
+  "defaultModel": "gpt-6.1-sol",
   "defaultThinkingLevel": "medium",
+  "defaultTools": [
+{{- if eq .chezmoi.os "windows" }}
+    "read",
+    "powershell",
+    "edit",
+    "write",
+    "codemode"
+{{- else }}
+    "+codemode"
+{{- end }}
+  ],
   "compaction": {
-    "enabled": false
+    "enabled": true
   },
-  "theme": "dark",
+  "theme": "system",
+  "terminal": {
+    "showTerminalProgress": true
+  },
   "externalEditor": "hx",
   "transport": "websocket",
   "httpIdleTimeoutMs": 0,
   "websocketConnectTimeoutMs": 60000,
-{{- if eq .chezmoi.os "windows" }}
-  "defaultTools": [
-    "read",
-    "powershell",
-    "edit",
-    "write"
-  ],
-{{- end }}
   "packages": [
-    "../../git/agent-skills"
+    {
+      "source": "../../git/agent-skills",
+      "skills": [
+        "!**/*",
+        "+skills/balls-mode",
+        "+skills/brave-search",
+        "+skills/browser-tools",
+        "+skills/code-overhaul",
+        "+skills/code-truth",
+        "+skills/codex-status",
+        "+skills/docs-rationalisation",
+        "+skills/github-api",
+        "+skills/human-docs",
+        "+skills/llm-docs",
+        "+skills/mutation-testing",
+        "+skills/openai-docs",
+        "+skills/pi-release-adoption",
+        "+skills/pi-session-history",
+        "+skills/pi-warden-rules",
+        "+skills/project-portfolio",
+        "+skills/property-testing",
+        "+skills/repo-preflight",
+        "+skills/search-benchmark",
+        "+skills/spider-cli",
+        "+skills/test-audit",
+        "+skills/tmux",
+        "+skills/web-search",
+        "+skills/windows-env"
+      ]
+    },
+    "npm:pi-typesafe",
+    "npm:pi-warden",
+    "git:github.com/giuseppecrj/pi-herdr-agents@main",
+    "npm:pi-copy-message"
   ],
   "enabledModels": [
-    "openai-codex/gpt-6-astra",
-    "openai-codex/gpt-5.6-sol",
-    "deepinfra/zai-org/GLM-5.2",
-    "openai-codex/gpt-5.6-terra",
-    "deepinfra/nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B",
-    "mistral/mistral-medium-3.5",
-    "openai-codex/gpt-5.6-luna",
-    "mistral/mistral-small-2603"
-  ]
+    "openai/gpt-6.1-sol",
+    "openai/gpt-6-astra",
+    "openai/gpt-6-luna"
+  ],
+  "hideThinkingBlock": true,
+{{- if hasKey $liveSettings "deviceId" }}
+  "deviceId": {{ $liveSettings.deviceId | toJson }},
+{{- end }}
+  "fullscreenCopyOnSelect": true
 }
