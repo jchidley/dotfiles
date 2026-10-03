@@ -1,18 +1,22 @@
 #!/usr/bin/env bash
-# Open a registered Windows application from WSL, optionally with one file.
+# Open a Windows application from WSL, optionally with a file or directory.
 set -euo pipefail
 
 registry="$HOME/.config/winapp/apps.tsv"
 usage() {
   local status=${1:-2}
-  local text='Usage: winapp [--foreground|-f|-fg] APP [FILE]
+  local text='Usage: winapp [--foreground|-f|-fg] [PROGRAM] [PATH]
        winapp --list|-l
        winapp --add|-a APP EXE
        winapp --change|-c APP EXE
        winapp --help|-h
 
-By default, launch APP on Windows and return immediately.
-FILE is optional; APP and EXE paths are listed with --list.
+Launch a registered app or Windows program (for example, notepad.exe).
+A single path opens in explorer.exe; no arguments opens Explorer.
+With only a program, launch it without a path. Return immediately by default.
+PATH must be an existing file or directory; Linux paths are converted with wslpath.
+Use ./name for a bare relative path that could be mistaken for a program.
+Registered APP and EXE paths are listed with --list.
 EXE may be a Windows or WSL path to an existing .exe.'
   if (( status == 0 )); then printf '%s\n' "$text"; else printf '%s\n' "$text" >&2; fi
   exit "$status"
@@ -42,7 +46,7 @@ esac
 case $mode in
   list) (( $# == 0 )) || usage ;;
   add|change) (( $# == 2 )) || usage ;;
-  *) (( $# == 1 || $# == 2 )) || usage ;;
+  *) (( $# <= 2 )) || usage ;;
 esac
 
 if [[ $mode == add || $mode == change ]]; then
@@ -55,7 +59,9 @@ if [[ $mode == add || $mode == change ]]; then
   flock -x "$lock_fd"
 fi
 
-[[ -f $registry ]] || fail "Registry missing: $registry"
+if [[ ! -f $registry && $mode != detach && $mode != foreground ]]; then
+  fail "Registry missing: $registry"
+fi
 declare -A apps=()
 declare -a names=()
 while IFS= read -r line || [[ -n $line ]]; do
@@ -66,7 +72,7 @@ while IFS= read -r line || [[ -n $line ]]; do
   [[ ! -v apps[$key] ]] || fail "Duplicate app in registry: $key"
   apps["$key"]=$value
   names+=("$key")
-done < "$registry"
+done < <(if [[ -f $registry ]]; then cat -- "$registry"; fi)
 
 case $mode in
   list)
@@ -93,21 +99,38 @@ case $mode in
     exit 0 ;;
 esac
 
-app=$1
-[[ $app =~ ^[a-z][a-z0-9-]*$ ]] || fail "Unknown app: $app (run winapp --list)"
-[[ -v apps[$app] ]] || fail "Unknown app: $app (run winapp --list)"
-exe_windows=${apps[$app]}
-exe_linux=$(to_linux "$exe_windows") && [[ -f $exe_linux && -x $exe_linux ]] || fail "Executable not found: $exe_windows"
-target=''
+app=explorer.exe
+path=''
 if (( $# == 2 )); then
-  linux_file=$(to_linux "$2") && [[ -f $linux_file ]] || fail "File not found: $2"
-  target=$(wslpath -w -- "$linux_file")
+  app=${1:-explorer.exe}
+  path=$2
+elif (( $# == 1 )); then
+  # A bare name denotes a program unless it already exists as a local path.
+  if [[ -e $1 || $1 == */* || $1 == *\\* ]]; then path=$1; else app=$1; fi
+fi
+
+if [[ -n $app && -v apps[$app] ]]; then
+  exe_linux=$(to_linux "${apps[$app]}") || fail "Executable not found: ${apps[$app]}"
+else
+  if [[ $app == */* || $app == *\\* ]]; then
+    exe_linux=$(to_linux "$app") || fail "Executable not found: $app"
+  else
+    exe_linux=$(command -v -- "$app") ||
+      exe_linux=$(command -v -- "$app.exe") || fail "Windows program not found: $app"
+  fi
+fi
+[[ -f $exe_linux && -x $exe_linux && ${exe_linux,,} == *.exe ]] || fail "Windows executable not found or not executable: $app"
+exe_windows=$(wslpath -w -- "$exe_linux")
+target=''
+if [[ -n $path ]]; then
+  linux_path=$(to_linux "$path") && [[ -f $linux_path || -d $linux_path ]] || fail "Path not found: $path"
+  target=$(wslpath -w -- "$linux_path")
 fi
 
 if [[ $mode == detach ]]; then
   # Start-Process needs quoted argv for paths with spaces. Double quotes are
   # not legal in Windows filenames; reject them if a WSL path contains one.
-  [[ $target != *\"* ]] || fail "Cannot pass a file with a double quote to Start-Process: $2"
+  [[ $target != *\"* ]] || fail "Cannot pass a path with a double quote to Start-Process: $path"
   WSLENV="${WSLENV:+$WSLENV:}WINAPP_EXE:WINAPP_TARGET" \
   WINAPP_EXE="$exe_windows" WINAPP_TARGET="$target" \
   bash "$HOME/git/agent-skills/skills/windows-env/ps-exec" --stdin <<'POWERSHELL'
@@ -116,7 +139,7 @@ $exe = $env:WINAPP_EXE
 $file = $env:WINAPP_TARGET
 if (-not (Test-Path -LiteralPath $exe -PathType Leaf)) { throw "Executable not reachable: $exe" }
 if ($file) {
-    if (-not (Test-Path -LiteralPath $file -PathType Leaf)) { throw "File not reachable from Windows: $file" }
+    if (-not (Test-Path -LiteralPath $file)) { throw "Path not reachable from Windows: $file" }
     $p = Start-Process -FilePath $exe -ArgumentList ('"' + $file + '"') -PassThru
 } else {
     $p = Start-Process -FilePath $exe -PassThru
