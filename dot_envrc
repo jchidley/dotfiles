@@ -1,1 +1,2 @@
-use_ak github brave groq openrouter deepinfra deepseek mistral octopus tavily exa typesafe
+unset ZAI_API_KEY MISTRAL_API_KEY MOONSHOT_API_KEY
+use_ak github brave groq openrouter deepinfra deepseek octopus tavily exa spider together typesafe
