@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# jpimin is a symlink to this launcher; only the underlying CLI differs.
+command=pi
+if [[ "${0##*/}" == jpimin ]]; then
+  command=jpi
+fi
+
+# --discover makes only ask-extra available; it does not invoke the skill.
+discover=false
+args=()
+while (( $# )); do
+  case "$1" in
+    --discover) discover=true ;;
+    --) args+=("$@"); break ;;
+    *) args+=("$1") ;;
+  esac
+  shift
+done
+
+if [[ "$discover" == true ]]; then
+  skill="${PI_CODING_AGENT_DIR:-$HOME/.pi/agent}/skills/ask-extra/SKILL.md"
+  if [[ ! -f "$skill" ]]; then
+    echo "${0##*/}: --discover requires $skill; install ask-extra in the Pi agent directory." >&2
+    exit 1
+  fi
+  args=(--skill "$skill" "${args[@]}")
+fi
+
+exec "$command" -ne -ns -np -nc --no-themes --no-approve --tools read,bash,edit,write "${args[@]}"
