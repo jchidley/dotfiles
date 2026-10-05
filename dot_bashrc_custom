@@ -16,6 +16,9 @@ else
   export EDITOR="nano"
 fi
 
+# Enable TypeSafe in Pi by default.
+export PI_TYPESAFE_ENABLED=1
+
 # bat theme
 export BAT_THEME="gruvbox-dark"
 
