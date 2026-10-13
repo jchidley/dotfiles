@@ -10,25 +10,21 @@ const launcher = resolve(import.meta.dirname, '../dot_local/bin/executable_jpi')
 function fixture(t) {
   const root = mkdtempSync(join(tmpdir(), 'jpi-'));
   t.after(() => rmSync(root, { recursive: true, force: true }));
-  // Exercise file-URL escaping as well as shell quoting.
   const home = join(root, 'home #?% spaces');
-  const source = join(home, 'git/pi-mono/packages/coding-agent/src/experimental');
-  mkdirSync(source, { recursive: true });
-  writeFileSync(join(source, 'source-resolver.ts'), 'export {};\n');
-  writeFileSync(join(source, 'cli.ts'), `
-console.log(JSON.stringify({
-  args: process.argv.slice(2), cwd: process.cwd(),
+  const checkout = join(home, 'git/pi-mono');
+  mkdirSync(checkout, { recursive: true });
+  // Deliberately non-executable: jpi must invoke the maintained launcher via Bash.
+  writeFileSync(join(checkout, 'pi-test.sh'), `#!/usr/bin/env bash
+set -euo pipefail
+exec node -e 'console.log(JSON.stringify({
+  args: process.argv.slice(1), cwd: process.cwd(),
   openai: process.env.OPENAI_API_KEY,
-  aws: process.env.AWS_PROFILE,
-  github: process.env.GITHUB_TOKEN,
   unrelated: process.env.PI_TEST_UNRELATED
-}));
-process.exit(Number(process.env.PI_TEST_EXIT || 0));
-`);
+})); process.exit(Number(process.env.PI_TEST_EXIT || 0));' -- "$@"
+`, { mode: 0o644 });
   const run = (args = [], env = {}) => spawnSync('bash', [launcher, ...args], {
     cwd: root, encoding: 'utf8',
     env: { ...process.env, HOME: home, OPENAI_API_KEY: 'fake-openai',
-      AWS_PROFILE: 'fake-aws', GITHUB_TOKEN: 'fake-github',
       PI_TEST_UNRELATED: 'keep', ...env },
   });
   return { root, run };
@@ -36,37 +32,36 @@ process.exit(Number(process.env.PI_TEST_EXIT || 0));
 
 function output(result) {
   assert.equal(result.status, 0, result.stderr);
-  return JSON.parse(result.stdout.trim().split('\n').at(-1));
+  return JSON.parse(result.stdout);
 }
 
-test('forwards literal arguments, preserves cwd and environment', (t) => {
+test('delegates literal arguments and preserves cwd and environment', (t) => {
   const { root, run } = fixture(t);
-  const args = ['--print', 'a b', '', '*', 'quote"', '--help'];
-  assert.deepEqual(output(run(args)), {
-    args, cwd: root, openai: 'fake-openai', aws: 'fake-aws',
-    github: 'fake-github', unrelated: 'keep',
-  });
-  assert.deepEqual(output(run()).args, []);
+  for (const args of [[], ['--print', 'a b', '', '*', 'quote"', '--help']]) {
+    assert.deepEqual(output(run(args)), {
+      args, cwd: root, openai: 'fake-openai', unrelated: 'keep',
+    });
+  }
 });
 
-test('--no-env strips credentials and only consumes its own flag', (t) => {
-  const { root, run } = fixture(t);
-  const result = run(['--print', '--no-env', 'hello world', '--no-env']);
-  assert.match(result.stdout, /^Running without API keys\.\.\.\n/);
-  assert.deepEqual(output(result), {
-    args: ['--print', 'hello world'], cwd: root, unrelated: 'keep',
-  });
+test('--no-env is forwarded untouched for pi-test.sh to handle', (t) => {
+  const { run } = fixture(t);
+  const args = ['--print', '--no-env', 'hello world', '--no-env'];
+  assert.deepEqual(output(run(args)).args, args);
+  assert.equal(output(run(args)).openai, 'fake-openai');
 });
 
-test('propagates the CLI exit status', (t) => {
+test('propagates the development launcher exit status', (t) => {
   const { run } = fixture(t);
   assert.equal(run([], { PI_TEST_EXIT: '23' }).status, 23);
 });
 
-test('missing checkout fails with an actionable error before Node runs', (t) => {
+test('missing launcher fails with an actionable error', (t) => {
   const { root, run } = fixture(t);
-  const result = run([], { HOME: join(root, 'missing') });
+  const home = join(root, 'missing');
+  const result = run([], { HOME: home });
   assert.equal(result.status, 1);
-  assert.match(result.stderr, /jpi: missing source-resolver\.ts.*restore the Pi development checkout/);
+  assert.equal(result.stderr,
+    `jpi: missing development launcher: ${home}/git/pi-mono/pi-test.sh; restore the Pi development checkout.\n`);
   assert.equal(result.stdout, '');
 });
