@@ -1,0 +1,71 @@
+# Debian NUC: canonical name plus interface aliases.
+# Connect through either stable LAN address, independent of stale DNS.
+Host wykh32j-deb wykh32j-deb.chidley.home wykh32j-wifi wykh32j-wifi.chidley.home wykh32j wykh32j.chidley.home
+  HostName wykh32j-deb
+  User jack
+  ProxyCommand node ~/.ssh/wykh32j-route.cjs %p
+  HostKeyAlias wykh32j-deb.chidley.home
+  UserKnownHostsFile ~/.ssh/nuc-known_hosts
+  StrictHostKeyChecking yes
+  CheckHostIP no
+  UpdateHostKeys no
+  VerifyHostKeyDNS no
+  IdentityFile ~/.ssh/id_ed25519
+  IdentitiesOnly yes
+  ConnectTimeout 10
+
+Include ~/.ssh/nuc-names.conf
+Host *
+
+# Verified NUC Windows local SSH administrator
+Host nuc-windows 7006gq-win
+    HostName 10.0.1.104
+    User jack
+    HostKeyAlias nuc-windows
+    StrictHostKeyChecking yes
+    CheckHostIP no
+    UpdateHostKeys no
+    IdentitiesOnly yes
+    IdentityFile ~/.ssh/id_ed25519
+
+# NUC dual-boot profiles. Host trust is OS-specific, independent of DHCP IP.
+Host nuc-debian 7006gq-debian
+  HostName 10.0.1.124
+  User jack
+  HostKeyAlias nuc-debian
+  StrictHostKeyChecking yes
+  CheckHostIP no
+  UpdateHostKeys no
+  IdentityFile ~/.ssh/id_ed25519
+  IdentitiesOnly yes
+  ConnectTimeout 8
+
+Host nuc-arch 7006gq-arch
+  HostName 10.0.1.125
+  User jack
+  HostKeyAlias nuc-arch
+  StrictHostKeyChecking yes
+  CheckHostIP no
+  UpdateHostKeys no
+  IdentityFile ~/.ssh/id_ed25519
+  IdentitiesOnly yes
+  ConnectTimeout 8
+
+Host *
+  # Match the 20h GPG/ak credential-cache policy.
+  AddKeysToAgent 20h
+
+# Boat LAN direct IPv4 aliases. Starlink/WSL bare-hostname and .local
+# resolution can be unreliable; these aliases bypass DNS/mDNS for operator SSH.
+# Addresses are DHCP-provided by Starlink and may need updating if leases change.
+Host pi5nvme-ip
+  HostName 192.168.1.136
+  User jack
+  ConnectTimeout 5
+  IdentityFile ~/.ssh/id_ed25519
+  IdentitiesOnly yes
+
+Host picanm-ip
+  HostName 192.168.1.235
+  User jack
+  ConnectTimeout 5
