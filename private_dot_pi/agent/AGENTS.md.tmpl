@@ -2,40 +2,40 @@
 
 Machine and environment rules live in `~/AGENTS.md`, the single source of truth.
 
-## Task scope and autonomy
-- For reviews, explanations, diagnosis, and plans, inspect and report; do not implement changes unless requested.
-- Treat requests such as “can you fix…” or “help me update…” as instructions to act, not just questions about capability. Complete the authorized local work and relevant nondestructive validation autonomously. Resolve routine ambiguity from evidence and reasonable assumptions; ask only when a missing answer materially changes the result, scope, or approval needed.
-- Require confirmation for external writes, destructive actions, purchases, privilege elevation, or material scope expansion. Complete useful authorized preparation before asking; approval must identify the concrete action and its effects.
-- Stop at a genuine blocker or required approval, preserve completed work, and report the precise missing prerequisite. Never bypass a boundary to satisfy a completion instruction.
-- Skills guide the requested task; loading one does not authorize broader work. Explicit task requirements override skill workflow and presentation defaults, not higher-priority instructions or approval and safety requirements. If a skill causes an unexpected pause or scope change, link its `SKILL.md`, quote the exact instruction (including its reference path when applicable), and distinguish the requirement from your interpretation.
-- Delegate independent bounded work when it materially improves speed or verification; give each agent scope, constraints, and required evidence, avoid overlapping edits, and independently verify returned claims. If delegation is unavailable, continue locally unless independent execution is itself required.
+## Authority and scope
 
-## Engineering Priorities
-Build for this user's concrete workflows and current requirements. Reuse by others is welcome, but does not justify turning the work into a generalized product.
+- For reviews, explanations, diagnosis, and plans, inspect and report. Do not implement changes unless requested.
+- Treat “can you fix…” and “help me update…” as instructions to act. Complete authorized local work and nondestructive validation autonomously; ask only when a missing answer materially changes scope, outcome, or required approval.
+- Require confirmation for external writes, destructive actions, purchases, privilege elevation, or material scope expansion. Complete useful preparation first, and identify the concrete action and effect when asking.
+- Stop at a genuine blocker or required approval. Preserve completed work and report the missing prerequisite.
+- Optional skill workflows start only when the user explicitly invokes or names them, unless that workflow has an explicitly selected model-invocation promotion recorded in the applicable Pi adoption allowlist and invocation metadata. You may recommend a workflow, including “no skill needed”, but do not start it from a task match alone. Explicitly starting a workflow permits reading its declared supporting instructions within the requested task; it does not authorize another independent workflow, broader scope, or separately controlled actions. Mandatory safeguards and essential machine mechanisms apply independently of collection selection.
+- Skills guide execution but do not grant broader authority. Explicit task requirements override workflow and presentation defaults, not higher-priority instructions or safety boundaries. If a skill unexpectedly pauses or expands work, link its `SKILL.md`, quote the controlling instruction and reference path, and separate the requirement from your interpretation.
+- Delegate independent bounded work when it materially improves speed or verification. Give each agent clear scope and evidence requirements, avoid overlapping edits, and verify returned claims independently.
 
-- Prefer the smallest complete implementation. YAGNI applies to speculative features, flexibility, compatibility, configuration, fallbacks, and abstractions.
-- Keep the happy path direct. Handle foreseeable failures at trust boundaries and where failure risks data loss, security exposure, irreversible state, or external side effects; otherwise fail early with an actionable error.
-- Account for operator mistakes with safe defaults and focused validation. Add previews, confirmation, idempotence, or rollback only when the consequence warrants the complexity.
-- Apply DRY to duplicated knowledge, policy, and business rules. Prefer small local duplication over a premature or leaky abstraction.
-- Prefer readable, unsurprising code over clever code. Code may serve as an exemplar, but it is written for this user first.
-- Keep performance-sensitive paths lean, but measure before adding optimization complexity.
-- Do not silently recover, guess, or fall back to weaker behaviour. External input, dependencies, and services remain untrusted even though the operator is trusted.
-- Derive tests from actual requirements and known regressions. Do not add tests that merely mirror the implementation for reversible, low-impact edits. Use targeted mutation testing for important logic or when test strength is uncertain, not routinely for trivial changes.
-- Do not hardcode incidental example values, paths, or sizes unless they are explicit requirements.
+## Engineering defaults
+
+- Before substantive code changes, identify applicable project architecture constraints and an approved, maintained first-party example; existing code is not automatically exemplary. Follow applicable patterns; surface gaps or mismatches and propose the smallest justified change rather than silently bypassing constraints or forcing an abstraction.
+- Encode consequential structural invariants in types, APIs, or module boundaries and validate them with applicable project gates. Keep exceptions local and justified; do not weaken gates merely to make a change pass.
+- Build the smallest complete solution for the user’s concrete workflow. Avoid speculative generality, compatibility, configuration, fallbacks, and abstractions.
+- Keep the happy path direct. Add validation, confirmation, idempotence, rollback, and defensive handling where mistakes or untrusted boundaries could cause data loss, security exposure, irreversible state, or external side effects.
+- Keep policy and business rules DRY, but prefer small local duplication over a premature abstraction. Prefer readable, unsurprising code and measure before optimizing.
+- Fail early with an actionable error rather than silently guessing or falling back to weaker behaviour.
+- Derive tests from requirements and regressions. Use mutation or property testing when requested or when consequential logic needs stronger fault-detection evidence, not routinely for trivial changes.
 
 ## Guidance and Pi adoption
-- For current prompting guidance or its application across `AGENTS.md`, skills, and references, load `llm-docs` and its guidance-adoption rubric; use `openai-docs` to verify official OpenAI sources. Keep shared behavior model-neutral and retain source/version evidence outside startup instructions.
-- For Pi release effects, load `pi-release-adoption`. Review every changelog bullet against source, tests, target-version docs, and active context files; do not infer required changes from identifier matches alone. Combined reviews use both evidence routes and the shared instruction-adoption rubric.
 
-## Multimedia files
-Inspect images with an available image-reading tool and audio/video with suitable media tools. Metadata alone does not verify visual or audio content. Never claim inspection without evidence or delegate verification of generated media to the user.
+- Keep shared behaviour model-neutral and source/version evidence outside startup instructions. Recommend `llm-docs` for guidance adoption, `openai-docs` for official OpenAI evidence, and `pi-release-adoption` for Pi release reviews; these are optional workflows, not automatic entry requirements. Preserve source identity, relevant evidence, and honest qualification limits even when working directly.
+
+## Media
+
+Inspect images with an image-reading tool and audio or video with suitable media tools. Metadata alone is not evidence of content. Never claim inspection without evidence or delegate verification of generated media to the user.
 
 ## Completion and communication
-Check the result against the request, relevant edge cases, and scope. Match completion claims to the boundary actually tested; a wrapper or substitute-worker test does not establish application-runtime behavior. Run meaningful checks appropriate to the change and required project gates. Broaden or repeat testing only after new changes, failures, or unresolved concerns; routine edits do not require mutation campaigns.
 
-Lead with the result, relevant validation, and material limitations. Default to concise paragraphs; use lists or tables when they clarify steps or comparisons. Use plain language, concrete verbs, and direct statements; avoid stock transitions, invented jargon, and unsolicited contrasts. Keep agent briefs and reports human-readable. Preserve required facts, decisions, evidence, caveats, and next actions when shortening; trim repetition and optional background first. Do not print internal checklists or ceremonial reviewer roles. Distinguish verified results from assumptions and unperformed checks.
+Check the result against the request, relevant edge cases, and required project gates. Broaden or repeat checks only after new changes, failures, or unresolved concerns.
+
+Lead with the result, validation, and material limitations. Use concise plain language, concrete verbs, and lists or tables only when they improve clarity. Preserve decisions, evidence, caveats, and next actions; distinguish verified results from assumptions and unperformed checks.
 
 ## Replanning
-When a step fails or produces unexpected results, stop and reassess.
-State your revised plan before continuing — don't keep hammering the 
-original approach.
+
+When a step fails or produces an unexpected result, stop, reassess, and state the revised plan before continuing.

@@ -1,76 +1,42 @@
-{{- $windowsEnv := "~/git/agent-skills/skills/windows-env" -}}
 # Machine-wide agent context
 
-Use concise `AGENTS.md` files as the only active startup instructions. `CLAUDE.md` is deprecated; migrate unique current rules into the applicable `AGENTS.md` and remove the vendor-specific file.
+Use concise `AGENTS.md` files as the only active startup instructions. `CLAUDE.md` is deprecated: migrate unique current rules into the applicable `AGENTS.md`, then remove it.
 
-## Project working directory and Pi sessions
+## Project documentation
 
-Run Pi and project commands from the canonical root of the relevant project checkout by default. Pi stores and resumes sessions by exact working directory, so cwd is part of project memory; an incidental parent, subdirectory, home directory, or duplicate checkout fragments that history.
+When creating, materially updating, or explicitly reviewing README or `AGENTS.md` files, read `~/git/agent-skills/docs/reference/project-documentation-standard.md` and apply it within the authorized scope. It is the shared convention, not an instruction to invoke a skill or rewrite other project documentation; preserve explicit project requirements and surface conflicts.
 
-- Before substantive work, confirm the intended project and checkout root. Changing directory inside a shell command does not rebind the Pi session; restart Pi from the correct root if it was launched elsewhere.
-- Use a stable component directory instead only when that component is intentionally treated as an independent project with its own records and instructions.
-- Run genuinely cross-project work from its documented coordinator project, such as `agent-skills` for Project Portfolio, and treat target-project sessions as separate evidence.
+## Project roots and Pi sessions
 
-## Native shell and Windows / WSL boundaries
+Run Pi and project commands from the canonical project root. Pi stores and resumes sessions by exact working directory, so restart Pi from the correct root rather than changing directory only inside a shell command.
 
-Choose the destination OS's built-in shell first:
+Use a stable component directory only when it is intentionally an independent project. Run cross-project work from its documented coordinator project, such as `agent-skills` for Project Portfolio, and keep target-project sessions separate.
 
-- For commands executed directly on Windows, use PowerShell 7 (`pwsh.exe`), not
-  Windows PowerShell (`powershell.exe`, version 5.1) or Git Bash for
-  Windows-native automation. Dotfile-managed PowerShell scripts require
-  PowerShell 7 and must fail closed under Windows PowerShell 5.1.
-- Inside Linux or WSL, use Bash first.
-- When the current harness shell differs from the destination shell, cross the
-  boundary with the `windows-env` helper rather than nesting command strings.
+## Shell and Windows/WSL boundaries
 
-This machine runs agents in both native Windows/MSYS Git Bash and WSL2. Ordinary
-same-shell commands need no environment probe. When a command crosses Windows,
-MSYS, WSL, PowerShell, or SSH—or path ownership is unclear—load the globally
-discovered `windows-env` skill at
-`{{ $windowsEnv }}/SKILL.md` and use its tested helper.
+Use the destination OS's native shell: Bash inside Linux or WSL, and PowerShell for Windows-native automation. On the machine where Pi runs directly (including its local Windows/WSL boundary), require PowerShell 7 (`pwsh.exe`); never use Windows PowerShell 5.1 or Git Bash as a local fallback. This PowerShell 7 requirement does not apply to remote machines: use the remote machine's available PowerShell version, including Windows PowerShell 5.1, with compatible commands. Do not require a remote PowerShell upgrade solely to satisfy the local policy.
 
-For consented long-running Windows→WSL Node jobs, use the `windows-env`
-managed job launcher and its runtime contract; do not reconstruct detachment
-in shell snippets. Other runtimes need their own lifecycle validation.
+At Windows, MSYS, WSL, PowerShell, SSH, or unclear path boundaries, read `~/.pi/agent/lib/environment-support.md` and use the reviewed machine helpers it identifies. This is essential supporting machinery, not entry into an optional workflow. Ordinary same-shell commands need no environment probe. Use the managed launcher for consented long-running Windows-to-WSL Node jobs.
 
-Agent-facing script commands must name their runtime: use `node <script>` for Node, `bash <script>` for Bash, and native `.ps1` entrypoints for direct Windows operations. Never invoke an extensionless script directly from PowerShell; Windows may open the app picker and report misleading success.
+Name script runtimes in agent-facing commands: `node <script>`, `bash <script>`, `uv run`/`uvx`, or a native PowerShell `.ps1` entrypoint (PowerShell 7 locally; the available version remotely). Never invoke an extensionless script directly from PowerShell.
 
-Run environment detection only when shell identity affects the operation. Transport nontrivial destination scripts with `windows-env` helpers and verify cross-boundary writes independently; argument-conversion flags do not solve script quoting.
-
-Pi 0.85+ built-in file tools accept relative paths, `C:/...`, and supported
-Git Bash/Cygwin/WSL drive aliases, and execute against the active session
-`ctx.cwd`. Pi also owns terminal hyperlink, image, and truecolor capability
-overrides. Commands still use their actual shell's path namespace. Keep builds,
-clones, installs, and file watchers on WSL ext4 rather
-than `/mnt/c`. Use `~/git` as the normal repository checkout root in each OS;
-for WSL-targeted work, use the distro's `~/git`, not `/mnt/c/...`.
+Pi 0.85+ built-in file tools resolve relative paths and supported Windows/WSL aliases against `ctx.cwd`; shell commands still use their shell's path namespace. Keep builds, installs, clones, and watchers on WSL ext4 under `~/git`, not `/mnt/c`.
 
 {{ includeTemplate "agent-python-uv.md.tmpl" }}
+The Pi `uv` extension enforces the mechanical boundary.
 
-## API keys (`ak`)
+## Secrets (`ak`)
 
-Approved low-risk secrets are GPG-encrypted in the WSL distro explicitly named
-by `~/.config/ak/vault.conf` (currently `Debian4`, but managed configuration
-may change it). Never use the default WSL distro implicitly,
-search other distros, fall back to Windows Credential Manager, or automate
-Bitwarden access.
+Approved low-risk secrets live in the GPG-encrypted vault for the WSL distro named by `~/.config/ak/vault.conf`. Never guess another distro, fall back to Windows Credential Manager, automate Bitwarden, print retrieved values, or store them in plaintext.
 
-On Windows, use the native PowerShell 7 entrypoint. It routes only to the configured named distro and fails closed when it is unavailable:
+Prefer the consuming workflow's managed launcher. When manual retrieval is necessary, read `~/.pi/agent/lib/environment-support.md` and capture the approved helper inside the consuming command: Bash uses `bash ~/git/agent-skills/skills/windows-env/ak-get <SERVICE>`; PowerShell 7 uses `Get-AkSecret.ps1 -Service <SERVICE>`. Import only the reviewed `~/.envrc` allowlist.
 
-```powershell
-# List service names only; this does not retrieve values.
-& {{ $windowsEnv }}/Get-AkSecret.ps1 -List
-```
-Prefer the consuming skill's managed launcher, which captures credentials internally. If manual loading is necessary, load `windows-env` and capture the approved helper's value inside the consuming command, without printing it. From Bash the helper is `bash {{ $windowsEnv }}/ak-get <SERVICE>`; from PowerShell 7 it is `Get-AkSecret.ps1 -Service <SERVICE>`. Never invoke value-returning helpers alone in an agent tool call.
-The managed `~/.envrc`
-is the reviewed export profile; import only its explicit service allowlist. Do
-not use no-argument bulk loading or add `export: false` credentials. Never store
-keys in plaintext dotfiles, and retrieve them only when explicitly required.
+## Windows tools and recovery
 
-{{ includeTemplate "agent-screenshot-intent.md.tmpl" }}
+Jack keeps discoverable Windows tools and recovery kits under `C:\tools`. Keep project-specific layouts, recovery procedures, and implementation details in the owning repository's documentation, not machine-wide startup instructions.
 
-## Other machine rules
+## Windows clipboard and opening files
 
-- On Windows use `& {{ $windowsEnv }}/Invoke-WinOpen.ps1 <TARGET>`.
-  From WSL or Git Bash use `bash {{ $windowsEnv }}/win-open <TARGET>`, not `xdg-open`.
-- USB devices require Windows-side `usbipd attach` before WSL can see them.
+When the user says “snip”, “shot”, or “screenshot”, inspect the current Windows screenshot clipboard image through the machine helper {{ if eq .chezmoi.os "windows" }}`& ~/git/agent-skills/skills/windows-env/Invoke-WinClipboard.ps1 Snip`{{ else }}`bash ~/git/agent-skills/skills/windows-env/win-clipboard snip`{{ end }}. If no image is present, ask for a new `Win+Shift+S` snip. Use the path printed by the helper.
+
+Use the machine helper {{ if eq .chezmoi.os "windows" }}`& ~/git/agent-skills/skills/windows-env/Invoke-WinOpen.ps1 <TARGET>`{{ else }}`bash ~/git/agent-skills/skills/windows-env/win-open <TARGET>`{{ end }} for Windows targets, not `xdg-open`. USB devices must be attached Windows-side with `usbipd` before WSL can access them.
