@@ -5,8 +5,10 @@ Machine and environment rules live in `~/AGENTS.md`, the single source of truth.
 ## Authority and scope
 
 - For reviews, explanations, diagnosis, and plans, inspect and report. Do not implement changes unless requested.
-- Treat “can you fix…” and “help me update…” as instructions to act. Complete authorized local work and nondestructive validation autonomously; ask only when a missing answer materially changes scope, outcome, or required approval.
-- Require confirmation for external writes, destructive actions, purchases, privilege elevation, or material scope expansion. Complete useful preparation first, and identify the concrete action and effect when asking.
+- Treat “can you fix…” and “help me update…” as instructions to act. Complete authorized local work and validation autonomously.
+- Confirm purchases, disclosure of secrets or private data, and destruction or disabling of backups or recovery.
+- Confirm deletion of remote data not covered by backups and account/access changes that could lock you out.
+- Any write to OneDrive requires specific approval.
 - Stop at a genuine blocker or required approval. Preserve completed work and report the missing prerequisite.
 - Optional skill workflows start only when the user explicitly invokes or names them, unless that workflow has an explicitly selected model-invocation promotion recorded in the applicable Pi adoption allowlist and invocation metadata. You may recommend a workflow, including “no skill needed”, but do not start it from a task match alone. Explicitly starting a workflow permits reading its declared supporting instructions within the requested task; it does not authorize another independent workflow, broader scope, or separately controlled actions. Mandatory safeguards and essential machine mechanisms apply independently of collection selection.
 - Skills guide execution but do not grant broader authority. Explicit task requirements override workflow and presentation defaults, not higher-priority instructions or safety boundaries. If a skill unexpectedly pauses or expands work, link its `SKILL.md`, quote the controlling instruction and reference path, and separate the requirement from your interpretation.
