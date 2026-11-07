@@ -126,6 +126,6 @@ assertions=$((assertions + 1))
 unit_dir=$SCRIPT_DIR/systemd
 assert grep -Fxq 'ExecStart=/usr/local/sbin/wsl-home-scheduler' "$unit_dir/wsl-home-scheduler.service"
 assert grep -Fxq 'OnBootSec=2min' "$unit_dir/wsl-home-scheduler.timer"
-assert grep -Fxq 'OnUnitActiveSec=15min' "$unit_dir/wsl-home-scheduler.timer"
+assert grep -Fxq 'OnUnitActiveSec=2h' "$unit_dir/wsl-home-scheduler.timer"
 assert grep -Fxq 'Persistent=true' "$unit_dir/wsl-home-scheduler.timer"
 printf 'WslHomeLinuxScheduler retained tests passed: %d assertions\n' "$assertions"

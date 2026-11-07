@@ -3,7 +3,7 @@ Description=Schedule WSL home backup while Linux is running
 
 [Timer]
 OnBootSec=2min
-OnUnitActiveSec=15min
+OnUnitActiveSec=2h
 AccuracySec=1min
 Persistent=true
 Unit=wsl-home-scheduler.service

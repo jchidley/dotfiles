@@ -10,7 +10,8 @@ It backs up `/home/jack` into an encrypted Restic repository on Debian's native 
 |---|---|
 | Program | `/usr/local/sbin/backup-wsl-home` |
 | Non-secret configuration | `/etc/restic/home.conf` |
-| Runtime password | `/etc/restic/home.password` |
+| Runtime password provider | `/usr/local/sbin/restic-home-password` |
+| GPG-encrypted runtime password | `/home/jack/.config/restic/home.password.gpg` |
 | Repository | `/var/lib/restic/home` (pinned by repository ID) |
 | Source baseline | `/var/lib/restic/home-source-baseline` |
 | Persistent incident hold | `/var/lib/restic/home-retention.hold` |
@@ -18,7 +19,7 @@ It backs up `/home/jack` into an encrypted Restic repository on Debian's native 
 | Restic cache | `/var/cache/restic-home` |
 | Consistent McFly recovery copy | `/home/jack/.local/share/mcfly/history.db.restic-backup` |
 
-The runtime password is root-owned mode 600. Its canonical human recovery copy belongs in Bitwarden; scheduled jobs must not automate Bitwarden access.
+The password provider decrypts the runtime password through jack's existing GPG agent, without prompting or a plaintext password-file fallback. A locked or expired agent fails closed by design. The canonical human recovery copy belongs in Bitwarden; scheduled jobs must not automate Bitwarden access.
 
 ## Install without initializing
 
@@ -79,9 +80,13 @@ Routine home-backup scheduling belongs to Linux. The integrated source installs:
 |---|---|
 | `/usr/local/sbin/wsl-home-scheduler` | Linux backup-first coordinator and retention due state |
 | `/etc/systemd/system/wsl-home-scheduler.service` | One-shot coordinator service |
-| `/etc/systemd/system/wsl-home-scheduler.timer` | Start after natural distro boot and repeat every 15 minutes while running |
+| `/etc/systemd/system/wsl-home-scheduler.timer` | Start after natural distro boot and repeat every 2 hours while running |
 
-The timer's `OnBootSec=2min` provides an opportunity after natural distro startup; `OnUnitActiveSec=15min` provides subsequent opportunities while running. Although the unit contains `Persistent=true`, that setting's catch-up behavior applies to calendar timers and is not the mechanism for this monotonic timer. It cannot start WSL, does not keep Windows from honoring `wsl --shutdown`, and contains no `wsl.exe` or PowerShell call. Backup, status, retention, locks, state, Restic, configuration, and credentials all remain inside Linux.
+The timer's `OnBootSec=2min` provides an opportunity after natural distro startup; `OnUnitActiveSec=2h` provides subsequent opportunities while running. Although the unit contains `Persistent=true`, that setting's catch-up behavior applies to calendar timers and is not the mechanism for this monotonic timer. It cannot start WSL, does not keep Windows from honoring `wsl --shutdown`, and contains no `wsl.exe` or PowerShell call. Backup, status, retention, locks, state, Restic, configuration, and credentials all remain inside Linux.
+
+The selected freshness limit is `MAX_SNAPSHOT_AGE_SECONDS=10800` (3 hours). The coordinator runs backup, then status, then due retention; it exits on backup failure, so this freshness check is not independent monitoring. A locked or expired GPG agent intentionally causes the password provider to fail without prompting; this is expected behavior, not a reason to bypass GPG or clear the retention hold. During Windows sleep or while WSL is stopped, do not expect backup opportunities or independent stale-snapshot alerts. A natural startup provides the next startup opportunity; the timer does not wake the machine or distro.
+
+A timer drop-in that clears monotonic expressions with an empty `OnBootSec=` or `OnUnitActiveSec=` must restate **both** `OnBootSec=2min` and `OnUnitActiveSec=2h`: systemd clears the entire monotonic timer list, not just that directive's entries. Verify the effective timer after reconciling an override; updating the base unit does not remove existing drop-ins.
 
 `setup.sh` installs the units but never enables the timer. [`MIGRATION.md`](MIGRATION.md) owns the explicit inventory, Linux preflight, cutover, rollback, observation, and later deletion procedure. Windows integration remains limited to whole-system export and future visible-consent/power boundaries.
 

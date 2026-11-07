@@ -81,7 +81,7 @@ See [`TESTING.md`](TESTING.md) for stable contracts, mutation evidence, and expl
 
 ## Scheduling and recovery status
 
-Linux-owned scheduler source is integrated at `f41a315`; Windows must not wake or poll WSL for routine Linux work. Historical production state and old-task evidence remain in `STATUS.md`; do not treat them as a live health check.
+Linux-owned scheduler source is integrated at `f41a315`; Windows must not wake or poll WSL for routine Linux work. The selected source defaults are `OnBootSec=2min`, `OnUnitActiveSec=2h`, and a 3-hour snapshot freshness limit (`MAX_SNAPSHOT_AGE_SECONDS=10800`). Backup runs before status and due retention; backup failure blocks both, so freshness is not independent monitoring. Locked/expired GPG-agent password-unlock failures are intentional. Sleep or a stopped distro provides no backup opportunities; Windows must not wake it to compensate. See [home scheduling](home/README.md#scheduling) for timer override/reset and credential behavior. Historical production state and old-task evidence remain in `STATUS.md`; do not treat them as a live health check.
 
 Fresh Debian4 backup scope follows selected capabilities and data. The old six-task migration and retired Debian3 recovery work are not the immediate queue. The retained Windows Phase 1–3 source is fixture/design evidence, not the routine production scheduler.
 

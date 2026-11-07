@@ -65,6 +65,12 @@ assert_file "$install_root/etc/restic/home.conf"
 assert_file "$install_root/usr/local/sbin/wsl-home-scheduler"
 assert_file "$install_root/etc/systemd/system/wsl-home-scheduler.service"
 assert_file "$install_root/etc/systemd/system/wsl-home-scheduler.timer"
+grep -Fxq 'OnBootSec=2min' "$install_root/etc/systemd/system/wsl-home-scheduler.timer" ||
+  fail 'installed timer lost its natural-startup opportunity'
+grep -Fxq 'OnUnitActiveSec=2h' "$install_root/etc/systemd/system/wsl-home-scheduler.timer" ||
+  fail 'installed timer drifted from the selected two-hour cadence'
+grep -Fxq 'MAX_SNAPSHOT_AGE_SECONDS=10800' "$install_root/etc/restic/home.conf" ||
+  fail 'installed configuration drifted from the selected three-hour freshness limit'
 grep -F 'unset RESTIC_PASSWORD RESTIC_PASSWORD_FILE RESTIC_PASSWORD_COMMAND' \
   "$ROOT/home/test-restic-recovery-password" >/dev/null || fail 'recovery tester permits runtime credential fallback'
 grep -F -- '--password-file /dev/fd/3' "$ROOT/home/test-restic-recovery-password" >/dev/null ||
